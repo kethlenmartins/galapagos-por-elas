@@ -1,0 +1,57 @@
+/* Diagnóstico de fit: introdução, perguntas A/B/C e revisão. */
+
+.diagnostico-estado { padding: var(--space-10); text-align: center; color: var(--ink-600); }
+
+.diagnostico-bloco { display: grid; gap: var(--space-4); padding: var(--space-8); border-radius: var(--radius-lg); background: var(--white); box-shadow: var(--shadow); }
+.diagnostico-bloco > .round-icon { justify-self: center; }
+.diagnostico-bloco > h1 { font-size: 28px; line-height: 1.2; }
+.diagnostico-bloco > p { color: var(--ink-700); }
+
+.diagnostico-lista { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.diagnostico-lista li { display: grid; grid-template-columns: 22px 1fr; gap: var(--space-3); align-items: start; color: var(--ink-700); }
+.diagnostico-lista svg { margin-top: 2px; color: var(--blue-600); }
+
+.diagnostico-consentimento { padding: var(--space-4); border-radius: var(--radius-sm); background: var(--blue-50); color: var(--ink-700); font-size: 13px; }
+.diagnostico-consentimento .text-link { display: inline; min-height: 0; font-size: inherit; text-decoration: underline; }
+
+.diagnostico-acoes { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-5); }
+.diagnostico-acoes-centro { justify-content: center; margin-top: var(--space-2); }
+
+.pergunta-numero { margin-right: var(--space-1); color: var(--blue-700); font-weight: 800; }
+
+/* Três opções, com o mesmo peso visual: a C não pode parecer "pular". */
+.opcoes-abc { display: grid; gap: var(--space-3); min-width: 0; margin: 0; padding: 0; border: 0; }
+.opcao-abc { position: relative; display: grid; grid-template-columns: 36px 1fr 22px; gap: var(--space-3); align-items: center; min-height: 60px; padding: var(--space-3) var(--space-4); border: 2px solid var(--ink-200); border-radius: var(--radius-sm); background: var(--white); cursor: pointer; transition: border-color var(--transition), background var(--transition); }
+.opcao-abc input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.opcao-abc:hover { border-color: var(--blue-500); }
+.opcao-abc:focus-within { outline: 3px solid var(--blue-500); outline-offset: 2px; }
+.opcao-abc.ativa { border-color: var(--blue-600); background: var(--blue-50); }
+.opcao-letra { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--blue-100); color: var(--blue-700); font-weight: 800; }
+.opcao-abc.ativa .opcao-letra { background: var(--blue-600); color: var(--white); }
+.opcao-estado { color: var(--blue-600); }
+.opcoes-abc:disabled .opcao-abc { cursor: progress; }
+
+/* O rótulo do progresso não quebra em duas linhas. */
+.diagnostic-progress span { white-space: nowrap; }
+
+/* Revisão antes do envio */
+.diagnostico-revisao .bubble { max-width: 100%; }
+.revisao-lista { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.revisao-item { display: grid; grid-template-columns: 32px 1fr auto; gap: var(--space-3); align-items: center; padding: var(--space-3) var(--space-4); border: 1px solid var(--ink-200); border-radius: var(--radius-sm); background: var(--white); }
+.revisao-item strong { display: block; font-size: 14px; }
+.revisao-item small { display: block; color: var(--ink-600); font-size: 12px; }
+.revisao-item.faltando { border-color: var(--warning); background: var(--warning-bg); }
+.revisao-numero { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--blue-100); color: var(--blue-700); font-size: 12px; font-weight: 800; }
+
+.visualmente-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .diagnostico-bloco { padding: var(--space-5) var(--space-4); }
+  .diagnostico-bloco > h1 { font-size: 24px; }
+  .conversation-log, .answer-panel { padding: var(--space-5) var(--space-4); }
+  .bubble { max-width: 94%; }
+  .diagnostico-acoes > .btn { flex: 1; }
+  .revisao-item { grid-template-columns: 28px 1fr; }
+  .revisao-item .text-link { grid-column: 2; justify-self: start; }
+}
+@media (prefers-reduced-motion: reduce) { .opcao-abc { transition: none; } }

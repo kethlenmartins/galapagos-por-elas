@@ -1,0 +1,22 @@
+# dependências e build
+node_modules/
+dist/
+*.tsbuildinfo
+
+# segredos e ambiente
+.env
+.env.*
+!.env.example
+
+# sistema e editor
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# temporários
+.claude/
+coverage/
+
+# material de terceiros (Elas na Ilha): direitos de imagem e conteúdo em aberto; manter só local
+docs/referencias/

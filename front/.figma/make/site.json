@@ -1,0 +1,10 @@
+{
+  "description": "Explore and interact with the content shared in the attached material to quickly find relevant information and resources.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
