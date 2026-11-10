@@ -1,0 +1,30 @@
+databases:
+  - name: galapagos-piloto-db
+    plan: basic-256mb
+    databaseName: galapagos
+    user: galapagos
+    ipAllowList: []
+
+services:
+  - type: web
+    name: galapagos-piloto
+    runtime: node
+    plan: starter
+    buildCommand: cd front && pnpm install --frozen-lockfile && VITE_API_URL=/api pnpm build && cd ../backend && pnpm install --frozen-lockfile && pnpm build
+    startCommand: cd backend && pnpm db:migrate && pnpm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: APP_ORIGIN
+        sync: false
+      - key: TERMS_VERSION
+        value: "1"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: galapagos-piloto-db
+          property: connectionString

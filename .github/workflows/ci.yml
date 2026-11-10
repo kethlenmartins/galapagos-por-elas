@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality-and-e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: galapagos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d galapagos"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            front/pnpm-lock.yaml
+            backend/pnpm-lock.yaml
+      - name: Install backend dependencies
+        working-directory: backend
+        run: pnpm install --frozen-lockfile
+      - name: Install front dependencies
+        working-directory: front
+        run: pnpm install --frozen-lockfile
+      - name: Build and typecheck
+        run: |
+          pnpm --dir backend build
+          pnpm --dir front typecheck
+          pnpm --dir front build
+      - name: Existing mock and fit tests
+        working-directory: backend
+        run: pnpm exec tsx --test ../front/src/services/mock/mock.test.ts ../front/src/services/mock/trilha.test.ts ../front/src/services/fit/motor.test.ts
+      - name: Migrate and seed PostgreSQL
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/galapagos
+        run: |
+          pnpm db:migrate
+          psql "$DATABASE_URL" -f seed/piloto.sql
+      - name: Start API and run E2E
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/galapagos
+          SESSION_SECRET: ci-only-secret-with-more-than-32-bytes
+          APP_ORIGIN: http://127.0.0.1:3000
+          COOKIE_SECURE: "false"
+        run: |
+          pnpm exec tsx src/server.ts > /tmp/gpe-api.log 2>&1 &
+          API_PID=$!
+          trap 'kill "$API_PID"' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail http://127.0.0.1:3000/api/health; then break; fi
+            sleep 1
+          done
+          E2E_API_URL=http://127.0.0.1:3000/api node e2e/piloto.mjs

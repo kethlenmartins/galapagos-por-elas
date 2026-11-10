@@ -20,7 +20,7 @@ Feito
 
 A decidir
 - [x] **Cases como trilha (base e telas principais):** contratos, mock, testes e as telas do mapa da trilha, do case por etapas, dos certificados (PDF e LinkedIn) e da validação pública estão prontas (ver `PRD_Cases_Trilha.md`). Falta: fechar o corte do prazo, quando sai o resultado e quantos cases há no lançamento; treino, defesa com comitê e rubrica. Todas as telas já leem dos serviços (Home, extrato, nível, conteúdos, perfil, onboarding e admin de cases, conteúdos e correção); só a Landing mantém um exemplo ilustrativo `G`
-- [ ] Decidir e registrar como ADR: backend próprio (linguagem e framework), banco de dados e hospedagem. **Decidido:** autenticação própria, sem provedores externos; IA pela API da OpenAI `M`
+- [x] Decidir e registrar como ADR: backend próprio (TypeScript + Node/Fastify), PostgreSQL/Drizzle e hospedagem Render. **Decidido:** autenticação própria, sem provedores externos; ver `docs/adr/0001-stack-e-escopo-do-piloto.md` `M`
 - [ ] Escolher o modelo da API da OpenAI, definir o **teto de gasto** na conta e revisar os termos de dados e de retenção da API (LGPD) `M`
 - [ ] Definir se a verificação de e-mail entra no MVP `P`
 - [ ] Definir idade mínima e tratamento de menores `P`
@@ -35,8 +35,8 @@ A decidir
 - [ ] Levantar a identidade visual da Galapagos (logo, cores, fonte) `P`
 
 Fundação técnica
-- [ ] Criar o repositório com a estrutura do projeto, lint, formatação e CI básico `M`
-- [ ] Criar os ambientes de **desenvolvimento** e **produção** (banco e servidor separados) `M`
+- [ ] Criar a estrutura do backend, lint, formatação e CI básico `M`
+- [x] Escopo do piloto definido para um único ambiente Render; Blueprint preparado em `render.yaml` (provisionamento aguarda autorização/conta Render) `M`
 - [ ] Configurar gestão de segredos (chave da OpenAI, segredo de sessão e acesso ao banco em variáveis de ambiente; nada no repositório) `M`
 - [ ] **Decidir como enviar o e-mail de redefinição de senha:** sem provedor externo é preciso um servidor SMTP próprio; sem e-mail, a recuperação de senha não funciona (alternativa: redefinição pela equipe) `M`
 
@@ -62,8 +62,8 @@ Fundação técnica
 
 **Trilha B.** **Entrega:** banco, autenticação própria funcionando e papéis, com autorização em toda rota. Pode andar em paralelo com a Etapa 1.
 
-- [ ] Criar o schema a partir dos contratos: `perfis`, `areas`, `avaliacoes_diagnostico`, `resultados_diagnostico`, `cases`, `checkpoints`, `tarefas`, `gabaritos`, `entregas`, `correcoes`, `conteudos`, `eventos_pontos`, `certificados`, `logs_ia` `G`
-- [ ] Migrações versionadas no repositório `M`
+- [x] Schema inicial para contas/sessões, diagnósticos, cases, checkpoints, tarefas, entregas e eventos de pontos em `backend/src/db/schema.ts` `G`
+- [x] Migração inicial versionada em `backend/drizzle/` `M`
 - [ ] **Autorização em toda rota da API** (dona só vê o que é dela; gabarito e `logs_ia` só para a equipe; admin só com papel `equipe`); RLS adicional se o banco for Postgres `G`
 - [ ] Autenticação própria: cadastro, login, logout e sair de todos os aparelhos; senha com hash lento e sal (argon2id ou bcrypt); sessão em cookie `httpOnly`/`Secure`/`SameSite` com expiração; proteção contra CSRF `G`
 - [ ] Recuperação e redefinição de senha com token aleatório, de uso único, validade curta e guardado só como hash `M`
@@ -77,7 +77,7 @@ Fundação técnica
 
 **Trilha F+B.** **Entrega:** cadastro, login, perfil e rotas protegidas reais.
 
-- [ ] Implementar o adaptador real de sessão (cadastrar, entrar, sair, recuperar e redefinir senha) `M`
+- [x] Adaptador HTTP para cadastro/login/logout, selecionado com `VITE_API_URL`; mock continua padrão sem variável `M`
 - [ ] Guarda de rota por login e por papel (403 para quem não é equipe) `M`
 - [ ] Sessão expirada e sair de todos os aparelhos `P`
 - [ ] Verificação de e-mail (se decidido) `P`
@@ -107,7 +107,7 @@ Diagnóstico **[B]** (sem IA; o motor de referência já existe em `front/src/se
 - [ ] Validar com participantes reais e com profissionais de cada área (PRD, seção 11: pesos, referências e explicações ainda sem validação empírica) `G`
 
 Integração **[F+B]**
-- [ ] Adaptador real do diagnóstico e do resultado `M`
+- [x] Adaptador HTTP de diagnóstico e resultado; cálculo usa motor determinístico versionado `M`
 - [ ] Toast de pontos a partir dos eventos retornados `P`
 - [ ] Testar com perfis de exemplo para checar se o resultado faz sentido para a equipe `M`
 
@@ -129,7 +129,7 @@ Participante **[B]**
 - [ ] Pontos por checkpoint e por entrega `P`
 
 Integração **[F+B]**
-- [ ] Adaptadores reais de case, tarefa, entrega e admin de cases `G`
+- [x] Rotas de início de case, tarefa, rascunho, checkpoint, entrega e resultado publicado `G`
 - [ ] Upload de arquivos da entrega (storage com acesso restrito à dona) `M`
 - [ ] Criar o **case real do teste** com a equipe (da geração à publicação) `G`
 
@@ -177,7 +177,7 @@ Segurança
 - [ ] Conformidade LGPD: política, consentimento, exportação e exclusão `M`
 
 Qualidade
-- [ ] Testes ponta a ponta do fluxo completo (participante e equipe) `G`
+- [x] E2E API de cadastro → diagnóstico → checkpoints → envio → publicação direta no banco → leitura do resultado (`backend/e2e/piloto.mjs`) `G`
 - [ ] Teste de carga para o pico de segunda (liberação) e sexta (prazo) `M`
 - [ ] Revisão de acessibilidade WCAG AA e teste em celulares reais `M`
 
