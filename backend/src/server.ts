@@ -1,11 +1,10 @@
 import Fastify, { type FastifyRequest } from 'fastify'
 import cookie from '@fastify/cookie'
+import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
-import fastifyStatic from '@fastify/static'
 import { randomBytes, createHmac } from 'node:crypto'
-import path from 'node:path'
-import { eq, and, isNull, desc } from 'drizzle-orm'
+import { eq, and, isNull, desc, sql } from 'drizzle-orm'
 import argon2 from 'argon2'
 import { z } from 'zod'
 import { db } from './db/client.js'
@@ -16,9 +15,11 @@ const app = Fastify({ logger: true, trustProxy: true })
 const secure = process.env.COOKIE_SECURE !== 'false'
 const sessionSecret = process.env.SESSION_SECRET
 if (!sessionSecret || Buffer.byteLength(sessionSecret) < 32) throw new Error('SESSION_SECRET precisa ter pelo menos 32 bytes.')
+if (process.env.NODE_ENV === 'production' && !process.env.APP_ORIGIN) throw new Error('APP_ORIGIN precisa ser a origem HTTPS do Static Site.')
 const hash = (value: string) => createHmac('sha256', sessionSecret).update(value).digest('hex')
 await app.register(cookie)
 await app.register(helmet)
+await app.register(cors, { origin: process.env.APP_ORIGIN ?? false, credentials: true, methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'] })
 await app.register(rateLimit, { max: 100, timeWindow: '1 minute' })
 
 app.addHook('preHandler', async (req, reply) => {
@@ -33,7 +34,14 @@ app.addHook('preHandler', async (req, reply) => {
   }
 })
 
-app.get('/api/health', async () => ({ ok: true }))
+app.get('/api/health', async (_req, reply) => {
+  try {
+    await db.execute(sql`select 1`)
+    return { ok: true }
+  } catch {
+    return reply.code(503).send({ ok: false })
+  }
+})
 app.get('/api/assessment/config', async () => ({ dados: configuracaoPublica(), erro: null }))
 
 app.post('/api/session/register', { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } }, async (req, reply) => {
@@ -45,7 +53,7 @@ app.post('/api/session/register', { config: { rateLimit: { max: 5, timeWindow: '
   const [user] = await db.insert(users).values({ name: body.data.nome, email, passwordHash: await argon2.hash(body.data.senha), acceptedTermsAt: new Date(), termsVersion: process.env.TERMS_VERSION ?? '1' }).returning()
   const token = randomBytes(32).toString('base64url')
   await db.insert(sessions).values({ userId: user.id, tokenHash: hash(token), expiresAt: new Date(Date.now() + 7 * 86400000) })
-  reply.setCookie('gpe_session', token, { httpOnly: true, secure, sameSite: 'lax', path: '/', maxAge: 604800 })
+  reply.setCookie('gpe_session', token, { httpOnly: true, secure, sameSite: secure ? 'none' : 'lax', path: '/', maxAge: 604800 })
   return { dados: { id: user.id, nome: user.name, email: user.email, papel: user.role, perfilCompleto: false }, erro: null }
 })
 
@@ -56,7 +64,7 @@ app.post('/api/session/login', { config: { rateLimit: { max: 5, timeWindow: '15 
   if (!user || !(await argon2.verify(user.passwordHash, body.data.senha))) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'E-mail ou senha inválidos.' } })
   const token = randomBytes(32).toString('base64url')
   await db.insert(sessions).values({ userId: user.id, tokenHash: hash(token), expiresAt: new Date(Date.now() + 7 * 86400000) })
-  reply.setCookie('gpe_session', token, { httpOnly: true, secure, sameSite: 'lax', path: '/', maxAge: 604800 })
+  reply.setCookie('gpe_session', token, { httpOnly: true, secure, sameSite: secure ? 'none' : 'lax', path: '/', maxAge: 604800 })
   return { dados: { id: user.id, nome: user.name, email: user.email, papel: user.role, perfilCompleto: false }, erro: null }
 })
 
@@ -252,12 +260,6 @@ app.get('/api/cases/:caseId/result', async (req, reply) => {
 })
 
 const start = async () => {
-  const staticRoot = path.resolve(process.env.FRONT_DIST ?? '../front/dist')
-  await app.register(fastifyStatic, { root: staticRoot, wildcard: false })
-  app.setNotFoundHandler(async (req, reply) => {
-    if (req.url.startsWith('/api/')) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Rota não encontrada.' } })
-    return reply.sendFile('index.html')
-  })
   await app.listen({ port: Number(process.env.PORT ?? 3000), host: '0.0.0.0' })
 }
 start()

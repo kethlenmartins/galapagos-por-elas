@@ -2,10 +2,11 @@ import assert from 'node:assert/strict'
 import pg from 'pg'
 
 const base = process.env.E2E_API_URL ?? 'http://127.0.0.1:3000/api'
+const origin = process.env.E2E_ORIGIN ?? new URL(base).origin
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
 let cookie = ''
 async function request(path, { method = 'GET', body } = {}) {
-  const response = await fetch(base + path, { method, headers: { ...(body ? { 'content-type': 'application/json' } : {}), ...(['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) ? { origin: new URL(base).origin } : {}), ...(cookie ? { cookie } : {}) }, body: body ? JSON.stringify(body) : undefined })
+  const response = await fetch(base + path, { method, headers: { ...(body ? { 'content-type': 'application/json' } : {}), ...(['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) ? { origin } : {}), ...(cookie ? { cookie } : {}) }, body: body ? JSON.stringify(body) : undefined })
   const setCookie = response.headers.get('set-cookie')
   if (setCookie) cookie = setCookie.split(';')[0]
   const data = await response.json()
@@ -14,6 +15,9 @@ async function request(path, { method = 'GET', body } = {}) {
 }
 
 try {
+  const preflight = await fetch(`${base}/session/login`, { method: 'OPTIONS', headers: { origin, 'access-control-request-method': 'POST', 'access-control-request-headers': 'content-type' } })
+  assert.equal(preflight.headers.get('access-control-allow-origin'), origin)
+  assert.equal(preflight.headers.get('access-control-allow-credentials'), 'true')
   const email = `e2e-${Date.now()}@example.test`
   const session = await request('/session/register', { method: 'POST', body: { nome: 'Participante E2E', email, senha: 'SenhaSegura!123', aceitouTermos: true } })
   assert.equal(session.papel, 'participante')

@@ -21,7 +21,7 @@ Plataforma web (desktop e mobile) para meninas e mulheres que querem entrar no m
 
 - **Front-end** (`front/`): pronto, em React + Vite + TypeScript, rodando sobre um adaptador mock.
 - **Camada de serviços** (`front/src/services/`): `contratos.ts` é a especificação do backend e `mock/` é a implementação de referência.
-- **Backend:** a construir. Ver `docs/HANDOFF.md`.
+- **Backend:** API piloto em `backend/`, com PostgreSQL, autenticação e fluxo de diagnóstico/case; ver `backend/README.md`.
 
 ## Rodando o front
 
@@ -46,3 +46,19 @@ Contas de demonstração (senha `Senha123`): `marina@email.com` (participante) e
 | `IA.md` | Onde a IA entra |
 | `TODO.md` | Etapas e backlog |
 | `HANDOFF.md`, `PROMPT-AGENTE-BACKEND.md` | Passagem para o desenvolvimento do backend |
+# Deploy gratuito no Render
+
+O Blueprint em [`render.yaml`](render.yaml) cria três recursos gratuitos no mesmo repo: Static Site para `front/` (`dist`), Web Service para `backend/` e PostgreSQL Free. Não execute deploy até conferir custos/limites no painel: o tier gratuito é para teste, a API pode dormir em inatividade, e o banco Free expira em 30 dias sem backup automático.
+
+Passos no painel:
+
+1. Em **New → Blueprint**, conecte o repositório privado e confirme o `render.yaml` na raiz.
+2. Antes de confirmar, confira a lista: `galapagos-piloto-front` como Static Site (sem plano de computação), `galapagos-piloto-api` com plano `Free` e `galapagos-piloto-db` com plano `Free`. Não aceite alterações para planos pagos.
+3. Aplique o Blueprint. As URLs públicas dos serviços são referenciadas automaticamente para `APP_ORIGIN` e `VITE_API_URL`; `SESSION_SECRET` é gerado e `DATABASE_URL` usa a conexão interna do banco.
+4. Espere o deploy da API e do front. Registre a data de criação do Postgres e agende o dump até o dia 20.
+5. No terminal, autentique o Render CLI (`render login`) e aplique o case uma vez: `render psql galapagos-piloto-db -- -f backend/seed/piloto.sql`.
+6. Valide os endpoints e o fluxo descritos abaixo. O banco tem 1 GB, expira após 30 dias e não possui backup gerenciado.
+
+O Blueprint resolve automaticamente as URLs públicas: injeta a URL da API no build do front como `VITE_API_URL=https://<api>.onrender.com/api` e define `APP_ORIGIN` com a URL pública do Static Site. Gera `SESSION_SECRET`, referencia `DATABASE_URL` e define `COOKIE_SECURE=true`. A API restringe CORS à origem declarada e usa cookies `Secure`, `HttpOnly`, `SameSite=None` para chamadas com credenciais entre os hostnames Render. Migrações rodam ao iniciar a API; carregue `backend/seed/piloto.sql` uma única vez após a primeira migração, por `render psql <nome-ou-id-do-banco> -- -f backend/seed/piloto.sql`.
+
+Valide `/api/health`, cadastro/login, diagnóstico, case, envio e publicação de resultado. O roteiro detalhado, comando de seed e operação de backup/restauração antes do vencimento do banco estão em [`backend/README.md`](backend/README.md). Não adicione método de pagamento se quiser que exceder quotas gratuitas suspenda o serviço em vez de gerar cobrança; Static Sites e Web Services gratuitos também contam para quotas compartilhadas de uso/build.
