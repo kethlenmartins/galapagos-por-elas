@@ -4,8 +4,18 @@ import { servicosMock } from './mock/index.ts'
 const base = import.meta.env.VITE_API_URL ?? '/api'
 async function api<T>(path: string, init: RequestInit = {}): Promise<Resultado<T>> {
   try {
-    const response = await fetch(`${base}${path}`, { ...init, credentials: 'include', headers: { 'content-type': 'application/json', ...init.headers } })
-    const payload = await response.json()
+    // Fastify rejeita `application/json` sem corpo. Só declaramos JSON quando
+    // há um payload para serializar (por exemplo, POST /assessment/start não tem).
+    const headers = new Headers(init.headers)
+    if (init.body && !headers.has('content-type')) headers.set('content-type', 'application/json')
+    const response = await fetch(`${base}${path}`, { ...init, credentials: 'include', headers })
+    const payload: unknown = await response.json().catch(() => null)
+    if (!response.ok) {
+      const erro = typeof payload === 'object' && payload !== null && 'erro' in payload
+        ? (payload as { erro: Resultado<T>['erro'] }).erro
+        : null
+      return { dados: null, erro: erro ?? { codigo: 'REDE', mensagem: 'Não foi possível concluir a solicitação. Tente novamente.' } }
+    }
     return payload as Resultado<T>
   } catch {
     return { dados: null, erro: { codigo: 'REDE', mensagem: 'Não foi possível conectar. Tente novamente.' } }
