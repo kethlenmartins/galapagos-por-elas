@@ -75,9 +75,21 @@ const caso: Servicos['caso'] = {
     const listed = await api<Array<{ id: string; titulo: string; areaId: string; resumo: string }>>('/cases')
     if (listed.erro) return listed as never
     const state = await api<EstadoDiagnostico>('/assessment/state')
+    if (state.erro) return state as never
     const complete = state.dados?.status === 'concluido'
-    const cases = listed.dados!.map(c => ({ caseId: c.id, titulo: c.titulo, areaId: c.areaId, area: c.areaId, resumo: c.resumo, estado: complete ? 'disponivel' as const : 'bloqueado' as const, posicaoNoFit: null, noTop3: false, sugerido: false, motivoBloqueio: complete ? null : 'Conclua o diagnóstico primeiro.', prazoEm: null, progresso: { concluidos: 0, total: 0 }, certificadoId: null, refazer: false }))
-    return { dados: { diagnosticoConcluido: complete, primeiroCaseConcluido: false, semana: { inicioEm: new Date().toISOString(), fimEm: new Date().toISOString() }, escolhaDaSemana: null, podeEscolher: complete, motivoNaoPodeEscolher: complete ? null : 'Conclua o diagnóstico primeiro.', cases }, erro: null }
+    const detalhes = await Promise.all(listed.dados!.map(c => api<{ estado: 'disponivel' | 'em_andamento' | 'em_avaliacao'; prazoEm: string | null; checkpoints: Array<{ status: string }> }>(`/cases/${encodeURIComponent(c.id)}`)))
+    const falha = detalhes.find(r => r.erro)?.erro
+    if (falha) return { dados: null, erro: falha }
+    const cases = listed.dados!.map((c, index) => {
+      const detalhe = detalhes[index].dados!
+      const estado = complete ? detalhe.estado : 'bloqueado' as const
+      const total = detalhe.checkpoints.length
+      const concluidos = detalhe.checkpoints.filter(checkpoint => checkpoint.status === 'concluido').length
+      return { caseId: c.id, titulo: c.titulo, areaId: c.areaId, area: c.areaId, resumo: c.resumo, estado, posicaoNoFit: null, noTop3: false, sugerido: false, motivoBloqueio: complete ? null : 'Conclua o diagnóstico primeiro.', prazoEm: detalhe.prazoEm, progresso: { concluidos, total }, certificadoId: null, refazer: false }
+    })
+    const caseAtivo = cases.find(c => c.estado === 'em_andamento' || c.estado === 'em_avaliacao')
+    const motivo = !complete ? 'Conclua o diagnóstico primeiro.' : caseAtivo ? `Continue o case em andamento: ${caseAtivo.titulo}.` : null
+    return { dados: { diagnosticoConcluido: complete, primeiroCaseConcluido: false, semana: { inicioEm: new Date().toISOString(), fimEm: new Date().toISOString() }, escolhaDaSemana: caseAtivo?.caseId ?? null, podeEscolher: !motivo, motivoNaoPodeEscolher: motivo, cases }, erro: null }
   },
   escolherCase: async caseId => {
     const r = await api<{ enrollmentId: string }>('/cases/' + encodeURIComponent(caseId) + '/start', { method: 'POST' })
@@ -88,6 +100,7 @@ const caso: Servicos['caso'] = {
   obterTarefa: tarefaId => api(`/tasks/${encodeURIComponent(tarefaId)}`),
   salvarRascunho: (tarefaId, respostas) => api(`/tasks/${encodeURIComponent(tarefaId)}/draft`, { method: 'PUT', body: JSON.stringify({ respostas }) }),
   concluirCheckpoint: checkpointId => api(`/checkpoints/${encodeURIComponent(checkpointId)}/complete`, { method: 'POST' }),
+  reabrirCheckpoint: checkpointId => api(`/checkpoints/${encodeURIComponent(checkpointId)}/reopen`, { method: 'POST' }),
   enviarCase: caseId => api(`/cases/${encodeURIComponent(caseId)}/submit`, { method: 'POST' }),
   obterResultadoCase: caseId => api(`/cases/${encodeURIComponent(caseId)}/result`),
   pedirRevisao: (tarefaId, motivo) => api('/reviews', { method: 'POST', body: JSON.stringify({ tarefaId, motivo }) }),

@@ -502,6 +502,8 @@ export interface CaseService {
    * checkpoint uma única vez. Depois de concluído, as respostas ficam travadas.
    */
   concluirCheckpoint(checkpointId: string): Promise<Resultado<{ eventos: EventoPontos[] }>>
+  /** Antes do envio, reabre este checkpoint e os posteriores. As respostas salvas são mantidas para edição e pontos não se repetem. */
+  reabrirCheckpoint(checkpointId: string): Promise<Resultado<true>>
   /** Exige todos os checkpoints concluídos e o prazo aberto. Dispara a correção. Não concede pontos: os checkpoints já pagaram. */
   enviarCase(caseId: string): Promise<Resultado<{ entregaId: string }>>
   obterResultadoCase(caseId: string): Promise<Resultado<ResultadoCase>>

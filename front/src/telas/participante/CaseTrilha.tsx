@@ -114,8 +114,12 @@ function ConteudosDeApoio({ caseId }: { caseId: string }) {
     conteudoService.listarConteudos({ caseId }).then(r => r.dados && setLista(r.dados))
   }, [caseId])
   if (lista.length === 0) return null
-  return <section className="case-apoio" aria-label="Conteúdos de apoio"><h3>Conteúdos de apoio</h3>
-    <ul>{lista.map(c => <li key={c.id}><button className="text-link" onClick={() => irParaConteudo(c.id)}>{c.titulo}</button><small>{c.minutos} min{c.concluido ? ' · concluído' : ''}</small></li>)}</ul></section>
+  const tipo: Record<Conteudo['tipo'], string> = { artigo: 'Artigo', video: 'Vídeo', glossario: 'Glossário', link: 'Link externo' }
+  return <section className="case-apoio" aria-label="Conteúdos de apoio"><div className="case-apoio-titulo"><div><span className="eyebrow">PARA TE APOIAR</span><h3>Conteúdos do case</h3></div><span>{lista.filter(c => c.concluido).length} de {lista.length} concluídos</span></div>
+    <ul>{lista.map(c => <li key={c.id} className={c.concluido ? 'concluido' : ''}><button onClick={() => irParaConteudo(c.id)}>
+      <span className="case-apoio-tipo">{tipo[c.tipo]}</span><strong>{c.titulo}</strong><small>{c.resumo}</small>
+      <span className="case-apoio-meta"><span><Icon name="clock" size={14}/> {c.minutos} min</span><b>{c.concluido ? <><Icon name="check" size={14}/> Concluído</> : 'Pendente'}</b><em>{c.tipo === 'artigo' ? 'Ler artigo →' : 'Abrir conteúdo →'}</em></span>
+    </button></li>)}</ul></section>
 }
 
 function PainelEntenda({ caso, checkpoint, ocupado, aoConcluir }: { caso: CaseTrilha; checkpoint: Checkpoint; ocupado: boolean; aoConcluir: () => void }) {
@@ -308,6 +312,16 @@ export function CasePage() {
     await carregar()
   }
 
+  const refazerEtapa = async (checkpoint: Checkpoint) => {
+    if (!window.confirm(`Refazer “${checkpoint.titulo}”? Esta etapa e as seguintes voltarão a ficar pendentes. Suas respostas serão mantidas para você editar.`)) return
+    setOcupado(true)
+    setErroGeral('')
+    const r = await caseService.reabrirCheckpoint(checkpoint.id)
+    setOcupado(false)
+    if (r.erro) return falhou(r.erro)
+    await carregar()
+  }
+
   const alerta = erroGeral && <div className="alert alert-error" role="alert"><p>{erroGeral}</p></div>
   const ativo = caso?.estado === 'em_andamento' ? caso.checkpoints.find(c => c.status !== 'concluido') : undefined
   const feitos = caso?.checkpoints.filter(c => c.status === 'concluido').length ?? 0
@@ -336,13 +350,17 @@ export function CasePage() {
 
       {caso.estado !== 'bloqueado' && caso.estado !== 'disponivel' && <ConteudosDeApoio caseId={caso.id}/>}
 
-      <ol className="case-etapas" aria-label="Etapas do case">
-        {caso.checkpoints.map(c => <li key={c.id} className={`case-etapa ${c.status} ${ativo?.id === c.id ? 'atual' : ''}`} aria-current={ativo?.id === c.id ? 'step' : undefined}>
-          <span className="case-etapa-n" aria-hidden="true">{c.status === 'concluido' ? '✓' : c.ordem}</span>
-          <span className="case-etapa-texto"><small>{ROTULO_ETAPA[c.etapa]}</small><strong>{c.titulo}</strong></span>
-          <span className="case-etapa-pts">{c.status === 'concluido' ? 'Concluído' : `+${c.pontos} pts`}</span>
-        </li>)}
-      </ol>
+      <details className="case-etapas-details">
+        <summary><span>Etapas do case</span><small>{feitos} de {total} concluídas</small><Icon name="chevron" size={18}/></summary>
+        <ol className="case-etapas" aria-label="Etapas do case">
+          {caso.checkpoints.map(c => <li key={c.id} className={`case-etapa ${c.status} ${ativo?.id === c.id ? 'atual' : ''}`} aria-current={ativo?.id === c.id ? 'step' : undefined}>
+            <span className="case-etapa-n" aria-hidden="true">{c.status === 'concluido' ? '✓' : c.ordem}</span>
+            <span className="case-etapa-texto"><small>{ROTULO_ETAPA[c.etapa]}</small><strong>{c.titulo}</strong></span>
+            <span className="case-etapa-pts">{c.status === 'concluido' ? 'Concluído' : `+${c.pontos} pts`}</span>
+            {c.status === 'concluido' && caso.estado === 'em_andamento' && <button className="text-link case-etapa-refazer" onClick={() => refazerEtapa(c)} disabled={ocupado}>Refazer</button>}
+          </li>)}
+        </ol>
+      </details>
 
       {caso.contexto && <details className="case-contexto" open={!ativo || ativo.etapa !== 'entenda'}><summary>O contexto do case</summary><p>{caso.contexto}</p></details>}
 

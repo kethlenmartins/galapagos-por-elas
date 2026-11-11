@@ -31,8 +31,16 @@
 .case-progresso { display: grid; gap: var(--space-1); }
 .case-progresso span { color: var(--ink-600); font-size: 12px; }
 
+.case-etapas-details { border: 1px solid var(--ink-200); border-radius: var(--radius-sm); background: var(--white); }
+.case-etapas-details summary { display: grid; grid-template-columns: 1fr auto auto; gap: var(--space-3); align-items: center; min-height: 52px; padding: 0 var(--space-4); cursor: pointer; font-weight: 700; list-style: none; }
+.case-etapas-details summary::-webkit-details-marker { display: none; }
+.case-etapas-details summary small { color: var(--ink-600); font-size: 12px; font-weight: 500; }
+.case-etapas-details summary svg { transition: transform var(--transition); }
+.case-etapas-details[open] summary { border-bottom: 1px solid var(--ink-200); }
+.case-etapas-details[open] summary svg { transform: rotate(180deg); }
 .case-etapas { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
-.case-etapa { display: grid; grid-template-columns: 32px 1fr auto; gap: var(--space-3); align-items: center; padding: var(--space-3) var(--space-4); border: 1px solid var(--ink-200); border-radius: var(--radius-sm); background: var(--white); }
+.case-etapas-details .case-etapas { padding: var(--space-3); }
+.case-etapa { display: grid; grid-template-columns: 32px 1fr auto auto; gap: var(--space-3); align-items: center; padding: var(--space-3) var(--space-4); border: 1px solid var(--ink-200); border-radius: var(--radius-sm); background: var(--white); }
 .case-etapa-n { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--blue-100); color: var(--blue-700); font-size: 13px; font-weight: 800; }
 .case-etapa-texto small { display: block; color: var(--ink-600); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
 .case-etapa-pts { color: var(--pink-700); font-size: 12px; font-weight: 800; }
@@ -49,6 +57,22 @@
 .case-painel h2 { font-size: 24px; }
 .case-painel > p { color: var(--ink-700); }
 .case-acoes { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+.case-apoio { display: grid; gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--blue-200); border-radius: var(--radius-lg); background: var(--blue-50); }
+.case-apoio-titulo { display: flex; align-items: end; justify-content: space-between; gap: var(--space-3); }
+.case-apoio-titulo h3 { font-size: 18px; }
+.case-apoio-titulo > span { color: var(--blue-700); font-size: 12px; font-weight: 800; }
+.case-apoio ul { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.case-apoio li button { display: grid; grid-template-columns: auto 1fr; gap: var(--space-1) var(--space-3); width: 100%; padding: var(--space-4); border: 1px solid var(--blue-200); border-radius: var(--radius-sm); background: var(--white); color: var(--ink-900); text-align: left; cursor: pointer; }
+.case-apoio li button:hover, .case-apoio li button:focus-visible { border-color: var(--blue-600); box-shadow: 0 0 0 3px var(--blue-100); outline: 0; }
+.case-apoio-tipo { grid-row: span 2; align-self: start; padding: 4px 7px; border-radius: var(--radius-xs); background: var(--pink-100); color: var(--pink-700); font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.case-apoio li strong { font-size: 14px; }
+.case-apoio li small { color: var(--ink-600); font-size: 12px; }
+.case-apoio-meta { grid-column: 2; display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin-top: var(--space-2); color: var(--ink-600); font-size: 12px; }
+.case-apoio-meta span, .case-apoio-meta b { display: inline-flex; align-items: center; gap: 4px; }
+.case-apoio-meta b { color: var(--warning); }
+.case-apoio li.concluido .case-apoio-meta b { color: var(--success); }
+.case-apoio-meta em { margin-left: auto; color: var(--blue-700); font-style: normal; font-weight: 800; }
 
 .case-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-3); }
 .case-card { display: grid; align-content: start; gap: var(--space-2); padding: var(--space-4); border-radius: var(--radius-sm); background: var(--blue-50); }
@@ -104,6 +128,7 @@
   .case-painel { padding: var(--space-5) var(--space-4); }
   .case-etapa { grid-template-columns: 28px 1fr; }
   .case-etapa-pts { grid-column: 2; }
+  .case-etapa-refazer { grid-column: 2; justify-self: start; }
   .case-duas-colunas { grid-template-columns: 1fr; }
   .case-acoes > .btn, .trilha-acoes > .btn { flex: 1; }
 }

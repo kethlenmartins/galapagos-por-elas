@@ -321,6 +321,22 @@ export const caseService: CaseService = {
       return ok({ eventos: evento ? [evento] : [] })
     }),
 
+  reabrirCheckpoint: checkpointId =>
+    executarLogada(ctx => {
+      const { estado, usuario, agora } = ctx
+      const caso = casesVisiveis(estado, usuario.id).find(item => item.checkpoints.some(cp => cp.id === checkpointId))
+      if (!caso) return falha('NAO_ENCONTRADO', 'Checkpoint não encontrado.')
+      const situacao = situacaoDoCase(estado, usuario.id, caso, agora)
+      const bloqueio = naoEstaEmAndamento(situacao)
+      if (bloqueio) return bloqueio
+      const concluidos = concluidosDe(estado, usuario.id)
+      if (!concluidos.has(checkpointId)) return falha('VALIDACAO', 'Esta etapa ainda não foi concluída.')
+      const indice = ordenados(caso).findIndex(cp => cp.id === checkpointId)
+      const ids = new Set(ordenados(caso).slice(indice).map(cp => cp.id))
+      estado.checkpointsConcluidos[usuario.id] = (estado.checkpointsConcluidos[usuario.id] ?? []).filter(id => !ids.has(id))
+      return ok(true)
+    }),
+
   enviarCase: caseId =>
     executarLogada(ctx => {
       const caso = casesVisiveis(ctx.estado, ctx.usuario.id).find(c => c.id === caseId)

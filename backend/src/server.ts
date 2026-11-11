@@ -4,7 +4,7 @@ import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
 import { randomBytes, createHmac, randomUUID } from 'node:crypto'
-import { eq, and, isNull, desc, sql } from 'drizzle-orm'
+import { eq, and, isNull, desc, sql, inArray } from 'drizzle-orm'
 import argon2 from 'argon2'
 import { z } from 'zod'
 import { db } from './db/client.js'
@@ -333,6 +333,23 @@ app.post('/api/checkpoints/:checkpointId/complete', async (req, reply) => {
   }
   const [event] = await db.insert(pointEvents).values({ userId: user.id, actionKey: `checkpoint:${enrollment.id}:${cp.id}`, action: 'Checkpoint concluído', origin: cp.title, points: cp.points }).onConflictDoNothing().returning()
   return { dados: { eventos: event ? [{ id: event.id, acao: event.action, origem: event.origin, data: event.createdAt.toISOString(), pontos: event.points }] : [] }, erro: null }
+})
+
+/** Reabre uma etapa antes do envio e também as seguintes, para manter a sequência do case. */
+app.post('/api/checkpoints/:checkpointId/reopen', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  const { checkpointId } = req.params as { checkpointId: string }
+  const [cp] = await db.select().from(checkpoints).where(eq(checkpoints.id, checkpointId)).limit(1)
+  const [enrollment] = cp ? await db.select().from(enrollments).where(and(eq(enrollments.userId, user.id), eq(enrollments.caseId, cp.caseId), eq(enrollments.status, 'em_andamento'))).limit(1) : []
+  if (!cp || !enrollment) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Só é possível refazer etapas de um case em andamento.' } })
+  const cps = await db.select().from(checkpoints).where(eq(checkpoints.caseId, cp.caseId)).orderBy(checkpoints.order)
+  const index = cps.findIndex(item => item.id === checkpointId)
+  const [progress] = await db.select().from(checkpointProgress).where(and(eq(checkpointProgress.enrollmentId, enrollment.id), eq(checkpointProgress.checkpointId, checkpointId))).limit(1)
+  if (index < 0 || !progress?.completedAt) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Esta etapa ainda não foi concluída.' } })
+  const idsParaReabrir = cps.slice(index).map(item => item.id)
+  await db.update(checkpointProgress).set({ completedAt: null }).where(and(eq(checkpointProgress.enrollmentId, enrollment.id), inArray(checkpointProgress.checkpointId, idsParaReabrir)))
+  return { dados: true, erro: null }
 })
 
 app.post('/api/cases/:caseId/submit', async (req, reply) => {
