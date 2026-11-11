@@ -19,9 +19,14 @@ const sessionSecret = process.env.SESSION_SECRET
 if (!sessionSecret || Buffer.byteLength(sessionSecret) < 32) throw new Error('SESSION_SECRET precisa ter pelo menos 32 bytes.')
 if (process.env.NODE_ENV === 'production' && !process.env.APP_ORIGIN) throw new Error('APP_ORIGIN precisa ser a origem HTTPS do Static Site.')
 const hash = (value: string) => createHmac('sha256', sessionSecret).update(value).digest('hex')
+/** Cookie é a via preferida. O bearer cobre navegadores que bloqueiam cookies entre os hosts do Render. */
+const tokenDaRequisicao = (req: FastifyRequest) => {
+  const authorization = req.headers.authorization
+  return req.cookies.gpe_session ?? (authorization?.startsWith('Bearer ') ? authorization.slice('Bearer '.length) : undefined)
+}
 await app.register(cookie)
 await app.register(helmet)
-await app.register(cors, { origin: process.env.APP_ORIGIN ?? false, credentials: true, methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'] })
+await app.register(cors, { origin: process.env.APP_ORIGIN ?? false, credentials: true, methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], allowedHeaders: ['content-type', 'authorization'] })
 await app.register(rateLimit, { max: 100, timeWindow: '1 minute' })
 
 app.addHook('preHandler', async (req, reply) => {
@@ -56,7 +61,7 @@ app.post('/api/session/register', { config: { rateLimit: { max: 5, timeWindow: '
   const token = randomBytes(32).toString('base64url')
   await db.insert(sessions).values({ userId: user.id, tokenHash: hash(token), expiresAt: new Date(Date.now() + 7 * 86400000) })
   reply.setCookie('gpe_session', token, { httpOnly: true, secure, sameSite: secure ? 'none' : 'lax', path: '/', maxAge: 604800 })
-  return { dados: { id: user.id, nome: user.name, email: user.email, papel: user.role, perfilCompleto: false }, erro: null }
+  return { dados: { id: user.id, nome: user.name, email: user.email, papel: user.role, perfilCompleto: false, accessToken: token }, erro: null }
 })
 
 app.post('/api/session/login', { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } }, async (req, reply) => {
@@ -67,11 +72,11 @@ app.post('/api/session/login', { config: { rateLimit: { max: 5, timeWindow: '15 
   const token = randomBytes(32).toString('base64url')
   await db.insert(sessions).values({ userId: user.id, tokenHash: hash(token), expiresAt: new Date(Date.now() + 7 * 86400000) })
   reply.setCookie('gpe_session', token, { httpOnly: true, secure, sameSite: secure ? 'none' : 'lax', path: '/', maxAge: 604800 })
-  return { dados: { id: user.id, nome: user.name, email: user.email, papel: user.role, perfilCompleto: false }, erro: null }
+  return { dados: { id: user.id, nome: user.name, email: user.email, papel: user.role, perfilCompleto: false, accessToken: token }, erro: null }
 })
 
 app.get('/api/session', async (req, reply) => {
-  const token = req.cookies.gpe_session
+  const token = tokenDaRequisicao(req)
   if (!token) return { dados: null, erro: null }
   const [session] = await db.select().from(sessions).where(and(eq(sessions.tokenHash, hash(token)), isNull(sessions.revokedAt))).limit(1)
   if (!session || session.expiresAt < new Date()) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Sua sessão expirou.' } })
@@ -80,14 +85,14 @@ app.get('/api/session', async (req, reply) => {
 })
 
 app.post('/api/session/logout', async (req, reply) => {
-  const token = req.cookies.gpe_session
+  const token = tokenDaRequisicao(req)
   if (token) await db.update(sessions).set({ revokedAt: new Date() }).where(eq(sessions.tokenHash, hash(token)))
   reply.clearCookie('gpe_session', { path: '/' })
   return { dados: true, erro: null }
 })
 
 async function usuarioAtual(req: FastifyRequest) {
-  const token = req.cookies.gpe_session
+  const token = tokenDaRequisicao(req)
   if (!token) return null
   const [session] = await db.select().from(sessions).where(and(eq(sessions.tokenHash, hash(token)), isNull(sessions.revokedAt))).limit(1)
   if (!session || session.expiresAt < new Date()) return null

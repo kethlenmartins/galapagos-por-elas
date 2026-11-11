@@ -2,20 +2,42 @@ import type { Servicos, Resultado, Sessao, EstadoDiagnostico, ResultadoDiagnosti
 import { servicosMock } from './mock/index.ts'
 
 const base = import.meta.env.VITE_API_URL ?? '/api'
+const CHAVE_TOKEN_SESSAO = 'galapagos:access-token'
+
+function obterTokenDeSessao() {
+  try { return sessionStorage.getItem(CHAVE_TOKEN_SESSAO) } catch { return null }
+}
+
+function salvarTokenDeSessao(token: string | null) {
+  try {
+    if (token) sessionStorage.setItem(CHAVE_TOKEN_SESSAO, token)
+    else sessionStorage.removeItem(CHAVE_TOKEN_SESSAO)
+  } catch { /* o cookie continua sendo usado quando o armazenamento não estiver disponível */ }
+}
+
 async function api<T>(path: string, init: RequestInit = {}): Promise<Resultado<T>> {
   try {
     // Fastify rejeita `application/json` sem corpo. Só declaramos JSON quando
     // há um payload para serializar (por exemplo, POST /assessment/start não tem).
     const headers = new Headers(init.headers)
     if (init.body && !headers.has('content-type')) headers.set('content-type', 'application/json')
+    const token = obterTokenDeSessao()
+    if (token && !headers.has('authorization')) headers.set('authorization', `Bearer ${token}`)
     const response = await fetch(`${base}${path}`, { ...init, credentials: 'include', headers })
     const payload: unknown = await response.json().catch(() => null)
     if (!response.ok) {
       const erro = typeof payload === 'object' && payload !== null && 'erro' in payload
         ? (payload as { erro: Resultado<T>['erro'] }).erro
         : null
+      if (response.status === 401) salvarTokenDeSessao(null)
       return { dados: null, erro: erro ?? { codigo: 'REDE', mensagem: 'Não foi possível concluir a solicitação. Tente novamente.' } }
     }
+    if (path === '/session/register' || path === '/session/login') {
+      const dados = typeof payload === 'object' && payload !== null && 'dados' in payload ? (payload as { dados?: { accessToken?: unknown } }).dados : null
+      if (typeof dados?.accessToken === 'string') salvarTokenDeSessao(dados.accessToken)
+      if (dados && typeof dados === 'object' && 'accessToken' in dados) delete dados.accessToken
+    }
+    if (path === '/session/logout') salvarTokenDeSessao(null)
     return payload as Resultado<T>
   } catch {
     return { dados: null, erro: { codigo: 'REDE', mensagem: 'Não foi possível conectar. Tente novamente.' } }
