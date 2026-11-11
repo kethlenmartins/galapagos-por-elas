@@ -33,8 +33,6 @@ pnpm test
 pnpm build
 ```
 
-Contas de demonstração (senha `Senha123`): `marina@email.com` (participante) e `equipe@galapagos.com.br` (aba "Equipe").
-
 ## Documentação (`docs/`)
 
 | Arquivo | Conteúdo |

@@ -63,14 +63,14 @@ export function Signup() {
 
 export function Login() {
   const [portal, setPortal] = useState<'participante'|'equipe'>('participante')
-  const [email, setEmail] = useState('marina@email.com')
-  const [senha, setSenha] = useState('Senha123')
+  const [email, setEmail] = useState('')
+  const [senha, setSenha] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const choosePortal = (next: 'participante'|'equipe') => {
     setPortal(next)
-    setEmail(next === 'equipe' ? 'equipe@galapagos.com.br' : 'marina@email.com')
-    setSenha('Senha123')
+    setEmail('')
+    setSenha('')
     setError('')
   }
   const submit = async (e: FormEvent) => {
@@ -91,7 +91,6 @@ export function Login() {
       <label className="field"><span>E-mail</span><input type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email"/></label>
       <div><label className="field"><span>Senha</span><input type="password" value={senha} onChange={e => setSenha(e.target.value)} autoComplete="current-password"/></label><button className="forgot-link" type="button" onClick={() => go('forgot')}>Esqueci minha senha</button></div>
       <Button type="submit" disabled={loading}>{loading ? 'Entrando...' : portal === 'equipe' ? 'Entrar na administração' : 'Entrar'}</Button>
-      <div className="demo-access"><span>ACESSO DE DEMONSTRAÇÃO</span><code>{email}</code><small>Senha: Senha123</small></div>
       {portal === 'participante' && <p className="form-switch">Ainda não tem conta? <button type="button" onClick={() => go('signup')}>Criar conta</button></p>}
     </form>
   </AuthLayout>
@@ -99,7 +98,7 @@ export function Login() {
 
 export function Forgot({ reset = false }: { reset?: boolean }) {
   const [sent, setSent] = useState(false)
-  return <AuthLayout title={reset ? 'Crie uma nova senha' : sent ? 'Confira seu e-mail' : 'Recupere sua senha'} subtitle={reset ? 'Escolha uma senha segura e diferente da anterior.' : sent ? 'Enviamos as instruções para marina@email.com.' : 'Informe seu e-mail e enviaremos as instruções.'}>
+  return <AuthLayout title={reset ? 'Crie uma nova senha' : sent ? 'Confira seu e-mail' : 'Recupere sua senha'} subtitle={reset ? 'Escolha uma senha segura e diferente da anterior.' : sent ? 'Se existir uma conta para este e-mail, enviaremos as instruções.' : 'Informe seu e-mail e enviaremos as instruções.'}>
     {sent && !reset ? <div className="success-state"><span><Icon name="mail" size={30}/></span><p>O link é válido por 30 minutos. Não encontrou? Confira a caixa de spam.</p><Button onClick={() => go('reset')}>Abrir link de exemplo</Button><Button variant="ghost" onClick={() => setSent(false)}>Reenviar e-mail</Button></div> :
     <form className="form-stack" onSubmit={(e) => {e.preventDefault(); reset ? go('login') : setSent(true)}}>{reset ? <><Field label="Nova senha" type="password" placeholder="Nova senha"/><Field label="Confirme a nova senha" type="password" placeholder="Repita a senha"/></> : <Field label="E-mail" type="email" placeholder="voce@email.com"/>}<Button type="submit">{reset ? 'Salvar nova senha' : 'Enviar instruções'}</Button><button type="button" className="text-link centered" onClick={() => go('login')}>Voltar para entrar</button></form>}
   </AuthLayout>
