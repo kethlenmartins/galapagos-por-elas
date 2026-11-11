@@ -228,7 +228,7 @@ export function CasePage() {
     const ativo = atual.estado === 'em_andamento' ? atual.checkpoints.find(c => c.status !== 'concluido') : undefined
     const carregadas: Record<string, Tarefa> = {}
     const iniciais: Respostas = {}
-    if (ativo && ativo.etapa === 'situacao') {
+    if (ativo && ativo.tarefaIds.length > 0) {
       for (const tarefaId of ativo.tarefaIds) {
         const t = await caseService.obterTarefa(tarefaId)
         if (t.dados) {
@@ -348,17 +348,17 @@ export function CasePage() {
 
       {alerta}
 
-      {ativo?.etapa === 'entenda' && <PainelEntenda caso={caso} checkpoint={ativo} ocupado={ocupado} aoConcluir={() => concluir(ativo)}/>}
+      {ativo?.etapa === 'entenda' && ativo.tarefaIds.length === 0 && <PainelEntenda caso={caso} checkpoint={ativo} ocupado={ocupado} aoConcluir={() => concluir(ativo)}/>}
 
-      {ativo && ativo.etapa === 'situacao' && <section className="case-painel">
-        <span className="eyebrow">{ROTULO_ETAPA.situacao.toUpperCase()}</span>
+      {ativo && ativo.tarefaIds.length > 0 && <section className="case-painel">
+        <span className="eyebrow">{ROTULO_ETAPA[ativo.etapa].toUpperCase()}</span>
         <h2>{ativo.titulo}</h2>
         {ativo.tarefaIds.map(id => tarefas[id] && <TarefaDoCase key={id} tarefa={tarefas[id]} tituloDoCheckpoint={ativo.titulo} respostas={respostas[id] ?? {}} erros={erros} salvoEm={salvoEm[id]} bloqueado={ocupado} aoMudar={(campo, valor) => mudarCampo(id, campo, valor)}/>)}
         <div className="case-acoes"><Button onClick={() => concluir(ativo)} disabled={ocupado}>{ocupado ? 'Concluindo…' : `Concluir este checkpoint (+${ativo.pontos} pts)`}</Button></div>
         <small>Depois de concluir, as respostas deste checkpoint ficam travadas.</small>
       </section>}
 
-      {ativo && ativo.etapa !== 'entenda' && ativo.etapa !== 'situacao' && <section className="case-painel">
+      {ativo && ativo.tarefaIds.length === 0 && ativo.etapa !== 'entenda' && <section className="case-painel">
         <span className="eyebrow">{ROTULO_ETAPA[ativo.etapa].toUpperCase()}</span>
         <h2>{ativo.titulo}</h2>
         <p>{ativo.descricao}</p>

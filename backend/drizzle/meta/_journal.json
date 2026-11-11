@@ -22,6 +22,13 @@
       "when": 1794399244693,
       "tag": "0002_late_bruce_banner",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794402500000,
+      "tag": "0003_ib_simplificado",
+      "breakpoints": true
     }
   ]
 }
