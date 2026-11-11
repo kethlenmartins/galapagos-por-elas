@@ -220,10 +220,6 @@
 .portal-switch button.active { background: var(--white); color: var(--blue-700); box-shadow: var(--shadow-sm); }
 .team-login-note { display: flex; gap: var(--space-3); margin-bottom: var(--space-5); padding: var(--space-4); border: 1px solid var(--blue-200); border-radius: var(--radius-sm); background: var(--blue-50); color: var(--blue-700); }
 .team-login-note p { margin-top: var(--space-1); color: var(--ink-600); font-size: 11px; }
-.demo-access { display: flex; flex-direction: column; align-items: center; padding: var(--space-3); border: 1px dashed var(--ink-300); border-radius: var(--radius-sm); color: var(--ink-600); }
-.demo-access span { font-size: 9px; font-weight: 800; letter-spacing: .1em; }
-.demo-access code { color: var(--blue-700); font-family: inherit; font-size: 12px; font-weight: 700; }
-.demo-access small { font-size: 10px; }
 .forgot-link { float: right; margin-top: var(--space-2); font-size: 13px; }
 .success-state { display: grid; gap: var(--space-5); text-align: center; }
 .success-state > span { width: 70px; height: 70px; display: inline-flex; align-items: center; justify-content: center; margin: auto; border-radius: 50%; background: var(--blue-100); color: var(--blue-600); }
