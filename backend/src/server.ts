@@ -268,7 +268,11 @@ app.get('/api/cases/:caseId', async (req, reply) => {
   const allDone = checkpointsOut.every(c => c.status === 'concluido')
   const tasksRows = await db.select().from(tasks).where(eq(tasks.caseId, caseId))
   const nextTask = tasksRows.find(t => !progress.find(p => p.checkpointId === t.checkpointId)?.completedAt)?.id ?? null
-  return { dados: { id: caseRow.id, titulo: caseRow.title, areaId: caseRow.areaId, area: caseRow.areaId, resumo: caseRow.summary, missao: caseRow.mission, personagem: null, contexto: caseRow.context, entenda: caseRow.content, estado: enrollment.status === 'em_avaliacao' ? 'em_avaliacao' : allDone ? 'em_andamento' : 'em_andamento', prazoEm: enrollment.deadline?.toISOString() ?? null, tentativa: enrollment.attempt, pontosPossiveis: cps.reduce((sum, c) => sum + c.points, 0), checkpoints: checkpointsOut, conteudoIds: [], proximaTarefaId: nextTask }, erro: null }
+  // `content` ainda é um JSON técnico do case. Só deve virar `entenda` quando
+  // tiver o formato editorial completo; um objeto vazio não pode quebrar a tela.
+  const content = caseRow.content as { resumo?: unknown; links?: unknown; cards?: unknown; comoSeEntra?: unknown }
+  const entenda = typeof content.resumo === 'string' && Array.isArray(content.links) && Array.isArray(content.cards) && content.comoSeEntra && typeof content.comoSeEntra === 'object' ? content : null
+  return { dados: { id: caseRow.id, titulo: caseRow.title, areaId: caseRow.areaId, area: caseRow.areaId, resumo: caseRow.summary, missao: caseRow.mission, personagem: null, contexto: caseRow.context, entenda, estado: enrollment.status === 'em_avaliacao' ? 'em_avaliacao' : allDone ? 'em_andamento' : 'em_andamento', prazoEm: enrollment.deadline?.toISOString() ?? null, tentativa: enrollment.attempt, pontosPossiveis: cps.reduce((sum, c) => sum + c.points, 0), checkpoints: checkpointsOut, conteudoIds: [], proximaTarefaId: nextTask }, erro: null }
 })
 
 app.get('/api/tasks/:taskId', async (req, reply) => {
