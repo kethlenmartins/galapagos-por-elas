@@ -14,7 +14,7 @@ services:
     plan: free
     region: oregon
     rootDir: backend
-    buildCommand: pnpm install --frozen-lockfile && pnpm build
+    buildCommand: pnpm install --frozen-lockfile --prod=false && pnpm build
     startCommand: pnpm db:migrate && pnpm start
     healthCheckPath: /api/health
     envVars:

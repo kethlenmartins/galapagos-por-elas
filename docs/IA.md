@@ -2,7 +2,7 @@
 
 > Mapa único dos usos de IA na plataforma. Os outros documentos apontam para cá. Vale para o MVP (um case semanal para testes).
 >
-> **Provedor decidido: API da OpenAI (ChatGPT).** Modelo, teto de gasto e termos de dados ainda a definir (ver "Perguntas em aberto").
+> **Provedor decidido: API da Groq.** Modelo e teto de gasto são configurados no backend; a chave nunca chega ao navegador.
 
 ## Visão rápida
 
@@ -108,7 +108,7 @@ Uma gaveta de conversa disponível dentro do case, com **campo de texto livre**.
 - A OpenAI recebe o mínimo de dados pessoais (idealmente nenhum identificável): respostas de case e briefings vão com o id da entrega, nunca com nome, e-mail ou outros dados da participante.
 - A chave da API fica só em variável de ambiente do servidor, com **teto de gasto** configurado na conta e limite de uso por usuária.
 - Saída estruturada (JSON com esquema) e validada no servidor; se inválida, usa o fallback.
-- Antes de ir ao ar, confirmar nos termos vigentes da API a retenção e o uso dos dados enviados, e refletir isso na Política de privacidade (os dados saem do nosso servidor para a OpenAI).
+- Antes de ir ao ar, confirmar nos termos vigentes da API a retenção e o uso dos dados enviados, e refletir isso na Política de privacidade (os dados saem do nosso servidor para a Groq).
 - O modelo é configurável (não fixo no código), e cada chamada registra o modelo e a versão do prompt usados.
 
 ## Métricas de IA
@@ -124,6 +124,6 @@ Uma gaveta de conversa disponível dentro do case, com **campo de texto livre**.
 
 ## Perguntas em aberto
 
-1. Qual modelo da API da OpenAI (custo, qualidade em cálculo e em português, latência) e qual o teto de gasto mensal?
+1. Qual modelo da API da Groq (custo, qualidade em cálculo e em português, latência) e qual o teto de gasto mensal?
 2. Mentora em chat livre: quais limites de uso por usuária e por dia, e quem faz a moderação?
 3. Quem revisa e aprova cases e notas (quantas pessoas na equipe)?

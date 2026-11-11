@@ -3,13 +3,15 @@ import cookie from '@fastify/cookie'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
-import { randomBytes, createHmac } from 'node:crypto'
+import { randomBytes, createHmac, randomUUID } from 'node:crypto'
 import { eq, and, isNull, desc, sql } from 'drizzle-orm'
 import argon2 from 'argon2'
 import { z } from 'zod'
 import { db } from './db/client.js'
-import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProgress, deliveries, assessments, pointEvents } from './db/schema.js'
+import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProgress, deliveries, assessments, pointEvents, contents, contentCompletions, certificates, reviewRequests, aiLogs } from './db/schema.js'
 import { configuracaoPublica, gerarResultado } from '../../front/src/services/fit/motor.ts'
+import { AREAS_FIT } from '../../front/src/services/fit/matriz.ts'
+import { montarPdfCertificado, slug } from '../../front/src/services/mock/pdf.ts'
 
 const app = Fastify({ logger: true, trustProxy: true })
 const secure = process.env.COOKIE_SECURE !== 'false'
@@ -92,6 +94,94 @@ async function usuarioAtual(req: FastifyRequest) {
   const [user] = await db.select().from(users).where(eq(users.id, session.userId)).limit(1)
   return user ?? null
 }
+
+const preferenciasPadrao = { novosCases: true, lembretesPrazo: true, novosConteudos: false }
+const niveis = [
+  { numero: 1, nome: 'Exploradora', pontosNecessarios: 0 }, { numero: 2, nome: 'Aprendiz', pontosNecessarios: 150 },
+  { numero: 3, nome: 'Analista', pontosNecessarios: 400 }, { numero: 4, nome: 'Estrategista', pontosNecessarios: 800 }, { numero: 5, nome: 'Especialista', pontosNecessarios: 1400 },
+]
+const regrasDePontos = [
+  { id: 'perfil_completo', acao: 'Perfil completo', pontos: 20, descricao: 'Preencha seus dados no primeiro acesso.' }, { id: 'diagnostico', acao: 'Diagnóstico concluído', pontos: 100, descricao: 'Converse com a Galá e descubra suas áreas.' },
+  { id: 'conteudo', acao: 'Conteúdo concluído', pontos: 10, descricao: 'Cada conteúdo de apoio que você conclui.' }, { id: 'checkpoint', acao: 'Checkpoint concluído', pontos: 30, descricao: 'Cada checkpoint do case.' },
+  { id: 'resultado', acao: 'Bônus de resultado', pontos: 150, descricao: 'Até 150 pontos, conforme a nota do case.' }, { id: 'certificado', acao: 'Certificado conquistado', pontos: 100, descricao: 'Ao concluir o case e receber o certificado.' },
+]
+const areasPublicas = AREAS_FIT.map(a => ({ id: a.id, nome: a.nome, oQueFaz: `Conheça a área de ${a.nome}.`, descricao: `Informações introdutórias sobre ${a.nome} no mercado financeiro.` }))
+const perfilPublico = (u: typeof users.$inferSelect) => ({ id: u.id, nome: u.name, nomeSocial: u.socialName, email: u.email, papel: u.role, dataNascimento: u.birthDate?.toISOString() ?? null, cidade: u.city, uf: u.state, escolaridade: u.education, objetivo: u.objective, perfilCompleto: !!u.profileCompletedAt, termosAceitosEm: u.acceptedTermsAt.toISOString(), termosVersao: u.termsVersion, preferenciasEmail: u.emailPreferences ?? preferenciasPadrao })
+const eventoPublico = (e: typeof pointEvents.$inferSelect) => ({ id: e.id, acao: e.action, origem: e.origin, data: e.createdAt.toISOString(), pontos: e.points })
+async function concederPontos(userId: string, actionKey: string, action: string, origin: string, points: number) {
+  const [event] = await db.insert(pointEvents).values({ userId, actionKey, action, origin, points }).onConflictDoNothing().returning()
+  return event ? eventoPublico(event) : null
+}
+async function sugerirCorrecaoGroq(deliveryId: string, respostas: unknown) {
+  const key = process.env.GROQ_API_KEY; const model = process.env.GROQ_MODEL
+  if (!key || !model) return
+  const started = Date.now(); let status = 'falha'; let costTicks: string | null = null
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' }, body: JSON.stringify({ model, temperature: 0, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: 'Você sugere feedback curto em português do Brasil para uma equipe revisora. Não decide nota, não use dados pessoais e retorne JSON com feedbackGeral, pontosFortes e pontosAMelhorar.' }, { role: 'user', content: JSON.stringify({ respostas }) }] }) })
+    const payload = await response.json().catch(() => null) as { usage?: { cost_in_usd_ticks?: number }; choices?: Array<{ message?: { content?: string | null } }> } | null
+    const content = payload?.choices?.[0]?.message?.content
+    if (response.ok && content) { z.object({ feedbackGeral: z.string(), pontosFortes: z.array(z.string()), pontosAMelhorar: z.array(z.string()) }).parse(JSON.parse(content)); status = 'concluida'; costTicks = payload.usage?.cost_in_usd_ticks?.toString() ?? null }
+  } catch { /* correção manual é o fallback */ }
+  await db.insert(aiLogs).values({ deliveryId, provider: 'groq', model, promptVersion: 'correcao-v1', status, latencyMs: Date.now() - started, costTicks })
+}
+const urlValidacao = (code: string) => `${process.env.APP_ORIGIN ?? 'http://localhost:8443'}/#/validate?codigo=${encodeURIComponent(code)}`
+async function certificadoDaEntrega(user: typeof users.$inferSelect, caseRow: typeof cases.$inferSelect, delivery: typeof deliveries.$inferSelect) {
+  if (!delivery.publishedAt || (delivery.grade ?? 0) < 6) return null
+  let [cert] = await db.select().from(certificates).where(and(eq(certificates.userId, user.id), eq(certificates.caseId, caseRow.id))).limit(1)
+  if (!cert) {
+    const code = `GPE-${new Date().getUTCFullYear()}-${randomBytes(4).toString('hex').toUpperCase()}-${randomBytes(4).toString('hex').toUpperCase()}`
+    ;[cert] = await db.insert(certificates).values({ userId: user.id, caseId: caseRow.id, code }).returning()
+    await concederPontos(user.id, `resultado:${caseRow.id}`, 'Bônus de resultado', caseRow.title, Math.round(((delivery.grade ?? 0) / 10) * 150))
+    await concederPontos(user.id, `certificado:${cert.id}`, 'Certificado conquistado', caseRow.title, 100)
+  }
+  return cert
+}
+
+app.get('/api/profile', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  return { dados: perfilPublico(user), erro: null }
+})
+app.put('/api/profile', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  const body = z.object({ nome: z.string().min(2).optional(), nomeSocial: z.string().nullable().optional(), dataNascimento: z.string().datetime().nullable().optional(), cidade: z.string().nullable().optional(), uf: z.string().regex(/^[A-Za-z]{2}$/).nullable().optional(), escolaridade: z.string().nullable().optional(), objetivo: z.string().nullable().optional(), preferenciasEmail: z.object({ novosCases: z.boolean().optional(), lembretesPrazo: z.boolean().optional(), novosConteudos: z.boolean().optional() }).optional() }).safeParse(req.body)
+  if (!body.success || (body.data.dataNascimento && new Date(body.data.dataNascimento) > new Date())) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Confira os campos destacados.' } })
+  const d = body.data
+  const update = { name: d.nome?.trim() ?? user.name, socialName: d.nomeSocial === undefined ? user.socialName : d.nomeSocial?.trim() || null, birthDate: d.dataNascimento === undefined ? user.birthDate : d.dataNascimento ? new Date(d.dataNascimento) : null, city: d.cidade === undefined ? user.city : d.cidade?.trim() || null, state: d.uf === undefined ? user.state : d.uf?.toUpperCase() || null, education: d.escolaridade === undefined ? user.education : d.escolaridade?.trim() || null, objective: d.objetivo === undefined ? user.objective : d.objetivo?.trim() || null, emailPreferences: { ...(user.emailPreferences ?? preferenciasPadrao), ...(d.preferenciasEmail ?? {}) } }
+  const completo = [update.birthDate, update.city, update.state, update.education, update.objective].every(Boolean)
+  const [saved] = await db.update(users).set({ ...update, profileCompletedAt: completo && !user.profileCompletedAt ? new Date() : user.profileCompletedAt }).where(eq(users.id, user.id)).returning()
+  const event = completo && !user.profileCompletedAt ? await concederPontos(user.id, 'perfil_completo', 'Perfil completo', 'Onboarding', 20) : null
+  return { dados: { perfil: perfilPublico(saved), eventos: event ? [event] : [] }, erro: null }
+})
+app.post('/api/profile/terms', async (req, reply) => {
+  const user = await usuarioAtual(req); const body = z.object({ versao: z.string().min(1) }).safeParse(req.body)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } }); if (!body.success) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Informe a versão dos termos.' } })
+  const [saved] = await db.update(users).set({ acceptedTermsAt: new Date(), termsVersion: body.data.versao }).where(eq(users.id, user.id)).returning(); return { dados: perfilPublico(saved), erro: null }
+})
+app.get('/api/profile/export', async (req, reply) => { const user = await usuarioAtual(req); if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } }); const [assessment] = await db.select().from(assessments).where(eq(assessments.userId, user.id)); const events = await db.select().from(pointEvents).where(eq(pointEvents.userId, user.id)); const deliveriesForUser = await db.select().from(enrollments).where(eq(enrollments.userId, user.id)); return { dados: { exportadoEm: new Date().toISOString(), perfil: perfilPublico(user), diagnostico: assessment ?? null, pontos: events.map(eventoPublico), entregas: deliveriesForUser.map(e => ({ caseId: e.caseId, status: e.status, tentativa: e.attempt })) }, erro: null } })
+app.get('/api/points/balance', async (req, reply) => {
+  const user = await usuarioAtual(req); if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  const rows = await db.select({ total: sql<number>`coalesce(sum(${pointEvents.points}), 0)` }).from(pointEvents).where(eq(pointEvents.userId, user.id)); const saldo = Number(rows[0].total)
+  const nivel = [...niveis].reverse().find(n => saldo >= n.pontosNecessarios) ?? niveis[0]; const proximoNivel = niveis.find(n => n.numero === nivel.numero + 1) ?? null
+  return { dados: { saldo, nivel, proximoNivel, faltam: proximoNivel ? Math.max(0, proximoNivel.pontosNecessarios - saldo) : 0, progresso: proximoNivel ? Math.min(1, (saldo - nivel.pontosNecessarios) / (proximoNivel.pontosNecessarios - nivel.pontosNecessarios)) : 1 }, erro: null }
+})
+app.get('/api/points/events', async (req, reply) => { const user = await usuarioAtual(req); if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } }); return { dados: (await db.select().from(pointEvents).where(eq(pointEvents.userId, user.id)).orderBy(desc(pointEvents.createdAt))).map(eventoPublico), erro: null } })
+app.get('/api/points/rules', async () => ({ dados: regrasDePontos, erro: null }))
+app.get('/api/catalog/areas', async () => ({ dados: areasPublicas, erro: null }))
+app.get('/api/catalog/areas/:id', async (req, reply) => { const { id } = req.params as { id: string }; const area = areasPublicas.find(a => a.id === id); return area ? { dados: area, erro: null } : reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Área não encontrada.' } }) })
+app.get('/api/contents', async (req, reply) => {
+  const user = await usuarioAtual(req); if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  const q = req.query as { areaId?: string; tipo?: string; caseId?: string }; const rows = await db.select().from(contents); const done = await db.select().from(contentCompletions).where(eq(contentCompletions.userId, user.id))
+  return { dados: rows.filter(c => (!q.areaId || c.areaId === q.areaId) && (!q.tipo || c.type === q.tipo) && (!q.caseId || c.caseIds.includes(q.caseId))).map(c => ({ id: c.id, titulo: c.title, tipo: c.type, areaId: c.areaId, resumo: c.summary, corpo: c.body, url: c.url, minutos: c.minutes, concluido: done.some(d => d.contentId === c.id) })), erro: null }
+})
+app.get('/api/contents/:id', async (req, reply) => { const user = await usuarioAtual(req); if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } }); const { id } = req.params as { id: string }; const [c] = await db.select().from(contents).where(eq(contents.id, id)); if (!c) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Conteúdo não encontrado.' } }); const [done] = await db.select().from(contentCompletions).where(and(eq(contentCompletions.userId, user.id), eq(contentCompletions.contentId, id))); return { dados: { id: c.id, titulo: c.title, tipo: c.type, areaId: c.areaId, resumo: c.summary, corpo: c.body, url: c.url, minutos: c.minutes, concluido: !!done }, erro: null } })
+app.post('/api/contents/:id/complete', async (req, reply) => { const user = await usuarioAtual(req); if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } }); const { id } = req.params as { id: string }; const [c] = await db.select().from(contents).where(eq(contents.id, id)); if (!c) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Conteúdo não encontrado.' } }); await db.insert(contentCompletions).values({ userId: user.id, contentId: id }).onConflictDoNothing(); const event = await concederPontos(user.id, `conteudo:${id}`, 'Conteúdo concluído', c.title, 10); return { dados: { eventos: event ? [event] : [] }, erro: null } })
+app.get('/api/certificates', async (req, reply) => { const user = await usuarioAtual(req); if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } }); const rows = await db.select().from(certificates).where(eq(certificates.userId, user.id)); const out = await Promise.all(rows.map(async c => { const [k] = await db.select().from(cases).where(eq(cases.id, c.caseId)); return { id: c.id, codigo: c.code, caseId: c.caseId, tituloCase: k.title, area: k.areaId, nomeParticipante: user.name, emitidoEm: c.issuedAt.toISOString(), urlValidacao: urlValidacao(c.code) } })); return { dados: out, erro: null } })
+app.get('/api/certificates/validate/:code', async (req) => { const { code } = req.params as { code: string }; const [c] = await db.select().from(certificates).where(eq(certificates.code, code.trim().toUpperCase())); if (!c) return { dados: null, erro: null }; const [u] = await db.select().from(users).where(eq(users.id, c.userId)); const [k] = await db.select().from(cases).where(eq(cases.id, c.caseId)); return { dados: { nome: u.name, tituloCase: k.title, emitidoEm: c.issuedAt.toISOString() }, erro: null } })
+app.get('/api/certificates/:id/pdf', async (req, reply) => { const user = await usuarioAtual(req); if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } }); const { id } = req.params as { id: string }; const [c] = await db.select().from(certificates).where(and(eq(certificates.id, id), eq(certificates.userId, user.id))); if (!c) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Certificado não encontrado.' } }); const [k] = await db.select().from(cases).where(eq(cases.id, c.caseId)); const pdf = montarPdfCertificado({ nome: user.name, tituloCase: k.title, area: k.areaId, emitidoEm: c.issuedAt.toISOString(), codigo: c.code, urlValidacao: urlValidacao(c.code) }); return { dados: { nomeArquivo: `certificado-${slug(k.title)}-${slug(user.name)}.pdf`, mimeType: 'application/pdf', url: `data:application/pdf;base64,${Buffer.from(pdf, 'binary').toString('base64')}` }, erro: null } })
+app.get('/api/certificates/:id/linkedin', async (req, reply) => { const user = await usuarioAtual(req); if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } }); const { id } = req.params as { id: string }; const [c] = await db.select().from(certificates).where(and(eq(certificates.id, id), eq(certificates.userId, user.id))); if (!c) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Certificado não encontrado.' } }); const [k] = await db.select().from(cases).where(eq(cases.id, c.caseId)); const d = c.issuedAt; return { dados: { url: `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(k.title)}&organizationName=Galapagos%20por%20Elas&issueYear=${d.getUTCFullYear()}&issueMonth=${d.getUTCMonth() + 1}&certUrl=${encodeURIComponent(urlValidacao(c.code))}&certId=${encodeURIComponent(c.code)}` }, erro: null } })
+app.post('/api/reviews', async (req, reply) => { const user = await usuarioAtual(req); const body = z.object({ tarefaId: z.string(), motivo: z.string().min(10).max(500) }).safeParse(req.body); if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } }); if (!body.success) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Explique o pedido entre 10 e 500 caracteres.' } }); const [task] = await db.select().from(tasks).where(eq(tasks.id, body.data.tarefaId)); const [enrollment] = task ? await db.select().from(enrollments).where(and(eq(enrollments.userId, user.id), eq(enrollments.caseId, task.caseId))) : []; const [delivery] = enrollment ? await db.select().from(deliveries).where(eq(deliveries.enrollmentId, enrollment.id)) : []; if (!task || !delivery?.publishedAt) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'O resultado precisa estar publicado para pedir revisão.' } }); const [review] = await db.insert(reviewRequests).values({ userId: user.id, deliveryId: delivery.id, taskId: task.id, reason: body.data.motivo }).returning(); return { dados: { id: review.id, tarefaId: review.taskId, motivo: review.reason, status: 'aberto', criadoEm: review.createdAt.toISOString(), resposta: null }, erro: null } })
 
 app.get('/api/assessment/state', async (req, reply) => {
   const user = await usuarioAtual(req)
@@ -245,6 +335,7 @@ app.post('/api/cases/:caseId/submit', async (req, reply) => {
   if (!enrollment || cps.some(c => !done.some(p => p.checkpointId === c.id && p.completedAt))) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Conclua todos os checkpoints antes de enviar.' } })
   const [delivery] = await db.insert(deliveries).values({ enrollmentId: enrollment.id }).returning()
   await db.update(enrollments).set({ status: 'em_avaliacao' }).where(eq(enrollments.id, enrollment.id))
+  void sugerirCorrecaoGroq(delivery.id, done.map(p => p.answers))
   return { dados: { entregaId: delivery.id }, erro: null }
 })
 
@@ -256,7 +347,8 @@ app.get('/api/cases/:caseId/result', async (req, reply) => {
   const [delivery] = enrollment ? await db.select().from(deliveries).where(eq(deliveries.enrollmentId, enrollment.id)).limit(1) : []
   if (!delivery) return { dados: { estado: 'sem_entrega' }, erro: null }
   if (!delivery.publishedAt) return { dados: { estado: 'em_avaliacao', entregueEm: delivery.createdAt.toISOString() }, erro: null }
-  return { dados: { estado: 'publicado', entregueEm: delivery.createdAt.toISOString(), publicadoEm: delivery.publishedAt.toISOString(), nota: delivery.grade ?? 0, notaMaxima: 10, feedbackGeral: delivery.feedback ?? '', pontosFortes: [], pontosAMelhorar: [], porTarefa: [], pontosGanhos: 0, certificadoId: null, aprovada: (delivery.grade ?? 0) >= 6, notaMinima: 6, tentativa: enrollment?.attempt ?? 1 }, erro: null }
+  const [caseRow] = await db.select().from(cases).where(eq(cases.id, caseId)); const cert = await certificadoDaEntrega(user, caseRow, delivery)
+  return { dados: { estado: 'publicado', entregueEm: delivery.createdAt.toISOString(), publicadoEm: delivery.publishedAt.toISOString(), nota: delivery.grade ?? 0, notaMaxima: 10, feedbackGeral: delivery.feedback ?? '', pontosFortes: [], pontosAMelhorar: [], porTarefa: [], pontosGanhos: cert ? Math.round((delivery.grade ?? 0) / 10 * 150) + 100 : 0, certificadoId: cert?.id ?? null, aprovada: (delivery.grade ?? 0) >= 6, notaMinima: 6, tentativa: enrollment?.attempt ?? 1 }, erro: null }
 })
 
 const start = async () => {

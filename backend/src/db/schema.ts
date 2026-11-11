@@ -7,7 +7,8 @@ export const sessions = pgTable('sessions', {
 })
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(), name: text('name').notNull(), email: text('email').notNull(), passwordHash: text('password_hash').notNull(),
-  role: role('role').notNull().default('participante'), acceptedTermsAt: timestamp('accepted_terms_at', { withTimezone: true }).notNull(), termsVersion: text('terms_version').notNull(), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  role: role('role').notNull().default('participante'), acceptedTermsAt: timestamp('accepted_terms_at', { withTimezone: true }).notNull(), termsVersion: text('terms_version').notNull(),
+  socialName: text('social_name'), birthDate: timestamp('birth_date', { withTimezone: true }), city: text('city'), state: text('state'), education: text('education'), objective: text('objective'), emailPreferences: jsonb('email_preferences').$type<{ novosCases: boolean; lembretesPrazo: boolean; novosConteudos: boolean }>().notNull().default({ novosCases: true, lembretesPrazo: true, novosConteudos: false }), profileCompletedAt: timestamp('profile_completed_at', { withTimezone: true }), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, t => [uniqueIndex('users_email_unique').on(t.email)])
 export const assessments = pgTable('assessments', {
   id: uuid('id').defaultRandom().primaryKey(), userId: uuid('user_id').notNull(), status: text('status').notNull(), answers: jsonb('answers').$type<Record<string, 'A'|'B'|'C'>>().notNull().default({}), versions: jsonb('versions').$type<Record<string,string>>().notNull(), result: jsonb('result'), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -33,3 +34,18 @@ export const deliveries = pgTable('deliveries', {
 export const pointEvents = pgTable('point_events', {
   id: uuid('id').defaultRandom().primaryKey(), userId: uuid('user_id').notNull(), actionKey: text('action_key').notNull(), action: text('action').notNull(), origin: text('origin').notNull(), points: integer('points').notNull(), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, t => [uniqueIndex('point_events_idempotent').on(t.userId, t.actionKey)])
+export const contents = pgTable('contents', {
+  id: text('id').primaryKey(), title: text('title').notNull(), type: text('type').notNull(), areaId: text('area_id').notNull(), summary: text('summary').notNull(), body: text('body'), url: text('url'), minutes: integer('minutes').notNull(), caseIds: jsonb('case_ids').$type<string[]>().notNull().default([]),
+})
+export const contentCompletions = pgTable('content_completions', {
+  id: uuid('id').defaultRandom().primaryKey(), userId: uuid('user_id').notNull(), contentId: text('content_id').notNull(), completedAt: timestamp('completed_at', { withTimezone: true }).defaultNow().notNull(),
+}, t => [uniqueIndex('content_completion_unique').on(t.userId, t.contentId)])
+export const certificates = pgTable('certificates', {
+  id: uuid('id').defaultRandom().primaryKey(), userId: uuid('user_id').notNull(), caseId: text('case_id').notNull(), code: text('code').notNull(), issuedAt: timestamp('issued_at', { withTimezone: true }).defaultNow().notNull(),
+}, t => [uniqueIndex('certificate_user_case_unique').on(t.userId, t.caseId), uniqueIndex('certificate_code_unique').on(t.code)])
+export const reviewRequests = pgTable('review_requests', {
+  id: uuid('id').defaultRandom().primaryKey(), deliveryId: uuid('delivery_id').notNull(), taskId: text('task_id').notNull(), userId: uuid('user_id').notNull(), reason: text('reason').notNull(), status: text('status').notNull().default('aberto'), response: text('response'), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+export const aiLogs = pgTable('ai_logs', {
+  id: uuid('id').defaultRandom().primaryKey(), deliveryId: uuid('delivery_id').notNull(), provider: text('provider').notNull(), model: text('model').notNull(), promptVersion: text('prompt_version').notNull(), status: text('status').notNull(), latencyMs: integer('latency_ms').notNull(), costTicks: text('cost_ticks'), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})

@@ -1,6 +1,6 @@
 # API do piloto
 
-API Fastify + PostgreSQL para cadastro/login, Diagnóstico de Fit determinístico, início de case, checkpoints, envio e publicação de resultado. Não há geração por IA, painel administrativo nem e-mail neste piloto.
+API Fastify + PostgreSQL para cadastro/login, Diagnóstico de Fit determinístico, início de case, checkpoints, envio e publicação de resultado. A sugestão qualitativa de correção pode usar Groq no servidor quando `GROQ_API_KEY` e `GROQ_MODEL` estiverem configurados; falhas preservam a correção manual. Não há painel administrativo nem e-mail neste piloto.
 
 ## Desenvolvimento local
 

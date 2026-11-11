@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "format": "oxfmt",
-    "test": "node --test \"src/**/*.test.ts\"",
+    "test": "find src -name '*.test.ts' -print0 | xargs -0r node --import tsx --test",
     "typecheck": "tsc --noEmit",
     "fit:gerar": "node scripts/gerar-fit-do-prd.mjs",
     "fit:sensibilidade": "node src/services/fit/sensibilidade.ts"
@@ -25,6 +25,7 @@
     "tailwindcss": "^4.0.0",
     "@tailwindcss/vite": "^4.0.0",
     "oxfmt": "^0.76.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.7.0",
     "vite": "^8.0.5"
   }

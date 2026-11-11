@@ -32,6 +32,11 @@ const diagnostico: Servicos['diagnostico'] = {
   finalizarDiagnostico: () => api<{ resultadoId: string; eventos: EventoPontos[] }>('/assessment/score', { method: 'POST' }),
   obterResultadoDiagnostico: id => api<ResultadoDiagnostico>(`/assessment/result${id ? `/${encodeURIComponent(id)}` : ''}`),
 }
+const perfil: Servicos['perfil'] = { obterPerfil: () => api('/profile'), atualizarPerfil: dados => api('/profile', { method: 'PUT', body: JSON.stringify(dados) }), registrarAceiteTermos: versao => api('/profile/terms', { method: 'POST', body: JSON.stringify({ versao }) }), exportarMeusDados: () => api('/profile/export') }
+const catalogo: Servicos['catalogo'] = { listarAreas: () => api('/catalog/areas'), obterArea: id => api('/catalog/areas/' + encodeURIComponent(id)) }
+const pontos: Servicos['pontos'] = { obterSaldoENivel: () => api('/points/balance'), listarExtrato: filtro => api('/points/events' + (filtro?.dias ? '?dias=' + filtro.dias : '')), listarRegrasDePontos: () => api('/points/rules') }
+const conteudos: Servicos['conteudos'] = { listarConteudos: filtro => { const q = new URLSearchParams(); if (filtro?.areaId) q.set('areaId', filtro.areaId); if (filtro?.tipo) q.set('tipo', filtro.tipo); if (filtro?.caseId) q.set('caseId', filtro.caseId); return api('/contents' + (q.size ? '?' + q : '')) }, obterConteudo: id => api('/contents/' + encodeURIComponent(id)), concluirConteudo: id => api('/contents/' + encodeURIComponent(id) + '/complete', { method: 'POST' }) }
+const certificados: Servicos['certificados'] = { listarMeusCertificados: () => api('/certificates'), baixarCertificado: id => api('/certificates/' + encodeURIComponent(id) + '/pdf'), obterLinkLinkedIn: id => api('/certificates/' + encodeURIComponent(id) + '/linkedin'), validarCertificado: code => api('/certificates/validate/' + encodeURIComponent(code)) }
 
 const caso: Servicos['caso'] = {
   obterTrilha: async () => {
@@ -53,10 +58,10 @@ const caso: Servicos['caso'] = {
   concluirCheckpoint: checkpointId => api(`/checkpoints/${encodeURIComponent(checkpointId)}/complete`, { method: 'POST' }),
   enviarCase: caseId => api(`/cases/${encodeURIComponent(caseId)}/submit`, { method: 'POST' }),
   obterResultadoCase: caseId => api(`/cases/${encodeURIComponent(caseId)}/result`),
-  pedirRevisao: async () => ({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Pedido de revisão não faz parte do piloto.' } }),
+  pedirRevisao: (tarefaId, motivo) => api('/reviews', { method: 'POST', body: JSON.stringify({ tarefaId, motivo }) }),
 }
 
 // Durante a migração incremental, serviços ainda não cobertos continuam apontando
 // para o mock. Assim o seletor de ambiente não quebra telas fora do piloto.
-export const servicosHttp: Servicos = { ...servicosMock, sessao, diagnostico, caso }
+export const servicosHttp: Servicos = { sessao, perfil, catalogo, pontos, diagnostico, caso, conteudos, certificados, adminCases: servicosMock.adminCases, adminCorrecao: servicosMock.adminCorrecao, adminConteudos: servicosMock.adminConteudos }
 export const servicosAtivos: Servicos = import.meta.env.VITE_API_URL ? servicosHttp : servicosMock

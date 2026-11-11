@@ -11,7 +11,7 @@ Plataforma web (desktop e mobile) para meninas e mulheres que querem entrar no m
 5. **Certificado** em PDF, com validação pública e link para o LinkedIn, para quem é aprovada.
 6. **Gamificação simples:** pontos e nível.
 
-## Inteligência artificial (API da OpenAI, só no servidor)
+## Inteligência artificial (API da Groq, só no servidor)
 
 - Geração de rascunho de cases no admin, sempre revisado pela equipe.
 - Correção qualitativa das entregas: a IA sugere, a equipe revisa e aprova. A parte numérica é conferida por código.

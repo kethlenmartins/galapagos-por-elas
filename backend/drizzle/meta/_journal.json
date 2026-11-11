@@ -8,6 +8,20 @@
       "when": 1794313232252,
       "tag": "0000_minor_harpoon",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794398868177,
+      "tag": "0001_organic_vance_astro",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794399244693,
+      "tag": "0002_late_bruce_banner",
+      "breakpoints": true
     }
   ]
 }
