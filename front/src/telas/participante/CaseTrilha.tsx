@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './trilha.css'
 import { horaCurta } from '../../app/formatos'
 import { FALA, atrasoParaMostrar } from '../../app/revelacao'
-import { definirCaseAtual, definirIlhaAtual, go, irParaConteudo, obterCaseAtual } from '../../app/rotas'
+import { CartaoConteudo } from './CartaoConteudo'
+import { definirCaseAtual, definirIlhaAtual, go, obterCaseAtual } from '../../app/rotas'
 import { sessaoExpirou } from '../../app/sessao'
 import { Toast } from '../../componentes/Aviso'
 import { PageTitle, Progress, Tag } from '../../componentes/Basicos'
@@ -165,7 +166,6 @@ function TarefaDoCase({ tarefa, tituloDoCheckpoint, respostas, erros, salvoEm, b
   </article>
 }
 
-const TIPO_CONTEUDO: Record<Conteudo['tipo'], string> = { artigo: 'Artigo', video: 'Vídeo', glossario: 'Glossário', link: 'Link externo' }
 
 /** Etapa obrigatória: todos os conteúdos do case precisam estar concluídos para avançar. */
 function PainelConteudos({ caseId, checkpoint, ocupado, aoConcluir }: { caseId: string; checkpoint: Checkpoint; ocupado: boolean; aoConcluir: () => void }) {
@@ -189,10 +189,7 @@ function PainelConteudos({ caseId, checkpoint, ocupado, aoConcluir }: { caseId: 
     {lista !== null && <>
       <div className="case-apoio-titulo"><span>{feitos} de {total} concluídos</span></div>
       <Progress value={total ? (feitos / total) * 100 : 100}/>
-      <ul>{lista.map(c => <li key={c.id} className={c.concluido ? 'concluido' : ''}><button onClick={() => irParaConteudo(c.id, true)}>
-        <span className="case-apoio-tipo">{TIPO_CONTEUDO[c.tipo]}</span><strong>{c.titulo}</strong><small>{c.resumo}</small>
-        <span className="case-apoio-meta"><span><Icon name="clock" size={14}/> {c.minutos} min</span><b>{c.concluido ? <><Icon name="check" size={14}/> Concluído</> : 'Pendente'}</b><em>{c.concluido ? 'Rever →' : c.tipo === 'artigo' ? 'Ler →' : 'Abrir →'}</em></span>
-      </button></li>)}</ul>
+      <div className="conteudo-grid">{lista.map(c => <CartaoConteudo key={c.id} conteudo={c} aoConcluir={feito => setLista(l => l && l.map(x => x.id === feito.id ? feito : x))}/>)}</div>
     </>}
     <div className="case-acoes"><Button onClick={aoConcluir} disabled={ocupado || !pronto}>{ocupado ? 'Concluindo…' : `Concluir esta etapa (+${checkpoint.pontos} pts)`}</Button></div>
     {lista !== null && !pronto && <small>Faltam {total - feitos} conteúdo{total - feitos > 1 ? 's' : ''} para liberar o próximo passo.</small>}

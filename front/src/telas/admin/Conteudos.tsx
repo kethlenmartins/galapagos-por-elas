@@ -7,7 +7,7 @@ import { Icon } from '../../componentes/Icone'
 import { AppShell } from '../../componentes/Layout'
 import { adminCasesService, adminConteudosService, catalogoService } from '../../services'
 import type { Area, CaseResumoAdmin, ConteudoAdmin, ErroServico, TipoConteudo } from '../../services'
-import { TIPOS } from '../participante/Conteudo'
+import { TIPOS } from '../participante/CartaoConteudo'
 
 type Rascunho = Omit<ConteudoAdmin, 'id'> & { id?: string }
 const VAZIO: Rascunho = { titulo: '', tipo: 'artigo', areaId: '', resumo: '', corpo: '', url: '', minutos: 5, caseIds: [] }

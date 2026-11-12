@@ -3,7 +3,7 @@
 export type Route =
   | 'landing' | 'signup' | 'login' | 'forgot' | 'reset' | 'validate'
   | 'onboarding' | 'diagnostic' | 'match' | 'home' | 'trail' | 'island' | 'training' | 'simulation' | 'jobs' | 'case' | 'task'
-  | 'result' | 'content' | 'content-item' | 'certificates' | 'profile'
+  | 'result' | 'certificates' | 'profile'
   | 'admin-cases' | 'admin-editor' | 'admin-review' | 'admin-content' | 'admin-jobs'
   | 'terms' | 'privacy' | 'points' | 'forbidden' | 'system-error' | 'maintenance' | 'session-expired'
 
@@ -12,7 +12,7 @@ export const routes: Record<Route, string> = {
   reset: 'Nova senha', validate: 'Validar certificado', onboarding: 'Seu perfil',
   diagnostic: 'Diagnóstico', match: 'Seu Mapa de Carreira', home: 'Início',
   trail: 'Suas ilhas', island: 'Ilha', training: 'Treino de entrevista', simulation: 'Simulação de entrevista', jobs: 'Vagas', case: 'Case', task: 'Case', result: 'Case',
-  content: 'Conteúdos', 'content-item': 'Conteúdo', certificates: 'Certificados', profile: 'Perfil',
+  certificates: 'Certificados', profile: 'Perfil',
   'admin-cases': 'Cases', 'admin-editor': 'Editor de case',
   'admin-review': 'Fila de correção', 'admin-content': 'Conteúdos', 'admin-jobs': 'Vagas',
   terms: 'Termos de uso', privacy: 'Política de privacidade', points: 'Extrato de pontos',
@@ -90,9 +90,4 @@ export function obterCaseAtual(): string | null {
 /** Abre o editor de cases. Sem id, começa um case novo pelo briefing. */
 export function irParaEditor(caseId?: string) {
   window.location.hash = caseId ? `/admin-editor?id=${encodeURIComponent(caseId)}` : '/admin-editor'
-}
-
-/** Abre um conteúdo de apoio. */
-export function irParaConteudo(conteudoId: string, deCase = false) {
-  window.location.hash = `/content-item?id=${encodeURIComponent(conteudoId)}${deCase ? '&de=case' : ''}`
 }

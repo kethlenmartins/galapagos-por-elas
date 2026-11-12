@@ -20,7 +20,6 @@ import { Treino } from './telas/participante/Treino'
 import { Simulacao } from './telas/participante/Simulacao'
 import { Vagas } from './telas/participante/Vagas'
 import { AdminVagas } from './telas/admin/Vagas'
-import { ContentList, ContentPage } from './telas/participante/Conteudo'
 import { PointsStatement } from './telas/participante/ExtratoPontos'
 import { Home } from './telas/participante/Home'
 import { Onboarding } from './telas/participante/Onboarding'
@@ -45,8 +44,6 @@ const telas: Record<Route, () => ReactElement> = {
   case: () => <CasePage />,
   task: () => <CasePage />,
   result: () => <CasePage />,
-  content: () => <ContentList />,
-  'content-item': () => <ContentPage />,
   certificates: () => <Certificates />,
   profile: () => <Profile />,
   'admin-cases': () => <AdminCases />,

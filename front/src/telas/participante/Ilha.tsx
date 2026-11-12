@@ -6,8 +6,9 @@ import { PageTitle, Tag } from '../../componentes/Basicos'
 import { Icon } from '../../componentes/Icone'
 import { AppShell } from '../../componentes/Layout'
 import { Button } from '../../componentes/Botao'
-import { caseService, catalogoService, simulacaoService, treinoService, type Area, type ResumoSimulacao, type ResumoTreino, type TrilhaDaUsuaria } from '../../services'
+import { caseService, catalogoService, conteudoService, simulacaoService, treinoService, type Area, type Conteudo, type ResumoSimulacao, type ResumoTreino, type TrilhaDaUsuaria } from '../../services'
 import { CartaoCase } from './CartaoCase'
+import { CartaoConteudo } from './CartaoConteudo'
 
 /** Uma ilha é uma área: apresentação, case básico, cases avançados e treino de entrevista. */
 export function Ilha() {
@@ -15,6 +16,7 @@ export function Ilha() {
   const [trilha, setTrilha] = useState<TrilhaDaUsuaria | null>(null)
   const [area, setArea] = useState<Area | null>(null)
   const [treino, setTreino] = useState<ResumoTreino | null>(null)
+  const [conteudos, setConteudos] = useState<Conteudo[]>([])
   const [simulacao, setSimulacao] = useState<ResumoSimulacao | null>(null)
   const [fase, setFase] = useState<'carregando' | 'ok' | 'erro'>('carregando')
   const [mensagem, setMensagem] = useState('')
@@ -24,7 +26,7 @@ export function Ilha() {
 
   const carregar = useCallback(async () => {
     if (!areaId) return go('trail')
-    const [t, a, r, sim] = await Promise.all([caseService.obterTrilha(), catalogoService.obterArea(areaId), treinoService.obterResumoDoTreino(areaId), simulacaoService.obterResumoDaSimulacao(areaId)])
+    const [t, a, r, sim, cont] = await Promise.all([caseService.obterTrilha(), catalogoService.obterArea(areaId), treinoService.obterResumoDoTreino(areaId), simulacaoService.obterResumoDaSimulacao(areaId), conteudoService.listarConteudos({ areaId })])
     const falha = t.erro ?? a.erro
     if (falha || !t.dados || !a.dados) {
       if (falha && sessaoExpirou(falha)) return
@@ -35,6 +37,7 @@ export function Ilha() {
     setArea(a.dados)
     setTreino(r.dados ?? null)
     setSimulacao(sim.dados ?? null)
+    setConteudos(cont.dados ?? [])
     setFase('ok')
   }, [areaId])
 
@@ -91,6 +94,14 @@ export function Ilha() {
         <h2>Sobre a área</h2>
         <p>{area.descricao}</p>
       </section>
+
+      {conteudos.length > 0 && (
+        <section className="ilha-secao" aria-label="Conteúdos da ilha">
+          <h2>Conteúdos da ilha</h2>
+          <p className="trilha-dica">Leia ou assista aqui mesmo, no seu ritmo. Os conteúdos do case básico também valem pontos e são obrigatórios dentro dele.</p>
+          <div className="conteudo-grid">{conteudos.map(c => <CartaoConteudo key={c.id} conteudo={c} aoConcluir={feito => setConteudos(l => l.map(x => x.id === feito.id ? feito : x))}/>)}</div>
+        </section>
+      )}
 
       {!trilha.diagnosticoConcluido && (
         <div className="alert alert-warning" role="note">

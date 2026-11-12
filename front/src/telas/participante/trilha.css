@@ -186,3 +186,13 @@
   .case-digitando i:nth-child(3) { animation-delay: .4s; }
 }
 @keyframes case-ponto { 50% { opacity: 1; transform: translateY(-3px); } }
+
+/* --- Conteúdos em cards (na ilha e no case) --- */
+.conteudo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-4); align-items: start; }
+.conteudo-card { display: grid; gap: var(--space-3); padding: var(--space-4); border: 2px solid transparent; border-radius: var(--radius-md); background: var(--white); box-shadow: var(--shadow-sm); }
+.conteudo-card.concluido { border-color: var(--success); }
+.conteudo-card.aberto { grid-column: 1 / -1; }
+.conteudo-card h3 { font-size: 17px; }
+.conteudo-minutos { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--ink-600); font-size: 12px; }
+.conteudo-corpo { display: grid; gap: var(--space-3); padding: var(--space-4); border-radius: var(--radius-sm); background: var(--blue-50); color: var(--ink-700); font-size: 15px; line-height: 1.6; }
+.conteudo-corpo p { margin: 0; }
