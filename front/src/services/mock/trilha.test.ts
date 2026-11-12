@@ -430,3 +430,25 @@ test('admin: case arquivado sai da oferta, mas quem já começou mantém o progr
   assert.deepEqual(dados(await s.caso.obterTrilha()).cases.map(c => c.caseId), ['case-2'], 'quem não começou não vê o arquivado')
   assert.equal(codigo(await s.caso.escolherCase('case-1')), 'NAO_ENCONTRADO')
 })
+
+test('treino de entrevista: só abre com o certificado do case básico, sorteia sem gabarito e dá feedback', async () => {
+  await entrar('marina@email.com')
+  const antes = dados(await s.treino.obterResumoDoTreino('equity-research'))
+  assert.equal(antes.liberado, false)
+  assert.equal(codigo(await s.treino.sortearPerguntas({ areaId: 'equity-research', nivel: 'misto', quantidade: 5 })), 'VALIDACAO')
+  await marinaConclui()
+  assert.equal(dados(await s.treino.obterResumoDoTreino('equity-research')).liberado, true)
+  assert.equal(codigo(await s.treino.sortearPerguntas({ areaId: 'equity-research', nivel: 'misto', quantidade: 5 })), 'NAO_ENCONTRADO', 'sem perguntas publicadas para a área')
+
+  const vc = dados(await s.treino.obterResumoDoTreino('venture-capital'))
+  assert.equal(vc.perguntasPorNivel.facil + vc.perguntasPorNivel.medio + vc.perguntasPorNivel.dificil, 50)
+  const { PERGUNTAS_ENTREVISTA } = await import('./dados/perguntas-entrevista.ts')
+  const p = PERGUNTAS_ENTREVISTA.find(q => q.areaId === 'venture-capital')!
+  const certa = dados(await s.treino.responderPergunta(p.id, p.resposta))
+  assert.equal(certa.correta, true)
+  const errada = dados(await s.treino.responderPergunta(p.id, null))
+  assert.equal(errada.correta, false)
+  assert.equal(errada.letraCerta, p.resposta)
+  assert.ok(errada.feedback.length > 10)
+  assert.ok(PERGUNTAS_ENTREVISTA.every(q => q.opcoes.length === 4 && 'ABCD'.includes(q.resposta)))
+})

@@ -10,6 +10,7 @@ import { diagnosticoService } from './diagnostico.ts'
 import { perfilService } from './perfil.ts'
 import { pontosService } from './pontos.ts'
 import { sessaoService } from './sessao.ts'
+import { treinoService } from './treino.ts'
 import { definirDebug, obterDebug, obterEstado, resetarEstado } from './store.ts'
 
 export {
@@ -24,6 +25,7 @@ export {
   perfilService,
   pontosService,
   sessaoService,
+  treinoService,
 }
 
 export const servicosMock: Servicos = {
@@ -38,6 +40,7 @@ export const servicosMock: Servicos = {
   adminCases: adminCasesService,
   adminCorrecao: adminCorrecaoService,
   adminConteudos: adminConteudosService,
+  treino: treinoService,
 }
 
 /**

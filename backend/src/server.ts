@@ -8,7 +8,7 @@ import { eq, and, isNull, desc, sql, inArray } from 'drizzle-orm'
 import argon2 from 'argon2'
 import { z } from 'zod'
 import { db } from './db/client.js'
-import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProgress, deliveries, assessments, pointEvents, contents, contentCompletions, certificates, reviewRequests, aiLogs } from './db/schema.js'
+import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProgress, deliveries, assessments, pointEvents, contents, contentCompletions, certificates, reviewRequests, aiLogs, interviewQuestions } from './db/schema.js'
 import { configuracaoPublica, gerarResultado } from '../../front/src/services/fit/motor.ts'
 import { AREAS } from '../../front/src/services/mock/dados/areas.ts'
 import { montarPdfCertificado, slug } from '../../front/src/services/mock/pdf.ts'
@@ -302,6 +302,50 @@ app.get('/api/trail', async (req, reply) => {
     },
     erro: null,
   }
+})
+
+/** O treino de entrevista de uma ilha abre com o certificado do case básico (o primeiro por `island_order`) da área. */
+async function treinoLiberado(userId: string, areaId: string): Promise<{ liberado: boolean; motivoBloqueio: string | null }> {
+  const daArea = (await db.select().from(cases).where(and(eq(cases.areaId, areaId), eq(cases.status, 'publicado')))).sort((a, b) => a.islandOrder - b.islandOrder || a.id.localeCompare(b.id))
+  if (!daArea.length) return { liberado: false, motivoBloqueio: 'Esta ilha ainda não tem case básico.' }
+  const [cert] = await db.select().from(certificates).where(and(eq(certificates.userId, userId), eq(certificates.caseId, daArea[0].id))).limit(1)
+  return cert ? { liberado: true, motivoBloqueio: null } : { liberado: false, motivoBloqueio: 'Abre depois que você concluir o case básico desta ilha.' }
+}
+const NIVEIS_TREINO = ['facil', 'medio', 'dificil'] as const
+
+app.get('/api/training/:areaId', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  const { areaId } = req.params as { areaId: string }
+  const rows = await db.select({ level: interviewQuestions.level }).from(interviewQuestions).where(eq(interviewQuestions.areaId, areaId))
+  const perguntasPorNivel = Object.fromEntries(NIVEIS_TREINO.map(n => [n, rows.filter(r => r.level === n).length]))
+  return { dados: { areaId, ...(await treinoLiberado(user.id, areaId)), perguntasPorNivel }, erro: null }
+})
+
+app.get('/api/training/:areaId/questions', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  const { areaId } = req.params as { areaId: string }
+  const consulta = z.object({ nivel: z.enum(['facil', 'medio', 'dificil', 'misto']).default('misto'), quantidade: z.coerce.number().int().min(1).max(50).default(10) }).safeParse(req.query)
+  if (!consulta.success) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Escolha um nível e uma quantidade válidos.' } })
+  const { liberado, motivoBloqueio } = await treinoLiberado(user.id, areaId)
+  if (!liberado) return reply.code(403).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: motivoBloqueio ?? 'O treino ainda não está liberado.' } })
+  const { nivel, quantidade } = consulta.data
+  const rows = await db.select().from(interviewQuestions).where(nivel === 'misto' ? eq(interviewQuestions.areaId, areaId) : and(eq(interviewQuestions.areaId, areaId), eq(interviewQuestions.level, nivel))).orderBy(sql`random()`).limit(quantidade)
+  if (!rows.length) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Ainda não há perguntas publicadas para esta escolha.' } })
+  return { dados: rows.map(q => ({ id: q.id, areaId: q.areaId, nivel: q.level, enunciado: q.prompt, opcoes: q.options })), erro: null }
+})
+
+app.post('/api/training/questions/:id/answer', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  const { id } = req.params as { id: string }
+  const corpo = z.object({ letra: z.enum(['A', 'B', 'C', 'D']).nullable() }).safeParse(req.body)
+  if (!corpo.success) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Escolha uma alternativa.' } })
+  const [q] = await db.select().from(interviewQuestions).where(eq(interviewQuestions.id, id)).limit(1)
+  if (!q) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Pergunta não encontrada.' } })
+  if (!(await treinoLiberado(user.id, q.areaId)).liberado) return reply.code(403).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'O treino ainda não está liberado.' } })
+  return { dados: { correta: corpo.data.letra !== null && q.answer === corpo.data.letra, letraCerta: q.answer, feedback: q.feedback }, erro: null }
 })
 
 app.post('/api/cases/:caseId/start', async (req, reply) => {

@@ -16,6 +16,7 @@ export const diagnosticoService = servicosAtivos.diagnostico
 export const caseService = servicosAtivos.caso
 export const conteudoService = servicosAtivos.conteudos
 export const certificadoService = servicosAtivos.certificados
+export const treinoService = servicosAtivos.treino
 export const adminCasesService = servicosAtivos.adminCases
 export const adminCorrecaoService = servicosAtivos.adminCorrecao
 export const adminConteudosService = servicosAtivos.adminConteudos

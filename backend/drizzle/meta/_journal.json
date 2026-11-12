@@ -57,6 +57,13 @@
       "when": 1794402900000,
       "tag": "0007_ib_complexo",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794489300000,
+      "tag": "0008_treino_entrevista",
+      "breakpoints": true
     }
   ]
 }

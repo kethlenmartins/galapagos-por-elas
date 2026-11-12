@@ -1,0 +1,2615 @@
+/** Gerado por backend/scripts/gerar-perguntas-entrevista.mjs a partir de docs/cases/*-perguntas.md. Não edite à mão. */
+import type { NivelPergunta } from '../../contratos.ts'
+
+export type PerguntaEntrevista = {
+  id: string
+  areaId: string
+  nivel: NivelPergunta
+  enunciado: string
+  opcoes: { letra: string; texto: string }[]
+  resposta: string
+  feedback: string
+}
+
+export const PERGUNTAS_ENTREVISTA: PerguntaEntrevista[] = [
+  {
+    "id": "vc-facil-01",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "Qual é o objetivo principal de um fundo de Venture Capital?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Financiar apenas empresas que já distribuem dividendos."
+      },
+      {
+        "letra": "B",
+        "texto": "Conceder empréstimos com retorno fixo garantido."
+      },
+      {
+        "letra": "C",
+        "texto": "Investir em empresas com alto potencial de crescimento e buscar retorno com sua valorização."
+      },
+      {
+        "letra": "D",
+        "texto": "Comprar obrigatoriamente o controle de empresas maduras."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O VC investe em negócios que podem crescer muito, mesmo com bastante incerteza. O retorno costuma depender da valorização e da venda futura da participação."
+  },
+  {
+    "id": "vc-facil-02",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "Qual característica é mais associada a uma startup escalável?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Conseguir aumentar a receita sem elevar os custos na mesma proporção."
+      },
+      {
+        "letra": "B",
+        "texto": "Precisar dobrar a equipe sempre que dobrar a receita."
+      },
+      {
+        "letra": "C",
+        "texto": "Operar sem qualquer custo variável."
+      },
+      {
+        "letra": "D",
+        "texto": "Crescer sem precisar conquistar novos clientes."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Pense em um produto que consegue atender muito mais clientes usando boa parte da mesma estrutura. Escalar significa crescer com eficiência, não operar sem custos."
+  },
+  {
+    "id": "vc-facil-03",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "O que significa uma rodada de investimento?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Uma reunião mensal dos fundadores."
+      },
+      {
+        "letra": "B",
+        "texto": "Um empréstimo pessoal feito por um executivo."
+      },
+      {
+        "letra": "C",
+        "texto": "Uma distribuição de dividendos."
+      },
+      {
+        "letra": "D",
+        "texto": "Um processo de captação de recursos com investidores."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Na rodada, a startup busca capital para financiar sua trajetória. Em troca, o investidor recebe participação ou direitos que podem se converter em participação, conforme o instrumento."
+  },
+  {
+    "id": "vc-facil-04",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "Em uma rodada primária de equity, para onde vão os recursos investidos?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Exclusivamente para os fundadores."
+      },
+      {
+        "letra": "B",
+        "texto": "Para o caixa da startup."
+      },
+      {
+        "letra": "C",
+        "texto": "Para os clientes da startup."
+      },
+      {
+        "letra": "D",
+        "texto": "Para os acionistas que não participaram."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O dinheiro da rodada primária entra na empresa para financiar sua operação e seus planos. Quando um acionista vende ações existentes, trata-se de uma transação secundária."
+  },
+  {
+    "id": "vc-facil-05",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "O que é um MVP — Minimum Viable Product?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Um produto completo, sem necessidade de melhorias."
+      },
+      {
+        "letra": "B",
+        "texto": "Uma apresentação que substitui qualquer teste com clientes."
+      },
+      {
+        "letra": "C",
+        "texto": "Uma versão mínima que permite testar hipóteses relevantes com usuários."
+      },
+      {
+        "letra": "D",
+        "texto": "Um produto que precisa ser gratuito para sempre."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O MVP ajuda a aprender antes de investir demais na solução. A ideia é testar hipóteses importantes com uma versão suficiente para gerar evidências."
+  },
+  {
+    "id": "vc-facil-06",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "O que significa product-market fit?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Evidências de que o produto atende a uma necessidade relevante de um mercado."
+      },
+      {
+        "letra": "B",
+        "texto": "Ter uma marca registrada."
+      },
+      {
+        "letra": "C",
+        "texto": "Receber investimento de um fundo conhecido."
+      },
+      {
+        "letra": "D",
+        "texto": "Lançar o produto antes dos concorrentes."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Product-market fit aparece quando o mercado demonstra que quer o produto. Uso recorrente, retenção e disposição para pagar podem trazer evidências — investimento recebido, sozinho, não comprova isso."
+  },
+  {
+    "id": "vc-facil-07",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "O que o TAM procura estimar?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "O caixa disponível para os próximos meses."
+      },
+      {
+        "letra": "B",
+        "texto": "A participação atual da startup."
+      },
+      {
+        "letra": "C",
+        "texto": "O valor contábil dos seus ativos."
+      },
+      {
+        "letra": "D",
+        "texto": "O tamanho total do mercado endereçável."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "O TAM ajuda a entender o tamanho da oportunidade. Ele não representa a receita que a startup certamente terá, mas o mercado total que sua solução poderia atender."
+  },
+  {
+    "id": "vc-facil-08",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "O que é um pitch deck?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Um contrato definitivo de investimento."
+      },
+      {
+        "letra": "B",
+        "texto": "Uma apresentação do negócio, da oportunidade e da proposta aos investidores."
+      },
+      {
+        "letra": "C",
+        "texto": "Uma garantia de retorno."
+      },
+      {
+        "letra": "D",
+        "texto": "Um relatório obrigatório de auditoria."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O pitch deck apresenta a história do negócio: problema, solução, mercado, equipe, resultados e planos. Ele abre a conversa, mas não substitui uma análise aprofundada."
+  },
+  {
+    "id": "vc-facil-09",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "Qual é a principal função de um term sheet?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Transferir automaticamente todas as ações aos investidores."
+      },
+      {
+        "letra": "B",
+        "texto": "Garantir que a rodada será concluída."
+      },
+      {
+        "letra": "C",
+        "texto": "Registrar os principais termos propostos para o investimento."
+      },
+      {
+        "letra": "D",
+        "texto": "Substituir toda a documentação definitiva."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O term sheet organiza os termos econômicos e de governança antes dos contratos finais. Muitas disposições podem ser não vinculantes, enquanto outras, como confidencialidade, podem ser vinculantes."
+  },
+  {
+    "id": "vc-facil-10",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "O que é diluição?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Redução da participação percentual de um acionista após a emissão de novas participações."
+      },
+      {
+        "letra": "B",
+        "texto": "Redução obrigatória do número de ações que ele possui."
+      },
+      {
+        "letra": "C",
+        "texto": "Cancelamento das ações dos fundadores."
+      },
+      {
+        "letra": "D",
+        "texto": "Queda automática do valor econômico do investimento."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Você pode continuar com a mesma quantidade de ações e passar a ter uma fatia menor do total. Isso não significa necessariamente perder dinheiro, porque a empresa também pode valer mais."
+  },
+  {
+    "id": "vc-facil-11",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "O que representa o burn rate líquido de caixa?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "O total de vendas realizadas."
+      },
+      {
+        "letra": "B",
+        "texto": "O valor da empresa na última rodada."
+      },
+      {
+        "letra": "C",
+        "texto": "O lucro acumulado desde a fundação."
+      },
+      {
+        "letra": "D",
+        "texto": "A velocidade com que a empresa consome caixa, considerando entradas e saídas."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "O burn líquido mostra quanto o caixa diminui ao longo do tempo por causa das atividades consideradas. É uma medida importante para entender quanto tempo a empresa consegue continuar operando."
+  },
+  {
+    "id": "vc-facil-12",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "O que é runway?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "O prazo até a empresa abrir capital obrigatoriamente."
+      },
+      {
+        "letra": "B",
+        "texto": "O tempo estimado até o caixa acabar, dadas as premissas de consumo de caixa."
+      },
+      {
+        "letra": "C",
+        "texto": "O tempo necessário para desenvolver qualquer produto."
+      },
+      {
+        "letra": "D",
+        "texto": "O prazo de permanência dos fundadores no conselho."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Runway é o “fôlego” financeiro da startup. Ele depende do caixa disponível e de quanto a empresa deve consumir por mês."
+  },
+  {
+    "id": "vc-facil-13",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "O que significa CAC?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Caixa acumulado por cliente."
+      },
+      {
+        "letra": "B",
+        "texto": "Capital autorizado da companhia."
+      },
+      {
+        "letra": "C",
+        "texto": "Custo de aquisição de clientes."
+      },
+      {
+        "letra": "D",
+        "texto": "Crescimento anual contratado."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O CAC mede quanto a empresa gasta, em média, para conquistar um cliente. Ajuda a avaliar se a aquisição de clientes pode ser economicamente sustentável."
+  },
+  {
+    "id": "vc-facil-14",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "O que o LTV procura estimar?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "A contribuição econômica que um cliente gera ao longo do relacionamento, conforme a metodologia adotada."
+      },
+      {
+        "letra": "B",
+        "texto": "Apenas o valor da primeira compra."
+      },
+      {
+        "letra": "C",
+        "texto": "O valuation da próxima rodada."
+      },
+      {
+        "letra": "D",
+        "texto": "O total de investimentos já recebidos."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "O LTV olha para o relacionamento inteiro, não apenas para a primeira venda. Para comparar com CAC, é importante considerar margens e usar premissas realistas de permanência."
+  },
+  {
+    "id": "vc-facil-15",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "Em um negócio por assinatura, o que é churn de clientes?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Crescimento da receita dos clientes existentes."
+      },
+      {
+        "letra": "B",
+        "texto": "Número de novos clientes conquistados."
+      },
+      {
+        "letra": "C",
+        "texto": "Aumento do preço da assinatura."
+      },
+      {
+        "letra": "D",
+        "texto": "Proporção de clientes perdidos em determinado período."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Churn de clientes mede cancelamentos em relação à base inicial do período. Ele ajuda a entender se a empresa consegue manter quem já conquistou."
+  },
+  {
+    "id": "vc-facil-16",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "Qual é um possível caminho de saída para um fundo de VC?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Receber automaticamente o investimento de volta na próxima rodada."
+      },
+      {
+        "letra": "B",
+        "texto": "Vender sua participação em uma aquisição da startup."
+      },
+      {
+        "letra": "C",
+        "texto": "Transformar qualquer prejuízo em dividendos."
+      },
+      {
+        "letra": "D",
+        "texto": "Exigir que todos os clientes comprem suas ações."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Uma aquisição pode permitir que o fundo venda sua participação e realize o retorno. Uma nova rodada, por si só, não garante liquidez para os investidores antigos."
+  },
+  {
+    "id": "vc-facil-17",
+    "areaId": "venture-capital",
+    "nivel": "facil",
+    "enunciado": "Por que a equipe fundadora importa tanto na análise de uma startup inicial?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Porque uma equipe experiente elimina o risco de mercado."
+      },
+      {
+        "letra": "B",
+        "texto": "Porque o currículo garante a aceitação do produto."
+      },
+      {
+        "letra": "C",
+        "texto": "Porque a capacidade de executar, aprender e se adaptar influencia fortemente a trajetória do negócio."
+      },
+      {
+        "letra": "D",
+        "texto": "Porque bons fundadores dispensam governança."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "No início, muitas hipóteses ainda vão mudar. A capacidade de aprender com clientes, executar e ajustar o caminho é essencial — mas não elimina a necessidade de analisar o negócio."
+  },
+  {
+    "id": "vc-medio-18",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Uma startup recebe R$ 5 milhões com valuation pre-money de R$ 20 milhões. Sem outros ajustes, qual é o post-money?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 25 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 15 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 20 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 100 milhões."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "O post-money soma o valor antes da rodada ao dinheiro novo: 20 + 5 = R$ 25 milhões. Esse é um dos cálculos-base de uma rodada!"
+  },
+  {
+    "id": "vc-medio-19",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Na mesma rodada, o investidor aporta R$ 5 milhões e o post-money é R$ 25 milhões. Qual participação ele recebe, sem outros ajustes?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "25%."
+      },
+      {
+        "letra": "B",
+        "texto": "5%."
+      },
+      {
+        "letra": "C",
+        "texto": "16,7%."
+      },
+      {
+        "letra": "D",
+        "texto": "20%."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "A participação é calculada sobre o valor depois do aporte: 5 ÷ 25 = 20%. Um cuidado importante: usar o pre-money no denominador daria uma resposta diferente e incorreta."
+  },
+  {
+    "id": "vc-medio-20",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Uma startup tem R$ 3 milhões em caixa e burn líquido constante de R$ 250 mil por mês. Sem novos recursos, qual é o runway?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "8 meses."
+      },
+      {
+        "letra": "B",
+        "texto": "12 meses."
+      },
+      {
+        "letra": "C",
+        "texto": "15 meses."
+      },
+      {
+        "letra": "D",
+        "texto": "24 meses."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Dividimos o caixa pelo consumo mensal: 3.000.000 ÷ 250.000 = 12 meses. Na prática, vale atualizar a conta conforme receitas e despesas mudam."
+  },
+  {
+    "id": "vc-medio-21",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Uma startup gastou R$ 120 mil em aquisição e conquistou 60 novos clientes atribuíveis a esse gasto. Qual é o CAC?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 500."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 7.200."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 2.000."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 120."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O custo médio é gasto de aquisição ÷ clientes conquistados. Assim, 120.000 ÷ 60 = R$ 2.000 por cliente."
+  },
+  {
+    "id": "vc-medio-22",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Para este exercício, LTV é a contribuição mensal por cliente multiplicada pelo tempo médio de permanência. Com contribuição de R$ 100 por mês e permanência de 24 meses, qual é o LTV?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 2.400."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 100."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 24.000."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 4,17."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Pela definição apresentada, LTV = 100 × 24 = R$ 2.400. A conta usa contribuição, e não apenas receita, para refletir os custos associados ao atendimento."
+  },
+  {
+    "id": "vc-medio-23",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Um cliente custa R$ 600 para ser adquirido e gera R$ 100 mensais de contribuição. Sem outros efeitos, qual é o payback do CAC?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "3 meses."
+      },
+      {
+        "letra": "B",
+        "texto": "12 meses."
+      },
+      {
+        "letra": "C",
+        "texto": "10 meses."
+      },
+      {
+        "letra": "D",
+        "texto": "6 meses."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Queremos saber quanto tempo a contribuição leva para recuperar o custo de aquisição: 600 ÷ 100 = 6 meses."
+  },
+  {
+    "id": "vc-medio-24",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Uma empresa começou o mês com 200 clientes e perdeu 10 deles. Qual é o churn mensal de clientes?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "10%."
+      },
+      {
+        "letra": "B",
+        "texto": "5%."
+      },
+      {
+        "letra": "C",
+        "texto": "2%."
+      },
+      {
+        "letra": "D",
+        "texto": "20%."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O churn usa a base do início do período: 10 ÷ 200 = 5%. Novos clientes adquiridos no mês não entram no denominador dessa conta."
+  },
+  {
+    "id": "vc-medio-25",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Uma empresa de assinaturas tem 100 clientes pagando R$ 200 mensais cada. Qual é o MRR, sem outras receitas ou descontos?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 200 mil."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 240 mil."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 20 mil."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 2 mil."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "MRR é a receita recorrente mensal: 100 × R$ 200 = R$ 20 mil. Ele ajuda a acompanhar a base recorrente do negócio."
+  },
+  {
+    "id": "vc-medio-26",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Uma empresa tem MRR de R$ 50 mil. Usando ARR = MRR × 12, qual é o ARR?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 600 mil."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 50 mil."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 4,17 mil."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 5 milhões."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Anualizamos a receita recorrente mensal: 50 mil × 12 = R$ 600 mil. É uma medida anualizada da base atual, não necessariamente a receita já realizada no ano."
+  },
+  {
+    "id": "vc-medio-27",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Um marketplace intermediou R$ 1 milhão em vendas e cobrou comissão de 10%. Sem outras receitas, qual é sua receita de comissão?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 1 milhão."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 900 mil."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 1,1 milhão."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 100 mil."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "O valor transacionado não é automaticamente receita do marketplace. A comissão é R$ 1 milhão × 10% = R$ 100 mil."
+  },
+  {
+    "id": "vc-medio-28",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Qual é a principal utilidade de analisar retenção por coortes?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Misturar clientes antigos e novos em um único número."
+      },
+      {
+        "letra": "B",
+        "texto": "Comparar a permanência de grupos de clientes adquiridos em períodos semelhantes."
+      },
+      {
+        "letra": "C",
+        "texto": "Calcular apenas o total de downloads."
+      },
+      {
+        "letra": "D",
+        "texto": "Garantir que o churn cairá."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Coortes ajudam a enxergar como cada grupo se comporta ao longo do tempo. Assim, o crescimento de novos clientes não esconde a perda dos antigos."
+  },
+  {
+    "id": "vc-medio-29",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Uma startup tem muitos downloads, mas quase ninguém volta a usar o produto. Qual é a melhor interpretação?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Os downloads comprovam product-market fit."
+      },
+      {
+        "letra": "B",
+        "texto": "A retenção deixou de importar."
+      },
+      {
+        "letra": "C",
+        "texto": "Existe interesse inicial, mas o uso recorrente e a proposta de valor precisam ser investigados."
+      },
+      {
+        "letra": "D",
+        "texto": "O negócio deve necessariamente ser encerrado."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Downloads mostram que pessoas experimentaram o produto. Para entender se ele resolve um problema de forma sustentável, precisamos observar se elas voltam e continuam usando."
+  },
+  {
+    "id": "vc-medio-30",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Uma startup afirma que seu mercado é “todo o setor de saúde”. Qual abordagem melhora a estimativa da oportunidade inicial?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Definir clientes-alvo, quantidade de compradores e gasto possível com a solução."
+      },
+      {
+        "letra": "B",
+        "texto": "Usar o PIB do país como receita potencial."
+      },
+      {
+        "letra": "C",
+        "texto": "Assumir que todos comprarão o produto."
+      },
+      {
+        "letra": "D",
+        "texto": "Multiplicar o mercado global por uma participação arbitrária."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Um mercado enorme pode parecer atraente, mas precisa fazer sentido para o produto. Estimar de baixo para cima ajuda a conectar a oportunidade a clientes e preços reais."
+  },
+  {
+    "id": "vc-medio-31",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Uma fundadora possui 40% da startup antes de uma rodada. Novas ações dão 20% do post-money ao investidor. Sem outras mudanças, qual será a participação da fundadora?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "20%."
+      },
+      {
+        "letra": "B",
+        "texto": "40%."
+      },
+      {
+        "letra": "C",
+        "texto": "50%."
+      },
+      {
+        "letra": "D",
+        "texto": "32%."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Os acionistas antigos passam a dividir 80% da empresa. A fundadora mantém 40% dessa fatia: 40% × 80% = 32%."
+  },
+  {
+    "id": "vc-medio-32",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "O que é uma down round?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Uma rodada com menos investidores, independentemente do preço."
+      },
+      {
+        "letra": "B",
+        "texto": "Uma rodada com preço por ação inferior ao da rodada anterior, em bases comparáveis."
+      },
+      {
+        "letra": "C",
+        "texto": "Uma rodada feita antes do lançamento do produto."
+      },
+      {
+        "letra": "D",
+        "texto": "Uma venda de ações feita apenas pelos fundadores."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O ponto central é o preço por ação cair em relação à rodada anterior. Isso pode aumentar a diluição e acionar proteções contratuais, dependendo dos termos existentes."
+  },
+  {
+    "id": "vc-medio-33",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Qual é uma finalidade típica do vesting dos fundadores?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Garantir retorno ao investidor."
+      },
+      {
+        "letra": "B",
+        "texto": "Impedir qualquer contratação."
+      },
+      {
+        "letra": "C",
+        "texto": "Vincular a consolidação de direitos sobre a participação à permanência ou a condições acordadas."
+      },
+      {
+        "letra": "D",
+        "texto": "Eliminar a possibilidade de saída da empresa."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O vesting ajuda a alinhar o compromisso de longo prazo dos fundadores. Se alguém sai cedo, parte da participação pode estar sujeita às regras de recompra ou perda acordadas."
+  },
+  {
+    "id": "vc-medio-34",
+    "areaId": "venture-capital",
+    "nivel": "medio",
+    "enunciado": "Qual é a utilidade de acompanhar a cap table?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Entender quem possui a empresa e como emissões e conversões afetam as participações."
+      },
+      {
+        "letra": "B",
+        "texto": "Acompanhar somente o saldo bancário."
+      },
+      {
+        "letra": "C",
+        "texto": "Substituir as demonstrações financeiras."
+      },
+      {
+        "letra": "D",
+        "texto": "Calcular exclusivamente a folha salarial."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "A cap table organiza participações e instrumentos relevantes. Ela ajuda a enxergar a distribuição econômica da empresa e a simular a diluição de futuras rodadas."
+  },
+  {
+    "id": "vc-dificil-35",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "Uma startup tem 1 milhão de ações e valuation pre-money de R$ 12 milhões. Um investidor aporta R$ 3 milhões pelo mesmo preço por ação. Sem opções ou outros instrumentos, quantas novas ações serão emitidas?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "200 mil."
+      },
+      {
+        "letra": "B",
+        "texto": "300 mil."
+      },
+      {
+        "letra": "C",
+        "texto": "250 mil."
+      },
+      {
+        "letra": "D",
+        "texto": "400 mil."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Primeiro, o preço por ação é 12 milhões ÷ 1 milhão = R$ 12. Depois, 3 milhões ÷ 12 = 250 mil novas ações."
+  },
+  {
+    "id": "vc-dificil-36",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "Uma fundadora possui 60% da startup. Na primeira rodada, novos investidores recebem 20% do post-money; na segunda, recebem 25%. Sem outras mudanças, quanto resta para a fundadora?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "15%."
+      },
+      {
+        "letra": "B",
+        "texto": "36%."
+      },
+      {
+        "letra": "C",
+        "texto": "45%."
+      },
+      {
+        "letra": "D",
+        "texto": "40%."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "As diluições acontecem em sequência: 60% × 80% × 75% = 36%. Não basta subtrair os percentuais das rodadas da participação inicial."
+  },
+  {
+    "id": "vc-dificil-37",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "Uma startup tem R$ 2,4 milhões em caixa. Consumirá R$ 200 mil mensais nos primeiros seis meses e, depois, R$ 300 mil mensais. Sem novos recursos, qual é o runway total?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "8 meses."
+      },
+      {
+        "letra": "B",
+        "texto": "12 meses."
+      },
+      {
+        "letra": "C",
+        "texto": "9 meses."
+      },
+      {
+        "letra": "D",
+        "texto": "10 meses."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Em seis meses, ela consome 6 × 200 mil = R$ 1,2 milhão. O restante dura 1,2 milhão ÷ 300 mil = 4 meses. Total: 10 meses."
+  },
+  {
+    "id": "vc-dificil-38",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "Uma coorte começa com R$ 100 mil de MRR. No período, perde R$ 10 mil por cancelamentos e R$ 5 mil por reduções de planos, mas ganha R$ 25 mil por expansão. Qual é a NRR, sem novos clientes?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "110%."
+      },
+      {
+        "letra": "B",
+        "texto": "125%."
+      },
+      {
+        "letra": "C",
+        "texto": "85%."
+      },
+      {
+        "letra": "D",
+        "texto": "100%."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "A NRR acompanha a receita da mesma base: (100 − 10 − 5 + 25) ÷ 100 = 110%. A expansão mais que compensou as perdas."
+  },
+  {
+    "id": "vc-dificil-39",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "Uma startup apresenta NRR de 120%. O que isso permite concluir?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Nenhum cliente cancelou."
+      },
+      {
+        "letra": "B",
+        "texto": "O número de clientes cresceu 20%."
+      },
+      {
+        "letra": "C",
+        "texto": "A receita da base existente cresceu 20% líquida de perdas, podendo ainda haver cancelamentos."
+      },
+      {
+        "letra": "D",
+        "texto": "A receita total da empresa cresceu exatamente 20%."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "A NRR mede receita, não quantidade de clientes. Alguns podem ter saído, enquanto outros ampliaram o gasto o suficiente para compensar essas perdas."
+  },
+  {
+    "id": "vc-dificil-40",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "A startup divulga LTV/CAC muito alto, mas tem poucos meses de histórico e quase nenhum cancelamento observado. Qual é a principal cautela?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "O histórico curto garante que o churn será baixo."
+      },
+      {
+        "letra": "B",
+        "texto": "O LTV pode estar inflado por uma estimativa pouco confiável de permanência."
+      },
+      {
+        "letra": "C",
+        "texto": "O CAC deixa de importar."
+      },
+      {
+        "letra": "D",
+        "texto": "Todo cliente deve ser tratado como permanente."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Poucos cancelamentos no começo não significam que os clientes ficarão por muitos anos. Como o LTV depende da permanência, uma base curta pode produzir uma estimativa otimista demais."
+  },
+  {
+    "id": "vc-dificil-41",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "Uma startup melhora o LTV/CAC, mas o payback do CAC passa a ser muito longo. Qual preocupação permanece?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "O negócio necessariamente deixou de criar valor."
+      },
+      {
+        "letra": "B",
+        "texto": "O LTV/CAC é sempre inútil."
+      },
+      {
+        "letra": "C",
+        "texto": "A empresa não precisará de capital adicional."
+      },
+      {
+        "letra": "D",
+        "texto": "Pode faltar caixa para financiar a aquisição até recuperar o investimento."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Um cliente pode ser rentável ao longo da vida e demorar para devolver o dinheiro gasto para conquistá-lo. Esse intervalo exige financiamento e precisa caber no caixa da empresa."
+  },
+  {
+    "id": "vc-dificil-42",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "Um investidor aplicou R$ 5 milhões e possui 20% da startup, com preferência de liquidação de 1 vez, não participante. A empresa é vendida, e há R$ 15 milhões disponíveis aos acionistas. Sem outros direitos, quanto o investidor recebe?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 5 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 3 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 8 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 15 milhões."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Ele escolhe entre a preferência de R$ 5 milhões e sua participação convertida de 20% × 15 = R$ 3 milhões. Como a preferência é não participante, não soma os dois."
+  },
+  {
+    "id": "vc-dificil-43",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "O mesmo investidor possui 20% e preferência de 1 vez não participante sobre R$ 5 milhões. Se houver R$ 50 milhões disponíveis aos acionistas na venda, quanto ele recebe?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 5 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 15 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 10 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 25 milhões."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Agora, converter é melhor: 20% × 50 = R$ 10 milhões, acima da preferência de R$ 5 milhões. Ele recebe R$ 10 milhões, sem somar a preferência."
+  },
+  {
+    "id": "vc-dificil-44",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "Um investidor aportou R$ 5 milhões e possui 20%, com preferência de 1 vez participante, sem limite de participação. Há R$ 15 milhões disponíveis na venda. Sem outros direitos, quanto ele recebe?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 5 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 7 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 3 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 8 milhões."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Ele recebe primeiro R$ 5 milhões. Depois, participa de 20% dos R$ 10 milhões restantes: mais R$ 2 milhões. Total: R$ 7 milhões. Essa é a diferença da preferência participante."
+  },
+  {
+    "id": "vc-dificil-45",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "Uma rodada tem valuation elevado, mas exige preferências econômicas muito favoráveis ao novo investidor. Como comparar essa proposta com outra de valuation menor e termos mais simples?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Escolher sempre o maior valuation."
+      },
+      {
+        "letra": "B",
+        "texto": "Ignorar os termos porque só importam na assinatura."
+      },
+      {
+        "letra": "C",
+        "texto": "Comparar apenas o percentual nominal dos fundadores."
+      },
+      {
+        "letra": "D",
+        "texto": "Simular a distribuição dos recursos em diferentes saídas e avaliar os direitos envolvidos."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "O valuation não conta a história inteira. Preferências podem mudar quanto cada acionista recebe na venda. Simular cenários ajuda a comparar o resultado econômico real das propostas."
+  },
+  {
+    "id": "vc-dificil-46",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "Um fundo possui 10% de uma startup que captará R$ 20 milhões. Sem outros ajustes, quanto ele precisa investir na rodada, ao mesmo preço dos demais, para manter os 10%?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 2 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 20 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 200 mil."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 10 milhões."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Para acompanhar proporcionalmente, o fundo investe sua fatia da rodada: 10% × R$ 20 milhões = R$ 2 milhões. Isso pressupõe que ele possa exercer esse direito."
+  },
+  {
+    "id": "vc-dificil-47",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "Um fundo investe R$ 4 milhões por 20% de uma startup. Depois, é diluído para 10% e vende toda a participação por R$ 40 milhões. Sem outros aportes ou distribuições, qual é o MOIC?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "5 vezes."
+      },
+      {
+        "letra": "B",
+        "texto": "20 vezes."
+      },
+      {
+        "letra": "C",
+        "texto": "10 vezes."
+      },
+      {
+        "letra": "D",
+        "texto": "2,5 vezes."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O retorno usa os fluxos do fundo: MOIC = 40 ÷ 4 = 10 vezes. A diluição importa para determinar a fatia vendida, mas o valor recebido já foi informado."
+  },
+  {
+    "id": "vc-dificil-48",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "Um fundo de R$ 100 milhões investiu R$ 5 milhões em uma startup e terminou com 10% dela. Sem preferências, dívida, taxas ou outros efeitos, qual valor de venda da startup permitiria a essa participação devolver R$ 100 milhões ao fundo?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 500 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 1 bilhão."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 100 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 2 bilhões."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Queremos que 10% da venda sejam R$ 100 milhões: valor de venda = 100 milhões ÷ 10% = R$ 1 bilhão. Isso mostra por que o tamanho potencial da saída importa tanto em VC."
+  },
+  {
+    "id": "vc-dificil-49",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "Por que fundos de VC costumam buscar investimentos capazes de gerar retornos muito elevados?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Porque todas as startups necessariamente terão grandes saídas."
+      },
+      {
+        "letra": "B",
+        "texto": "Porque diversificação elimina perdas."
+      },
+      {
+        "letra": "C",
+        "texto": "Porque o fundo recebe retorno fixo mesmo quando a startup falha."
+      },
+      {
+        "letra": "D",
+        "texto": "Porque poucos grandes sucessos podem compensar vários investimentos com baixo retorno ou perda total."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Os resultados em VC podem ser muito concentrados. Uma pequena parte do portfólio pode responder por grande parte do retorno, então o potencial de ganho precisa ser relevante para o fundo."
+  },
+  {
+    "id": "vc-dificil-50",
+    "areaId": "venture-capital",
+    "nivel": "dificil",
+    "enunciado": "Uma startup cresce rapidamente, mas perde dinheiro em cada venda mesmo antes das despesas fixas. A tese afirma que “a escala resolverá tudo”. Qual é a melhor análise?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Investigar como preço, custos e comportamento dos clientes poderiam tornar a contribuição positiva."
+      },
+      {
+        "letra": "B",
+        "texto": "Aprovar, pois crescimento sempre corrige margens negativas."
+      },
+      {
+        "letra": "C",
+        "texto": "Considerar apenas o tamanho do mercado."
+      },
+      {
+        "letra": "D",
+        "texto": "Aumentar o investimento em marketing sem rever a operação."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Crescer com contribuição negativa pode ampliar o consumo de caixa. A escala só ajuda se houver um caminho plausível para melhorar a economia de cada venda. Vale testar esse caminho com dados."
+  },
+  {
+    "id": "pe-facil-01",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "Qual é o objetivo central de um fundo tradicional de PE?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Emprestar dinheiro a pessoas físicas."
+      },
+      {
+        "letra": "B",
+        "texto": "Comprar participações, criar valor e realizar o investimento com retorno."
+      },
+      {
+        "letra": "C",
+        "texto": "Garantir dividendos fixos anuais."
+      },
+      {
+        "letra": "D",
+        "texto": "Negociar ações diariamente."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O fundo investe com uma tese de valorização e trabalha para concretizá-la. O retorno pode vir de distribuições e da venda futura da participação."
+  },
+  {
+    "id": "pe-facil-02",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "Quem são os Limited Partners — LPs?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Executivos das investidas."
+      },
+      {
+        "letra": "B",
+        "texto": "Bancos financiadores."
+      },
+      {
+        "letra": "C",
+        "texto": "Assessores de venda."
+      },
+      {
+        "letra": "D",
+        "texto": "Investidores que comprometem capital com o fundo."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Os LPs fornecem o capital que será investido pelo fundo. A gestão seleciona e acompanha os investimentos conforme o mandato combinado."
+  },
+  {
+    "id": "pe-facil-03",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "Qual é o papel do General Partner — GP?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Gerir o fundo e tomar decisões de investimento."
+      },
+      {
+        "letra": "B",
+        "texto": "Garantir todas as dívidas das investidas."
+      },
+      {
+        "letra": "C",
+        "texto": "Auditar obrigatoriamente as empresas."
+      },
+      {
+        "letra": "D",
+        "texto": "Definir a política monetária."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Pense no GP como quem conduz a estratégia do fundo: analisa oportunidades, decide investimentos e acompanha as empresas, respeitando o mandato e a governança."
+  },
+  {
+    "id": "pe-facil-04",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "O que caracteriza um leveraged buyout — LBO?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Compra financiada apenas pelos fundadores."
+      },
+      {
+        "letra": "B",
+        "texto": "Compra obrigatória de empresa em recuperação."
+      },
+      {
+        "letra": "C",
+        "texto": "Aquisição com capital próprio e dívida relevante."
+      },
+      {
+        "letra": "D",
+        "texto": "Investimento sem previsão de saída."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "No LBO, a dívida financia parte importante da compra. A geração de caixa da empresa precisa sustentar juros e amortizações."
+  },
+  {
+    "id": "pe-facil-05",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "Qual é uma diferença típica entre buyout e venture capital?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Buyout só ocorre em empresas listadas."
+      },
+      {
+        "letra": "B",
+        "texto": "Buyout costuma envolver empresas maduras; VC, negócios mais jovens e incertos."
+      },
+      {
+        "letra": "C",
+        "texto": "VC exige caixa positivo desde o início."
+      },
+      {
+        "letra": "D",
+        "texto": "Buyout impede mudanças na gestão."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Buyouts geralmente partem de operações mais estabelecidas. Venture capital costuma assumir mais incerteza sobre o modelo de negócio em busca de crescimento elevado."
+  },
+  {
+    "id": "pe-facil-06",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "Qual empresa tende a ser mais adequada a um LBO?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Pré-operacional e sem receita."
+      },
+      {
+        "letra": "B",
+        "texto": "Com demanda imprevisível e aportes constantes."
+      },
+      {
+        "letra": "C",
+        "texto": "Com produto prestes a perder autorização de venda."
+      },
+      {
+        "letra": "D",
+        "texto": "Com receita previsível, caixa consistente e reinvestimento moderado."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "A dívida exige pagamentos mesmo quando o negócio enfrenta dificuldades. Receitas previsíveis e caixa disponível tornam a empresa mais preparada para assumir esses compromissos."
+  },
+  {
+    "id": "pe-facil-07",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "O que é uma tese de investimento?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Explicação da atratividade, criação de valor e riscos do investimento."
+      },
+      {
+        "letra": "B",
+        "texto": "Garantia de retorno."
+      },
+      {
+        "letra": "C",
+        "texto": "Lista de empresas rejeitadas."
+      },
+      {
+        "letra": "D",
+        "texto": "Substituto da due diligence."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "A tese responde: por que investir, como criar valor e o que pode dar errado? Ela orienta a análise, mas precisa ser testada com evidências."
+  },
+  {
+    "id": "pe-facil-08",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "O que significa exit?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Substituição do diretor financeiro."
+      },
+      {
+        "letra": "B",
+        "texto": "Pagamento de uma dívida."
+      },
+      {
+        "letra": "C",
+        "texto": "Realização total ou parcial do investimento."
+      },
+      {
+        "letra": "D",
+        "texto": "Encerramento da empresa."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O exit é a saída do investimento, por exemplo, pela venda da participação. Uma abertura de capital pode facilitar esse caminho, mas o fundo realiza caixa quando vende suas ações."
+  },
+  {
+    "id": "pe-facil-09",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "Qual é um exemplo de criação de valor operacional?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Aumentar o múltiplo na apresentação."
+      },
+      {
+        "letra": "B",
+        "texto": "Melhorar produtividade e reduzir desperdícios."
+      },
+      {
+        "letra": "C",
+        "texto": "Refinanciar sem mudar custo ou prazo."
+      },
+      {
+        "letra": "D",
+        "texto": "Adiar contabilmente despesas."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Melhorar a operação significa produzir resultados econômicos melhores de verdade. Menos desperdício pode elevar margem e caixa sem depender de mudanças na avaliação do mercado."
+  },
+  {
+    "id": "pe-facil-10",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "O que é buy-and-build?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Construir sedes para as investidas."
+      },
+      {
+        "letra": "B",
+        "texto": "Investir apenas em negócios pré-operacionais."
+      },
+      {
+        "letra": "C",
+        "texto": "Comprar empresas sem buscar integração."
+      },
+      {
+        "letra": "D",
+        "texto": "Comprar uma plataforma e fazer aquisições complementares."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "A plataforma funciona como base para incorporar outros negócios. O objetivo pode ser ganhar escala, entrar em regiões ou ampliar produtos e capacidades."
+  },
+  {
+    "id": "pe-facil-11",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "Para que serve a due diligence?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Validar informações, identificar riscos e testar premissas."
+      },
+      {
+        "letra": "B",
+        "texto": "Garantir ausência de problemas futuros."
+      },
+      {
+        "letra": "C",
+        "texto": "Substituir os contratos definitivos."
+      },
+      {
+        "letra": "D",
+        "texto": "Confirmar obrigatoriamente o preço do vendedor."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "A diligência ajuda a descobrir se o investimento é o que parece. Seus achados podem mudar preço, condições ou até a decisão de investir."
+  },
+  {
+    "id": "pe-facil-12",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "Por que EBITDA não é igual a caixa disponível?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Já desconta todo investimento em ativos."
+      },
+      {
+        "letra": "B",
+        "texto": "Inclui apenas receitas recebidas à vista."
+      },
+      {
+        "letra": "C",
+        "texto": "Não contempla integralmente capex, capital de giro, juros e impostos."
+      },
+      {
+        "letra": "D",
+        "texto": "Todas as suas despesas são não monetárias."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Depois do EBITDA, ainda existem necessidades de caixa. Uma empresa pode ter bom resultado operacional e precisar gastar bastante para manter ativos, financiar clientes e pagar dívidas."
+  },
+  {
+    "id": "pe-facil-13",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "Como calcular o MOIC de um investimento totalmente realizado?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Lucro líquido ÷ EBITDA."
+      },
+      {
+        "letra": "B",
+        "texto": "Total recebido ÷ capital investido."
+      },
+      {
+        "letra": "C",
+        "texto": "Dívida ÷ patrimônio contábil."
+      },
+      {
+        "letra": "D",
+        "texto": "Retorno anual ÷ prazo."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O MOIC mostra quantas vezes o dinheiro investido voltou: recebimentos totais ÷ aportes totais. Receber R$ 200 para cada R$ 100 investidos significa MOIC de 2 vezes."
+  },
+  {
+    "id": "pe-facil-14",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "Qual é a diferença entre MOIC e TIR?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Só o MOIC considera o tempo."
+      },
+      {
+        "letra": "B",
+        "texto": "A TIR mede lucro contábil."
+      },
+      {
+        "letra": "C",
+        "texto": "MOIC exige dívida."
+      },
+      {
+        "letra": "D",
+        "texto": "A TIR considera o tempo dos fluxos; o MOIC mede o múltiplo do capital."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Dobrar o dinheiro em três ou dez anos gera o mesmo MOIC. Mas receber antes significa maior retorno anual, capturado pela TIR."
+  },
+  {
+    "id": "pe-facil-15",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "O que significa ter controle de uma empresa?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Poder dirigir decisões relevantes conforme os direitos societários."
+      },
+      {
+        "letra": "B",
+        "texto": "Ter retorno mínimo garantido."
+      },
+      {
+        "letra": "C",
+        "texto": "Ser o único credor."
+      },
+      {
+        "letra": "D",
+        "texto": "Ter necessariamente 100% das ações."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Controle está ligado ao poder de decisão, não à necessidade de ser dona de todas as ações. A estrutura societária e os direitos existentes importam."
+  },
+  {
+    "id": "pe-facil-16",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "Por que oferecer participação societária aos executivos?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Para deixar de acompanhar a gestão."
+      },
+      {
+        "letra": "B",
+        "texto": "Para impedir qualquer saída de executivos."
+      },
+      {
+        "letra": "C",
+        "texto": "Para alinhar remuneração à criação de valor."
+      },
+      {
+        "letra": "D",
+        "texto": "Para transferir todas as obrigações do fundo."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Quando os executivos participam da valorização, parte de seu ganho acompanha o dos acionistas. Metas e condições bem desenhadas ajudam esse alinhamento."
+  },
+  {
+    "id": "pe-facil-17",
+    "areaId": "private-equity",
+    "nivel": "facil",
+    "enunciado": "Qual é a função do comitê de investimentos?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Fazer as vendas comerciais da investida."
+      },
+      {
+        "letra": "B",
+        "texto": "Avaliar e deliberar sobre investimentos."
+      },
+      {
+        "letra": "C",
+        "texto": "Garantir aprovação regulatória."
+      },
+      {
+        "letra": "D",
+        "texto": "Fixar o preço de mercado das investidas."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O comitê examina retorno, riscos e aderência ao mandato antes de decidir. É uma etapa de disciplina e governança, não uma garantia de sucesso."
+  },
+  {
+    "id": "pe-medio-18",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "Um fundo investe R$ 100 milhões e recebe R$ 250 milhões na saída, sem outros fluxos. Qual é o MOIC?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "1,5 vez."
+      },
+      {
+        "letra": "B",
+        "texto": "0,4 vez."
+      },
+      {
+        "letra": "C",
+        "texto": "3,5 vezes."
+      },
+      {
+        "letra": "D",
+        "texto": "2,5 vezes."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Usamos o total recebido, incluindo a recuperação do capital: MOIC = 250 ÷ 100 = 2,5 vezes. O lucro de R$ 150 milhões é uma medida diferente."
+  },
+  {
+    "id": "pe-medio-19",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "Um fundo investe R$ 100 milhões e recebe R$ 121 milhões dois anos depois. Sem outros fluxos, qual é a TIR anual?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "10%."
+      },
+      {
+        "letra": "B",
+        "texto": "21%."
+      },
+      {
+        "letra": "C",
+        "texto": "10,5%."
+      },
+      {
+        "letra": "D",
+        "texto": "12,1%."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "O retorno é composto: 100 × (1 + TIR)² = 121. Como 1,10² = 1,21, a TIR é 10% ao ano."
+  },
+  {
+    "id": "pe-medio-20",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "Uma aquisição de EV de R$ 600 milhões é financiada com R$ 350 milhões de dívida. Sem caixa, taxas ou outros usos, quanto equity é necessário?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 350 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 950 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 250 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 600 milhões."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "As fontes precisam cobrir a aquisição. Como a dívida financia R$ 350 milhões, o restante é 600 − 350 = R$ 250 milhões de equity."
+  },
+  {
+    "id": "pe-medio-21",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "Na saída, o EV é R$ 800 milhões, a dívida é R$ 220 milhões e o caixa é R$ 40 milhões. Sem outros ajustes, qual é o Equity Value?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 540 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 620 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 980 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 1,06 bilhão."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Descontamos a dívida e adicionamos o caixa: Equity Value = 800 − 220 + 40 = R$ 620 milhões."
+  },
+  {
+    "id": "pe-medio-22",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "Uma empresa com EBITDA de R$ 50 milhões é comprada a 8 vezes EV/EBITDA. Qual é o EV?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 6,25 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 58 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 450 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 400 milhões."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "O múltiplo indica quantas vezes o EBITDA corresponde ao valor das operações: EV = 8 × 50 = R$ 400 milhões."
+  },
+  {
+    "id": "pe-medio-23",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "Mantido o EV, o que acontece com o Equity Value quando a dívida líquida diminui?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Aumenta pelo mesmo valor, sem outros ajustes."
+      },
+      {
+        "letra": "B",
+        "texto": "Diminui pelo mesmo valor."
+      },
+      {
+        "letra": "C",
+        "texto": "Fica necessariamente igual."
+      },
+      {
+        "letra": "D",
+        "texto": "Torna-se igual ao EBITDA."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Pela fórmula Equity Value = EV − dívida líquida, menos dívida líquida significa mais valor para os acionistas. Esse é um dos mecanismos de retorno de um LBO."
+  },
+  {
+    "id": "pe-medio-24",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "Duas empresas têm EBITDA igual, mas uma precisa de muito menos capex. Mantido o restante, qual tende a amortizar mais dívida?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "A de maior capex."
+      },
+      {
+        "letra": "B",
+        "texto": "Ambas, pois EBITDA é caixa."
+      },
+      {
+        "letra": "C",
+        "texto": "A de menor capex."
+      },
+      {
+        "letra": "D",
+        "texto": "A de maior capex, pois não paga juros."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O que paga dívida é o caixa que sobra. Se menos dinheiro precisa ser reinvestido nos ativos, mais pode ficar disponível para amortização."
+  },
+  {
+    "id": "pe-medio-25",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "O EBITDA inclui um ganho pontual com a venda de um imóvel. Como tratar esse ganho no EBITDA recorrente?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Adicionar novamente."
+      },
+      {
+        "letra": "B",
+        "texto": "Excluir."
+      },
+      {
+        "letra": "C",
+        "texto": "Manter porque houve caixa."
+      },
+      {
+        "letra": "D",
+        "texto": "Projetar o mesmo ganho anualmente."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Queremos entender o resultado que o negócio consegue repetir. A venda isolada do imóvel gerou um ganho, mas não representa necessariamente a operação dos próximos anos."
+  },
+  {
+    "id": "pe-medio-26",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "O crescimento exige mais estoques e vendas a prazo. O que pode acontecer com o caixa?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Sempre aumenta imediatamente."
+      },
+      {
+        "letra": "B",
+        "texto": "Nada, pois capital de giro só afeta lucro."
+      },
+      {
+        "letra": "C",
+        "texto": "A dívida cai automaticamente."
+      },
+      {
+        "letra": "D",
+        "texto": "Parte do caixa é consumida pelo capital de giro."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "A empresa pode precisar pagar fornecedores antes de receber dos clientes. Assim, crescer pode exigir dinheiro adicional, mesmo quando as vendas são lucrativas."
+  },
+  {
+    "id": "pe-medio-27",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "Qual é a pergunta central de uma análise de quality of earnings?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Quanto do resultado é sustentável e recorrente?"
+      },
+      {
+        "letra": "B",
+        "texto": "Qual identidade visual usar?"
+      },
+      {
+        "letra": "C",
+        "texto": "Qual banco oferece mais capital social?"
+      },
+      {
+        "letra": "D",
+        "texto": "Como elevar EBITDA sem mudar premissas?"
+      }
+    ],
+    "resposta": "A",
+    "feedback": "A análise investiga a qualidade por trás do número: recorrência, ajustes contábeis e conversão em caixa. Isso ajuda a não pagar por resultados que não se sustentam."
+  },
+  {
+    "id": "pe-medio-28",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "Um cliente representa 60% da receita. Qual é o principal risco?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Diluição automática."
+      },
+      {
+        "letra": "B",
+        "texto": "Proibição de financiar capital de giro."
+      },
+      {
+        "letra": "C",
+        "texto": "Perda significativa de receita e caixa se ele sair."
+      },
+      {
+        "letra": "D",
+        "texto": "Obrigação de vender a empresa ao cliente."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Quanto maior a concentração, maior o impacto de perder um único relacionamento. É importante avaliar contratos, dependência comercial e possibilidade de diversificação."
+  },
+  {
+    "id": "pe-medio-29",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "O fundador concentra os clientes e quer sair logo após a venda. Como reduzir o risco?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Pagar mais para acelerar sua saída."
+      },
+      {
+        "letra": "B",
+        "texto": "Planejar transição e institucionalizar os relacionamentos."
+      },
+      {
+        "letra": "C",
+        "texto": "Ignorar se a receita cresceu."
+      },
+      {
+        "letra": "D",
+        "texto": "Trocar diligência comercial por contábil."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O objetivo é fazer os relacionamentos pertencerem à empresa, sem depender de uma única pessoa. Transição, equipe e processos ajudam a preservar esse valor."
+  },
+  {
+    "id": "pe-medio-30",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "Para que serve um cenário de downside?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Provar retorno positivo em qualquer situação."
+      },
+      {
+        "letra": "B",
+        "texto": "Encontrar o maior preço possível."
+      },
+      {
+        "letra": "C",
+        "texto": "Criar premissas arbitrariamente pessimistas."
+      },
+      {
+        "letra": "D",
+        "texto": "Testar caixa, dívida e retorno em condições adversas plausíveis."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "O downside pergunta: “E se as coisas forem piores que o esperado?”. Ele ajuda a entender se o investimento resiste sem faltar caixa ou descumprir obrigações."
+  },
+  {
+    "id": "pe-medio-31",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "Como se chama uma aquisição complementar feita pela empresa-plataforma?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Add-on ou bolt-on."
+      },
+      {
+        "letra": "B",
+        "texto": "Capital call."
+      },
+      {
+        "letra": "C",
+        "texto": "Lock-up."
+      },
+      {
+        "letra": "D",
+        "texto": "Write-off."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Um add-on complementa a plataforma existente. Pode trazer novos produtos, regiões, clientes ou escala para o grupo."
+  },
+  {
+    "id": "pe-medio-32",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "Qual direito é relevante para um fundo minoritário?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Garantia de nunca aportar novamente."
+      },
+      {
+        "letra": "B",
+        "texto": "Poder automático sobre toda decisão operacional."
+      },
+      {
+        "letra": "C",
+        "texto": "Informação e aprovação de determinadas decisões relevantes."
+      },
+      {
+        "letra": "D",
+        "texto": "Recebimento de todo o caixa da empresa."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Mesmo sem controle, o fundo precisa acompanhar e proteger seu investimento. Direitos de informação e aprovação de matérias específicas ajudam nessa proteção."
+  },
+  {
+    "id": "pe-medio-33",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "Por que o preço de entrada importa?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Uma boa empresa nunca pode custar caro demais."
+      },
+      {
+        "letra": "B",
+        "texto": "Preço maior exige mais criação de valor para atingir o mesmo retorno."
+      },
+      {
+        "letra": "C",
+        "texto": "Ele determina sozinho o EBITDA futuro."
+      },
+      {
+        "letra": "D",
+        "texto": "Ele não importa quando há dívida."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Uma boa empresa não é automaticamente um bom investimento a qualquer preço. Se os recebimentos futuros forem iguais, pagar mais reduz o retorno."
+  },
+  {
+    "id": "pe-medio-34",
+    "areaId": "private-equity",
+    "nivel": "medio",
+    "enunciado": "Quando uma dividend recap aumenta o risco da investida?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Quando reduz dívida e amplia caixa operacional."
+      },
+      {
+        "letra": "B",
+        "texto": "Quando converte dívida em ações."
+      },
+      {
+        "letra": "C",
+        "texto": "Quando elimina todos os vencimentos."
+      },
+      {
+        "letra": "D",
+        "texto": "Quando adiciona dívida sem aumentar a geração operacional de caixa."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "A empresa assume dívida para distribuir dinheiro aos acionistas. Eles recebem antes, mas a operação fica com mais obrigações para pagar usando o mesmo negócio."
+  },
+  {
+    "id": "pe-dificil-35",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "Um fundo compra uma empresa por EV de R$ 500 milhões, usando R$ 300 milhões de dívida e R$ 200 milhões de equity. Na saída, o EV segue em R$ 500 milhões e a dívida líquida é R$ 100 milhões. Sem outros fluxos, qual é o MOIC?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "2,0 vezes."
+      },
+      {
+        "letra": "B",
+        "texto": "1,0 vez."
+      },
+      {
+        "letra": "C",
+        "texto": "2,5 vezes."
+      },
+      {
+        "letra": "D",
+        "texto": "1,5 vez."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "O equity de saída é 500 − 100 = 400. Dividindo pelo aporte: 400 ÷ 200 = 2 vezes. Mesmo com EV constante, a redução da dívida aumentou o valor para o acionista."
+  },
+  {
+    "id": "pe-dificil-36",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "Um aporte de R$ 100 milhões retorna R$ 200 milhões. Como comparar saída em três anos com saída em cinco, sem outros fluxos?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Cinco anos têm maior MOIC."
+      },
+      {
+        "letra": "B",
+        "texto": "As TIRs são iguais."
+      },
+      {
+        "letra": "C",
+        "texto": "O MOIC é igual, mas a TIR é maior em três anos."
+      },
+      {
+        "letra": "D",
+        "texto": "Três anos têm menor MOIC."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "As duas saídas devolvem 200 ÷ 100 = 2 vezes o capital. A diferença é o tempo: receber antes gera maior retorno anual."
+  },
+  {
+    "id": "pe-dificil-37",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "Uma empresa é comprada com EBITDA de R$ 50 milhões a 10 vezes. Na saída, o EBITDA é R$ 70 milhões e o múltiplo é 8 vezes. Qual é o EV de saída e sua variação?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 700 milhões; aumento de R$ 200 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 560 milhões; aumento de R$ 60 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 400 milhões; queda de R$ 100 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 560 milhões; queda de R$ 140 milhões."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Na entrada: 50 × 10 = 500. Na saída: 70 × 8 = 560. O crescimento operacional compensou a queda do múltiplo, aumentando o EV em R$ 60 milhões."
+  },
+  {
+    "id": "pe-dificil-38",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "Um fundo investe R$ 200 milhões e busca MOIC de 3 vezes, sem distribuições. A dívida líquida na saída será R$ 150 milhões. Qual EV de saída é necessário?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 450 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 600 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 650 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 750 milhões."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "O fundo precisa receber 200 × 3 = 600 de equity. Como EV = equity + dívida líquida, o EV necessário é 600 + 150 = R$ 750 milhões."
+  },
+  {
+    "id": "pe-dificil-39",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "Mantido o preço de compra, qual é o efeito de usar mais dívida em um LBO?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Reduz o equity inicial e pode elevar seu retorno, mas aumenta o risco financeiro."
+      },
+      {
+        "letra": "B",
+        "texto": "Reduz o risco e o preço da empresa."
+      },
+      {
+        "letra": "C",
+        "texto": "Garante retorno maior em qualquer cenário."
+      },
+      {
+        "letra": "D",
+        "texto": "Aumenta automaticamente o valor operacional."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Mais dívida significa menos aporte inicial, o que pode ampliar o retorno sobre o equity. Mas também significa mais compromissos financeiros e maior sensibilidade a resultados ruins."
+  },
+  {
+    "id": "pe-dificil-40",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "Um fundo recebe dividendos financiados por nova dívida da investida. Qual afirmação é correta?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Isso comprova melhora operacional."
+      },
+      {
+        "letra": "B",
+        "texto": "MOIC e TIR sobem no mesmo percentual."
+      },
+      {
+        "letra": "C",
+        "texto": "Antecipar caixa pode favorecer a TIR, mas é preciso considerar a dívida e os fluxos futuros."
+      },
+      {
+        "letra": "D",
+        "texto": "A operação cria valor a qualquer custo."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Receber antes pode ajudar a TIR, mas a dívida traz juros e pode reduzir o valor na saída. Precisamos olhar todos os fluxos, não apenas o dividendo."
+  },
+  {
+    "id": "pe-dificil-41",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "Uma aquisição exige R$ 600 milhões aos vendedores, R$ 200 milhões para refinanciar dívida e R$ 20 milhões de taxas. Há R$ 450 milhões de nova dívida. Quanto equity é necessário?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 150 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 370 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 350 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 820 milhões."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Some os usos: 600 + 200 + 20 = 820. Depois, desconte a fonte de dívida: 820 − 450 = R$ 370 milhões de equity."
+  },
+  {
+    "id": "pe-dificil-42",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "O caixa para amortizar principal é definido como EBITDA de R$ 100 milhões menos impostos de R$ 15 milhões, capex de R$ 20 milhões, aumento de capital de giro de R$ 10 milhões e juros de R$ 25 milhões. Quanto sobra?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 55 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 45 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 70 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 30 milhões."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Vamos acompanhar o caixa: 100 − 15 − 20 − 10 − 25 = R$ 30 milhões. É esse saldo, nas premissas dadas, que pode amortizar o principal."
+  },
+  {
+    "id": "pe-dificil-43",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "Uma dívida flutuante de R$ 400 milhões sofre aumento de 3 pontos percentuais na taxa anual. Sem hedge e com saldo constante, qual é o efeito direto antes de impostos?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Mais R$ 12 milhões de juros anuais."
+      },
+      {
+        "letra": "B",
+        "texto": "Mais R$ 3 milhões de juros anuais."
+      },
+      {
+        "letra": "C",
+        "texto": "Menos R$ 12 milhões de EBITDA."
+      },
+      {
+        "letra": "D",
+        "texto": "Menos R$ 12 milhões de principal."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "O acréscimo é 400 × 3% = R$ 12 milhões por ano. Isso reduz o caixa, mas não o EBITDA, que é calculado antes dos juros."
+  },
+  {
+    "id": "pe-dificil-44",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "Uma tese depende de comprar negócios a 6 vezes EBITDA e vender o grupo a 10 vezes. O que mais fortalece essa tese?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Uma promessa do vendedor."
+      },
+      {
+        "letra": "B",
+        "texto": "Usar o múltiplo maior em todos os cenários."
+      },
+      {
+        "letra": "C",
+        "texto": "Evidências de melhorias de escala, gestão, crescimento e qualidade do negócio."
+      },
+      {
+        "letra": "D",
+        "texto": "Ter mais empresas, mesmo sem integração."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Um múltiplo maior precisa de sustentação. Se a integração construir um negócio melhor e mais atrativo, há uma justificativa econômica mais forte para a valorização."
+  },
+  {
+    "id": "pe-dificil-45",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "O vendedor quer excluir do EBITDA despesas “não recorrentes” que apareceram em quatro dos últimos cinco anos. Como agir?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Aceitar a classificação do vendedor."
+      },
+      {
+        "letra": "B",
+        "texto": "Investigar e rejeitar o ajuste se os gastos forem recorrentes ou necessários."
+      },
+      {
+        "letra": "C",
+        "texto": "Dobrar o ajuste."
+      },
+      {
+        "letra": "D",
+        "texto": "Excluir todas as despesas semelhantes."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O nome do ajuste não basta. Se o gasto volta frequentemente ou é necessário para operar, removê-lo pode fazer o negócio parecer mais rentável do que realmente é."
+  },
+  {
+    "id": "pe-dificil-46",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "A empresa reconhece receita antes de cumprir as condições contratuais de entrega. Qual é a principal preocupação?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Isso melhora necessariamente a qualidade do resultado."
+      },
+      {
+        "letra": "B",
+        "texto": "Só o balanço é afetado."
+      },
+      {
+        "letra": "C",
+        "texto": "Isso justifica mais dívida."
+      },
+      {
+        "letra": "D",
+        "texto": "O EBITDA pode estar superestimado, exigindo revisão dos números e do valuation."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Antecipar receita indevidamente pode inflar o resultado. Antes de investir, precisamos corrigir os números e verificar se o preço e a dívida continuam fazendo sentido."
+  },
+  {
+    "id": "pe-dificil-47",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "Um fundo investe R$ 100 milhões, recebe R$ 20 milhões em distribuições e vende a participação por R$ 180 milhões. Qual é o MOIC bruto?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "2,0 vezes."
+      },
+      {
+        "letra": "B",
+        "texto": "1,8 vez."
+      },
+      {
+        "letra": "C",
+        "texto": "2,2 vezes."
+      },
+      {
+        "letra": "D",
+        "texto": "1,6 vez."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Lembre de incluir as distribuições: total recebido = 20 + 180 = 200. Então, MOIC = 200 ÷ 100 = 2 vezes."
+  },
+  {
+    "id": "pe-dificil-48",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "A empresa pode investir R$ 50 milhões em projeto de VPL positivo ou amortizar dívida. Como decidir?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Amortizar sempre."
+      },
+      {
+        "letra": "B",
+        "texto": "Investir sempre, ignorando a dívida."
+      },
+      {
+        "letra": "C",
+        "texto": "Comparar criação de valor, redução de risco, liquidez e restrições financeiras."
+      },
+      {
+        "letra": "D",
+        "texto": "Escolher apenas pelo EBITDA do próximo trimestre."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Um projeto pode criar valor e ainda exigir caixa que a empresa não pode comprometer naquele momento. A decisão precisa equilibrar oportunidade, segurança financeira e obrigações."
+  },
+  {
+    "id": "pe-dificil-49",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "A tese só atinge o retorno mínimo se o múltiplo de saída subir de 8 para 12 vezes. Qual é sua principal fragilidade?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Dependência de redução de custos já contratada."
+      },
+      {
+        "letra": "B",
+        "texto": "Dependência elevada de reprecificação futura."
+      },
+      {
+        "letra": "C",
+        "texto": "Irrelevância do preço de entrada."
+      },
+      {
+        "letra": "D",
+        "texto": "Proteção automática contra juros."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O retorno depende muito de quanto alguém aceitará pagar no futuro. Como isso envolve mercado e percepção dos compradores, é importante testar a tese sem expansão de múltiplo."
+  },
+  {
+    "id": "pe-dificil-50",
+    "areaId": "private-equity",
+    "nivel": "dificil",
+    "enunciado": "O cenário-base é atrativo, mas uma queda moderada do EBITDA provoca falta de caixa e violação de covenants. O que fazer?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Aprovar pelo retorno do cenário-base."
+      },
+      {
+        "letra": "B",
+        "texto": "Retirar o downside da análise."
+      },
+      {
+        "letra": "C",
+        "texto": "Aumentar a dívida."
+      },
+      {
+        "letra": "D",
+        "texto": "Reavaliar preço, alavancagem e estrutura, podendo rejeitar o investimento."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Uma boa tese também precisa resistir a dificuldades plausíveis. Ajustar preço e dívida pode melhorar sua segurança; se não for suficiente, deixar de investir também é uma decisão bem fundamentada."
+  }
+]

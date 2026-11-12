@@ -5,7 +5,8 @@ import { sessaoExpirou } from '../../app/sessao'
 import { PageTitle, Tag } from '../../componentes/Basicos'
 import { Icon } from '../../componentes/Icone'
 import { AppShell } from '../../componentes/Layout'
-import { caseService, catalogoService, type Area, type TrilhaDaUsuaria } from '../../services'
+import { Button } from '../../componentes/Botao'
+import { caseService, catalogoService, treinoService, type Area, type ResumoTreino, type TrilhaDaUsuaria } from '../../services'
 import { CartaoCase } from './CartaoCase'
 
 /** Uma ilha é uma área: apresentação, case básico, cases avançados e treino de entrevista. */
@@ -13,6 +14,7 @@ export function Ilha() {
   const areaId = obterIlhaAtual()
   const [trilha, setTrilha] = useState<TrilhaDaUsuaria | null>(null)
   const [area, setArea] = useState<Area | null>(null)
+  const [treino, setTreino] = useState<ResumoTreino | null>(null)
   const [fase, setFase] = useState<'carregando' | 'ok' | 'erro'>('carregando')
   const [mensagem, setMensagem] = useState('')
   const [confirmando, setConfirmando] = useState<string | null>(null)
@@ -21,7 +23,7 @@ export function Ilha() {
 
   const carregar = useCallback(async () => {
     if (!areaId) return go('trail')
-    const [t, a] = await Promise.all([caseService.obterTrilha(), catalogoService.obterArea(areaId)])
+    const [t, a, r] = await Promise.all([caseService.obterTrilha(), catalogoService.obterArea(areaId), treinoService.obterResumoDoTreino(areaId)])
     const falha = t.erro ?? a.erro
     if (falha || !t.dados || !a.dados) {
       if (falha && sessaoExpirou(falha)) return
@@ -30,6 +32,7 @@ export function Ilha() {
     }
     setTrilha(t.dados)
     setArea(a.dados)
+    setTreino(r.dados ?? null)
     setFase('ok')
   }, [areaId])
 
@@ -109,15 +112,23 @@ export function Ilha() {
 
       <section className="ilha-secao" aria-label="Treino de entrevista">
         <h2>Treino de entrevista</h2>
-        <article className={`trilha-card ${basicoConcluido ? '' : 'trilha-bloqueado'}`}>
-          <div className="trilha-etiquetas">
-            <Tag tone="blue">ENTREVISTA</Tag>
-            <span className="trilha-estado"><Tag tone="yellow">EM BREVE</Tag></span>
-          </div>
-          <h3>Treine para entrevistas de {area.nome}</h3>
-          <p className="trilha-resumo">Perguntas por nível de dificuldade, modo cronometrado e simulação com IA, ajustada à vaga que você quer e ao quanto de rigor você prefere.</p>
-          {!basicoConcluido && <p className="trilha-aviso"><Icon name="lock" size={16} /> Abre depois que você concluir o case básico.</p>}
-        </article>
+        {(() => {
+          const total = treino ? Object.values(treino.perguntasPorNivel).reduce((x, y) => x + y, 0) : 0
+          const liberado = !!treino?.liberado && total > 0
+          return (
+            <article className={`trilha-card ${liberado ? '' : 'trilha-bloqueado'}`}>
+              <div className="trilha-etiquetas">
+                <Tag tone="blue">ENTREVISTA</Tag>
+                <span className="trilha-estado"><Tag tone={total > 0 ? 'blue' : 'yellow'}>{total > 0 ? `${total} PERGUNTAS` : 'EM BREVE'}</Tag></span>
+              </div>
+              <h3>Treine para entrevistas de {area.nome}</h3>
+              <p className="trilha-resumo">Perguntas de entrevista por nível de dificuldade, com feedback em cada resposta e modo cronometrado.</p>
+              {!basicoConcluido && <p className="trilha-aviso"><Icon name="lock" size={16} /> Abre depois que você concluir o case básico.</p>}
+              {basicoConcluido && total === 0 && <p className="trilha-aviso"><Icon name="spark" size={16} /> As perguntas desta área ainda não foram publicadas.</p>}
+              {liberado && <div className="trilha-acoes"><Button onClick={() => go('training')} icon="arrow">Começar o treino</Button></div>}
+            </article>
+          )
+        })()}
       </section>
     </>}
   </div></AppShell>

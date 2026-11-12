@@ -2,7 +2,7 @@
 
 export type Route =
   | 'landing' | 'signup' | 'login' | 'forgot' | 'reset' | 'validate'
-  | 'onboarding' | 'diagnostic' | 'match' | 'home' | 'trail' | 'island' | 'case' | 'task'
+  | 'onboarding' | 'diagnostic' | 'match' | 'home' | 'trail' | 'island' | 'training' | 'case' | 'task'
   | 'result' | 'content' | 'content-item' | 'certificates' | 'profile'
   | 'admin-cases' | 'admin-editor' | 'admin-review' | 'admin-content'
   | 'terms' | 'privacy' | 'points' | 'forbidden' | 'system-error' | 'maintenance' | 'session-expired'
@@ -11,7 +11,7 @@ export const routes: Record<Route, string> = {
   landing: 'Início', signup: 'Cadastro', login: 'Entrar', forgot: 'Recuperar senha',
   reset: 'Nova senha', validate: 'Validar certificado', onboarding: 'Seu perfil',
   diagnostic: 'Diagnóstico', match: 'Seu Mapa de Carreira', home: 'Início',
-  trail: 'Suas ilhas', island: 'Ilha', case: 'Case', task: 'Case', result: 'Case',
+  trail: 'Suas ilhas', island: 'Ilha', training: 'Treino de entrevista', case: 'Case', task: 'Case', result: 'Case',
   content: 'Conteúdos', 'content-item': 'Conteúdo', certificates: 'Certificados', profile: 'Perfil',
   'admin-cases': 'Cases', 'admin-editor': 'Editor de case',
   'admin-review': 'Fila de correção', 'admin-content': 'Conteúdos',

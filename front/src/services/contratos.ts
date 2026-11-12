@@ -800,7 +800,46 @@ export interface AdminConteudosService {
 // Conjunto
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Treino de entrevista
+// ---------------------------------------------------------------------------
+
+export type NivelPergunta = 'facil' | 'medio' | 'dificil'
+
+export type ResumoTreino = {
+  areaId: string
+  /** O treino de uma ilha abre depois do certificado do case básico da área. */
+  liberado: boolean
+  motivoBloqueio: string | null
+  /** Quantas perguntas existem por nível. Tudo zero: a área ainda não tem perguntas publicadas. */
+  perguntasPorNivel: Record<NivelPergunta, number>
+}
+
+/** Uma pergunta de múltipla escolha, sem o gabarito (ele só vem em `RespostaTreino`). */
+export type PerguntaTreino = {
+  id: string
+  areaId: string
+  nivel: NivelPergunta
+  enunciado: string
+  opcoes: { letra: string; texto: string }[]
+}
+
+export type RespostaTreino = {
+  correta: boolean
+  letraCerta: string
+  feedback: string
+}
+
+export interface TreinoService {
+  obterResumoDoTreino(areaId: string): Promise<Resultado<ResumoTreino>>
+  /** Sorteia perguntas da área. `misto` junta os três níveis. Erro `VALIDACAO` se o treino ainda não está liberado. */
+  sortearPerguntas(filtro: { areaId: string; nivel: NivelPergunta | 'misto'; quantidade: number }): Promise<Resultado<PerguntaTreino[]>>
+  /** `letra` nula: o tempo acabou sem resposta (conta como erro). */
+  responderPergunta(perguntaId: string, letra: string | null): Promise<Resultado<RespostaTreino>>
+}
+
 export type Servicos = {
+  treino: TreinoService
   sessao: SessaoService
   perfil: PerfilService
   catalogo: CatalogoService
