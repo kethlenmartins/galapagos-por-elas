@@ -1148,3 +1148,12 @@
   .community-comment-linha .btn { width: 100%; }
 }
 .community-page > .alert { margin-bottom: var(--space-4); }
+
+/* Comentários: contador bem visível, "+N novos" e indicador de atualização ao vivo. */
+.community-comentar strong { font-size: 15px; }
+.community-novos { display: inline-flex; align-items: center; margin-left: var(--space-1); padding: 1px 8px; border-radius: var(--radius-pill); background: var(--pink-500); color: var(--white); font-size: 11px; font-style: normal; font-weight: 800; white-space: nowrap; }
+.community-thread h3 .community-novos { margin-left: var(--space-2); }
+.community-ao-vivo { margin-left: auto; color: var(--success); font-size: 12px; font-weight: 700; }
+@media (prefers-reduced-motion: no-preference) { .community-ao-vivo { animation: community-ao-vivo 2.4s ease-in-out infinite; } }
+@keyframes community-ao-vivo { 50% { opacity: .45; } }
+@media (max-width: 540px) { .community-post footer .community-comentar { flex-wrap: wrap; } }

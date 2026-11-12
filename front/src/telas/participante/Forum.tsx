@@ -11,6 +11,14 @@ const regras = ['Respeite diferentes trajetórias e níveis de conhecimento.', '
 const CATEGORIA_TEMA = 'tema-da-semana'
 const tempo = (data: string) => `há ${Math.max(1, Math.floor((Date.now() - new Date(data).getTime()) / 3600000))} h`
 const MSG_APELIDO = 'Antes de publicar, defina seu Nome de usuário no Perfil.'
+/** A conversa é atualizada sozinha: o feed a cada 20 s e a conversa aberta a cada 8 s (só com a aba visível). */
+const INTERVALO_FEED_MS = 20000
+const INTERVALO_CONVERSA_MS = 8000
+
+/** Quantos comentários cada conversa tinha quando a pessoa viu pela última vez (para mostrar "+N novos"). */
+const CHAVE_VISTOS = 'galapagos:forum:visto'
+const lerVistos = (): Record<string, number> => { try { return JSON.parse(localStorage.getItem(CHAVE_VISTOS) ?? '{}') as Record<string, number> } catch { return {} } }
+const gravarVisto = (id: string, total: number) => { try { localStorage.setItem(CHAVE_VISTOS, JSON.stringify({ ...lerVistos(), [id]: total })) } catch { /* sem armazenamento: só não mostra "novos" */ } }
 
 /** O coração "Amei": um toque liga e desliga. */
 function Amei({ ativo, total, aoClicar, rotulo = true }: { ativo: boolean; total: number; aoClicar: () => void; rotulo?: boolean }) {
@@ -33,9 +41,14 @@ export function Forum() {
   const [erro, setErro] = useState('')
   const [aviso, setAviso] = useState('')
   const [encerrando, setEncerrando] = useState(false)
+  const [vistos, setVistos] = useState<Record<string, number>>(lerVistos)
+  const [novosNaConversa, setNovosNaConversa] = useState(0)
+  const visto = (id: string, total: number) => { gravarVisto(id, total); setVistos(lerVistos()) }
+  /** Comentários novos desde a última vez que a pessoa viu esta conversa (0 se nunca abriu). */
+  const novosDe = (p: PostForum) => (vistos[p.id] === undefined ? 0 : Math.max(0, p.respostas - vistos[p.id]))
 
   const falhou = useCallback((mensagem: string) => setErro(mensagem), [])
-  const carregar = async () => {
+  const carregar = async (silencioso = false) => {
     const [c, p, t] = await Promise.all([
       forumService.listarCategorias(),
       forumService.listarPosts({ categoriaId: categoria || undefined, busca: busca || undefined, ordem }),
@@ -44,7 +57,7 @@ export function Forum() {
     if (c.dados) setCategorias(c.dados)
     setTema(t.dados?.[0] ?? null)
     if (p.dados) setPosts(p.dados)
-    else if (p.erro && !sessaoExpirou(p.erro)) setErro(p.erro.mensagem ?? 'Não foi possível carregar a comunidade.')
+    else if (!silencioso && p.erro && !sessaoExpirou(p.erro)) setErro(p.erro.mensagem ?? 'Não foi possível carregar a comunidade.')
   }
   useEffect(() => { carregar() }, [categoria, ordem]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -53,9 +66,37 @@ export function Forum() {
 
   const abrir = async (id: string, focar = false) => {
     const r = await forumService.obterPost(id)
-    if (r.dados) setConversa({ post: r.dados, focar })
+    if (r.dados) { setConversa({ post: r.dados, focar }); visto(id, r.dados.respostas) }
     else falhou(r.erro?.mensagem ?? '')
   }
+  /** Depois de comentar: reabre a conversa com o comentário e atualiza os contadores do feed e do tema. */
+  const aposComentar = async (id: string) => { await abrir(id); await carregar(true) }
+
+  // Atualização automática: contadores do feed/tema e a conversa aberta ficam em dia sem recarregar a página.
+  const atualizadores = useRef({ carregar, conversa })
+  atualizadores.current = { carregar, conversa }
+  useEffect(() => {
+    const tickFeed = () => { if (document.visibilityState === 'visible') atualizadores.current.carregar(true) }
+    const tickConversa = async () => {
+      const aberta = atualizadores.current.conversa
+      if (document.visibilityState !== 'visible' || !aberta) return
+      const r = await forumService.obterPost(aberta.post.id)
+      if (!r.dados) return
+      const novo = r.dados
+      const antes = aberta.post.respostasArvore.length
+      setConversa(c => (c && c.post.id === novo.id ? { ...c, post: { ...c.post, ...novo, meuVoto: novo.meuVoto } } : c))
+      visto(novo.id, novo.respostas)
+      if (novo.respostasArvore.length > antes) {
+        setNovosNaConversa(novo.respostasArvore.length - antes)
+        window.setTimeout(() => setNovosNaConversa(0), 5000)
+        atualizadores.current.carregar(true)
+      }
+    }
+    const a = window.setInterval(tickFeed, INTERVALO_FEED_MS)
+    const b = window.setInterval(tickConversa, INTERVALO_CONVERSA_MS)
+    window.addEventListener('focus', tickFeed)
+    return () => { window.clearInterval(a); window.clearInterval(b); window.removeEventListener('focus', tickFeed) }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const nova = async (tipo: 'conversa' | 'tema') => {
     if (tipo === 'conversa') {
       const p = await forumService.obterMeuPerfil()
@@ -92,7 +133,7 @@ export function Forum() {
       ? <TemaDaSemana tema={tema} equipe={equipe} encerrando={encerrando}
           aoAmei={() => alternarAmei('post', tema.id)} aoAbrir={foco => abrir(tema.id, foco)}
           aoPublicarNovo={() => nova('tema')} aoPedirEncerrar={() => setEncerrando(true)} aoCancelarEncerrar={() => setEncerrando(false)} aoEncerrar={encerrarTema}
-          aoComentado={mensagem => { setAviso(mensagem); carregar() }} aoFalhar={falhou}/>
+          novos={novosDe(tema)} aoComentado={mensagem => { setAviso(mensagem); visto(tema.id, tema.respostas + 1); carregar(true) }} aoFalhar={falhou}/>
       : equipe && <section className="community-tema community-tema-vazio" aria-label="Tema da semana">
           <span className="eyebrow">TEMA DA SEMANA</span>
           <h2>Nenhum tema publicado</h2>
@@ -114,7 +155,7 @@ export function Forum() {
           <p>{post.texto}</p>
           <footer>
             <Amei ativo={post.meuVoto} total={post.uteis} aoClicar={() => alternarAmei('post', post.id)}/>
-            <button className="community-action community-comentar" onClick={() => abrir(post.id, true)} aria-label={`Comentar, ${post.respostas} ${post.respostas === 1 ? 'comentário' : 'comentários'}`}><span aria-hidden="true">💬</span><strong>{post.respostas}</strong><span>Comentar</span></button>
+            <button className="community-action community-comentar" onClick={() => abrir(post.id, true)} aria-label={`Comentar, ${post.respostas} ${post.respostas === 1 ? 'comentário' : 'comentários'}${novosDe(post) ? `, ${novosDe(post)} novos` : ''}`}><span aria-hidden="true">💬</span><strong>{post.respostas}</strong><span>{post.respostas === 1 ? 'comentário' : 'comentários'}</span>{novosDe(post) > 0 && <em className="community-novos">+{novosDe(post)} novos</em>}</button>
           </footer>
         </div>
       </article>)}
@@ -128,13 +169,13 @@ export function Forum() {
 
     <button className="btn btn-primary community-new" onClick={() => nova('conversa')}><Icon name="plus" size={18}/> Nova conversa</button>
     {modo && <NovaConversa modo={modo} categorias={categorias} fechar={() => setModo(null)} pronta={() => { const tipo = modo; setModo(null); if (tipo === 'tema') setAviso('Tema da semana publicado.'); carregar() }}/>}
-    {conversa && <Conversa post={conversa.post} focarAoAbrir={conversa.focar} fechar={() => setConversa(null)} atualizar={id => abrir(id)} aoAmei={alternarAmei}/>}
+    {conversa && <Conversa post={conversa.post} focarAoAbrir={conversa.focar} novos={novosNaConversa} fechar={() => { setConversa(null); carregar(true) }} atualizar={aposComentar} aoAmei={alternarAmei}/>}
   </div></AppShell>
 }
 
 /** O tema da semana em destaque: leitura rápida, Amei e um comentário direto, sem abrir a conversa. */
-function TemaDaSemana({ tema, equipe, encerrando, aoAmei, aoAbrir, aoPublicarNovo, aoPedirEncerrar, aoCancelarEncerrar, aoEncerrar, aoComentado, aoFalhar }: {
-  tema: PostForum; equipe: boolean; encerrando: boolean
+function TemaDaSemana({ tema, equipe, encerrando, novos, aoAmei, aoAbrir, aoPublicarNovo, aoPedirEncerrar, aoCancelarEncerrar, aoEncerrar, aoComentado, aoFalhar }: {
+  tema: PostForum; equipe: boolean; encerrando: boolean; novos: number
   aoAmei: () => void; aoAbrir: (focar: boolean) => void; aoPublicarNovo: () => void
   aoPedirEncerrar: () => void; aoCancelarEncerrar: () => void; aoEncerrar: () => void
   aoComentado: (mensagem: string) => void; aoFalhar: (mensagem: string) => void
@@ -156,7 +197,7 @@ function TemaDaSemana({ tema, equipe, encerrando, aoAmei, aoAbrir, aoPublicarNov
     <p className="community-tema-texto">{tema.texto}</p>
     <div className="community-tema-acoes">
       <Amei ativo={tema.meuVoto} total={tema.uteis} aoClicar={aoAmei}/>
-      <button className="community-action community-comentar" onClick={() => aoAbrir(false)}><span aria-hidden="true">💬</span><strong>{tema.respostas}</strong><span>{tema.respostas === 1 ? 'comentário' : 'comentários'}</span></button>
+      <button className="community-action community-comentar" onClick={() => aoAbrir(false)}><span aria-hidden="true">💬</span><strong>{tema.respostas}</strong><span>{tema.respostas === 1 ? 'comentário' : 'comentários'}</span>{novos > 0 && <em className="community-novos">+{novos} novos</em>}</button>
       <button className="text-link" onClick={() => aoAbrir(false)}>Ler tudo e ver comentários</button>
     </div>
     <div className="community-tema-comentar">
@@ -202,8 +243,8 @@ function NovaConversa({ modo, categorias, fechar, pronta }: { modo: 'conversa' |
   </div></div>
 }
 
-function Conversa({ post, focarAoAbrir, fechar, atualizar, aoAmei }: {
-  post: DetalhePostForum; focarAoAbrir: boolean; fechar: () => void; atualizar: (id: string) => void
+function Conversa({ post, focarAoAbrir, novos, fechar, atualizar, aoAmei }: {
+  post: DetalhePostForum; focarAoAbrir: boolean; novos: number; fechar: () => void; atualizar: (id: string) => void
   aoAmei: (alvo: 'post' | 'resposta', id: string) => void
 }) {
   const [texto, setTexto] = useState('')
@@ -230,8 +271,12 @@ function Conversa({ post, focarAoAbrir, fechar, atualizar, aoAmei }: {
     <h2>{post.titulo}</h2>
     <small>{post.autora.apelido} · {tempo(post.criadoEm)}</small>
     <p className="forum-texto">{post.texto}</p>
-    <div className="community-thread-actions"><Amei ativo={post.meuVoto} total={post.uteis} aoClicar={() => aoAmei('post', post.id)}/></div>
-    <h3>Comentários ({post.respostasArvore.length})</h3>
+    <div className="community-thread-actions">
+      <Amei ativo={post.meuVoto} total={post.uteis} aoClicar={() => aoAmei('post', post.id)}/>
+      <button className="community-action community-comentar" onClick={() => campo.current?.focus()} aria-label={`${post.respostasArvore.length} comentários. Escrever um comentário`}><span aria-hidden="true">💬</span><strong>{post.respostasArvore.length}</strong><span>{post.respostasArvore.length === 1 ? 'comentário' : 'comentários'}</span></button>
+      <span className="community-ao-vivo" title="Os comentários novos aparecem sozinhos">● ao vivo</span>
+    </div>
+    <h3 aria-live="polite">Comentários ({post.respostasArvore.length}){novos > 0 && <em className="community-novos">+{novos} {novos === 1 ? 'novo' : 'novos'}</em>}</h3>
     {!post.respostasArvore.length && <p className="trilha-dica">Ainda não há comentários. Seja a primeira a comentar.</p>}
     {post.respostasArvore.map(r => <article className={`community-reply ${r.paiId ? 'indented' : ''}`} key={r.id}>
       <div className="community-avatar">{r.autora.apelido[0]?.toUpperCase()}</div>
