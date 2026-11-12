@@ -745,7 +745,7 @@
   .case-layout aside { order: -1; }
   .article-side { position: static; }
   .profile-layout { grid-template-columns: 1fr; }
-  .profile-tabs { grid-template-columns: repeat(3,1fr); }
+  .profile-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .profile-tabs button { flex-direction: column; justify-content: center; height: 64px; padding: var(--space-2); font-size: 10px; text-align: center; }
   .certificate-item { grid-template-columns: 150px 1fr; }
   .certificate-actions { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
@@ -1053,8 +1053,8 @@
 @media (max-width: 420px) {
   .btn { padding-inline: var(--space-4); font-size: 15px; }
   .level-card { padding: var(--space-5); }
-  .profile-tabs { grid-template-columns: repeat(4, 1fr); }
-  .profile-tabs button { font-size: 10px; padding: var(--space-2) 2px; }
+  .profile-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .profile-tabs button { min-width: 0; font-size: 10px; padding: var(--space-2) 2px; overflow-wrap: anywhere; }
 }
 
 /* Dados de apoio e tabelas que rolam de lado: sombra nas pontas avisa que há mais coluna. */

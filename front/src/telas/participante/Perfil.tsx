@@ -22,6 +22,11 @@ const PREFERENCIAS: { id: keyof PreferenciasEmail; titulo: string; texto: string
 
 function Dados({ perfil, aoSalvar }: { perfil: PerfilDados; aoSalvar: (p: PerfilDados) => void }) {
   const [f, setF] = useState({ nome: perfil.nome, nomeSocial: perfil.nomeSocial ?? '', cidade: perfil.cidade ?? '', uf: perfil.uf ?? '', escolaridade: perfil.escolaridade ?? '', objetivo: perfil.objetivo ?? '' })
+  // O nome de usuário (o que aparece na comunidade) é salvo junto com os outros dados.
+  const [forum, setForum] = useState<PerfilForum | null>(null)
+  const [usuario, setUsuario] = useState('')
+  const [erroUsuario, setErroUsuario] = useState('')
+  useEffect(() => { forumService.obterMeuPerfil().then(r => { if (r.dados) { setForum(r.dados); setUsuario(r.dados.apelido) } }) }, [])
   const [erro, setErro] = useState<ErroServico | null>(null)
   const [ok, setOk] = useState(false)
   const [ocupado, setOcupado] = useState(false)
@@ -30,19 +35,34 @@ function Dados({ perfil, aoSalvar }: { perfil: PerfilDados; aoSalvar: (p: Perfil
 
   const salvar = async () => {
     setOcupado(true)
+    setErroUsuario('')
     const r = await perfilService.atualizarPerfil(f)
-    setOcupado(false)
     if (r.erro) {
+      setOcupado(false)
       if (!sessaoExpirou(r.erro)) setErro(r.erro)
       return
     }
     setErro(null)
-    setOk(true)
     aoSalvar(r.dados.perfil)
+    // Só envia o nome de usuário se ele mudou (ele só pode ser alterado uma vez por mês).
+    const novoNome = usuario.trim()
+    if (novoNome && novoNome !== (forum?.apelido ?? '')) {
+      const u = await forumService.salvarMeuPerfil({ apelido: novoNome, mostrarArea: forum?.mostrarArea ?? false, mostrarMedalhas: forum?.mostrarMedalhas ?? false })
+      if (u.erro) {
+        setOcupado(false)
+        if (!sessaoExpirou(u.erro)) setErroUsuario(u.erro.campos?.apelido ?? u.erro.mensagem)
+        return
+      }
+      setForum(u.dados)
+      setUsuario(u.dados.apelido)
+    }
+    setOcupado(false)
+    setOk(true)
   }
 
   return <section className="content-card profile-form"><h2>Dados pessoais</h2>
     <div className="form-row"><Field label="Nome" value={f.nome} onChange={v => alterar({ nome: v })} error={campos.nome}/><Field label="Nome social" value={f.nomeSocial} onChange={v => alterar({ nomeSocial: v })}/></div>
+    <Field label="Nome de usuário" value={usuario} onChange={v => { setUsuario(v); setOk(false); setErroUsuario('') }} placeholder="Ex.: Analista_em_formação" hint="É o nome que aparece nas suas publicações e comentários na comunidade (seu nome real e e-mail não aparecem). De 3 a 30 caracteres; pode ser alterado uma vez por mês." error={erroUsuario}/>
     <Field label="E-mail" value={perfil.email} onChange={() => {}} hint="Para trocar o e-mail, fale com a equipe."/>
     <div className="form-row"><Field label="Cidade" value={f.cidade} onChange={v => alterar({ cidade: v })}/>
       <label className="field"><span>Estado</span><select value={f.uf} onChange={e => alterar({ uf: e.target.value })}><option value="">Selecione</option>{UFS.map(u => <option key={u}>{u}</option>)}</select></label></div>
@@ -50,20 +70,6 @@ function Dados({ perfil, aoSalvar }: { perfil: PerfilDados; aoSalvar: (p: Perfil
       <label className="field"><span>Principal objetivo</span><select value={f.objetivo} onChange={e => alterar({ objetivo: e.target.value })}><option value="">Selecione</option>{OBJETIVOS.map(u => <option key={u}>{u}</option>)}</select></label></div>
     {erro && !erro.campos && <div className="alert alert-error">{erro.mensagem}</div>}
     <div><Button onClick={salvar} disabled={ocupado}>Salvar alterações</Button>{ok && <span className="inline-success"><Icon name="check"/> Dados salvos.</span>}</div></section>
-}
-
-function NomeDeUsuario() {
-  const [forum, setForum] = useState<PerfilForum | null>(null)
-  const [nome, setNome] = useState('')
-  const [erro, setErro] = useState('')
-  const [salvo, setSalvo] = useState(false)
-  useEffect(() => { forumService.obterMeuPerfil().then(r => { if (r.dados) { setForum(r.dados); setNome(r.dados.apelido) } }) }, [])
-  const salvar = async () => {
-    const r = await forumService.salvarMeuPerfil({ apelido: nome, mostrarArea: forum?.mostrarArea ?? false, mostrarMedalhas: forum?.mostrarMedalhas ?? false })
-    if (r.erro) return setErro(r.erro.mensagem)
-    setForum(r.dados); setNome(r.dados.apelido); setErro(''); setSalvo(true)
-  }
-  return <section className="content-card profile-form"><h2>Nome de usuário</h2><p>É o nome que aparece nas suas publicações e respostas no fórum. Seu nome real e e-mail não são exibidos.</p><Field label="Nome de usuário" value={nome} onChange={v => { setNome(v); setSalvo(false) }} placeholder="Ex.: Analista_em_formação" hint="De 3 a 30 caracteres. Pode ser alterado uma vez por mês."/>{erro && <div className="alert alert-error">{erro}</div>}<div><Button onClick={salvar}>Salvar nome de usuário</Button>{salvo && <span className="inline-success"><Icon name="check"/> Nome de usuário salvo.</span>}</div></section>
 }
 
 function Seguranca({ aviso }: { aviso: (a: Aviso) => void }) {
@@ -154,7 +160,7 @@ export function Profile() {
     {aviso && <div className={`alert alert-${aviso.tom}`} role="status">{aviso.texto}</div>}
     <div className="profile-layout"><nav className="profile-tabs">{abas.map(([id, rotulo, icone]) => <button key={id} className={aba === id ? 'active' : ''} onClick={() => setAba(id)}><Icon name={icone}/>{rotulo}</button>)}</nav>
       <div>{!perfil ? <p aria-busy="true">Carregando…</p> : <>
-        {aba === 'data' && <><Dados perfil={perfil} aoSalvar={setPerfil}/><NomeDeUsuario/></>}
+        {aba === 'data' && <Dados perfil={perfil} aoSalvar={setPerfil}/>}
         {aba === 'security' && <Seguranca aviso={setAviso}/>}
         {aba === 'notifications' && <section className="content-card settings-list"><h2>Preferências de e-mail</h2>{PREFERENCIAS.map(p => <label key={p.id}><span><strong>{p.titulo}</strong><small>{p.texto}</small></span><input type="checkbox" checked={perfil.preferenciasEmail[p.id]} onChange={e => preferencia(p.id, e.target.checked)}/></label>)}</section>}
         {aba === 'privacy' && <section className="content-card profile-form"><div><h2>Seus dados</h2><p>Você pode baixar uma cópia dos dados associados à sua conta.</p></div><div><Button variant="ghost" icon="download" onClick={baixarDados}>Baixar meus dados</Button></div><hr/>
