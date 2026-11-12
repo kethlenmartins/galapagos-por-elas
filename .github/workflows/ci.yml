@@ -45,7 +45,7 @@ jobs:
           pnpm --dir front build
       - name: Existing mock and fit tests
         working-directory: backend
-        run: pnpm exec tsx --test ../front/src/services/mock/mock.test.ts ../front/src/services/mock/trilha.test.ts ../front/src/services/fit/motor.test.ts
+        run: pnpm exec tsx --test ../front/src/services/mock/mock.test.ts ../front/src/services/mock/trilha.test.ts ../front/src/services/fit/motor.test.ts ../front/src/app/voz.test.ts src/entrevista-ia.test.ts
       - name: Migrate and seed PostgreSQL
         working-directory: backend
         env:
@@ -60,6 +60,10 @@ jobs:
           SESSION_SECRET: ci-only-secret-with-more-than-32-bytes
           APP_ORIGIN: http://127.0.0.1:3000
           COOKIE_SECURE: "false"
+          # IA falsa do e2e (a simulação de entrevista roda de ponta a ponta sem chamar a Groq).
+          GROQ_API_URL: http://127.0.0.1:4010
+          GROQ_API_KEY: e2e
+          GROQ_MODEL: e2e
         run: |
           pnpm exec tsx src/server.ts > /tmp/gpe-api.log 2>&1 &
           API_PID=$!
