@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './trilha.css'
 import { horaCurta } from '../../app/formatos'
+import { FALA, atrasoParaMostrar } from '../../app/revelacao'
 import { definirCaseAtual, definirIlhaAtual, go, irParaConteudo, obterCaseAtual } from '../../app/rotas'
 import { sessaoExpirou } from '../../app/sessao'
 import { Toast } from '../../componentes/Aviso'
@@ -91,14 +92,13 @@ function dividirEnunciado(enunciado: string): Segmento[] {
   })
 }
 
-const FALA = /^([^\s:“"]{1,24}(?: [^\s:“"]{1,24}){0,2}):\s*([“"].*[”"])\s*$/
-
-function TextoDoSegmento({ linhas }: { linhas: string[] }) {
-  return <>{linhas.filter(l => l.trim()).map((linha, i) => {
+/** As linhas já reveladas do trecho. Com `digitando`, mostra o balão de quem vai falar a seguir. */
+function TextoDoSegmento({ linhas, digitando }: { linhas: string[]; digitando?: string | null }) {
+  return <>{linhas.map((linha, i) => {
     const fala = linha.match(FALA)
     if (!fala) return <p key={i}>{linha}</p>
     return <div key={i} className={`case-fala ${fala[1] === 'Você' ? 'case-fala-voce' : ''}`}><strong>{fala[1]}</strong><span>{fala[2]}</span></div>
-  })}</>
+  })}{digitando && <div className={`case-fala case-fala-digitando ${digitando === 'Você' ? 'case-fala-voce' : ''}`} role="status" aria-label={`${digitando} está digitando`}><strong>{digitando}</strong><span className="case-digitando" aria-hidden="true"><i/><i/><i/></span></div>}</>
 }
 
 function TarefaDoCase({ tarefa, tituloDoCheckpoint, respostas, erros, salvoEm, bloqueado, aoMudar, aoRevelar }: {
@@ -112,18 +112,32 @@ function TarefaDoCase({ tarefa, tituloDoCheckpoint, respostas, erros, salvoEm, b
   aoRevelar: (tarefaId: string, completo: boolean) => void
 }) {
   const dados = tarefa.dadosApoio
-  const segmentos = dividirEnunciado(tarefa.enunciado)
+  const segmentos = useMemo(() => dividirEnunciado(tarefa.enunciado).map(sg => ({ ...sg, linhas: sg.linhas.filter(l => l.trim()) })), [tarefa.enunciado])
   const ultimo = segmentos.length - 1
   // Com rascunho salvo ou somente leitura, mostra tudo de uma vez.
-  const [passo, setPasso] = useState(() => (tarefa.somenteLeitura || Object.keys(respostas).length > 0 ? ultimo : 0))
+  const jaVisto = tarefa.somenteLeitura || Object.keys(respostas).length > 0
+  const [passo, setPasso] = useState(() => (jaVisto ? ultimo : 0))
+  // Quantas linhas do trecho atual já apareceram: as falas entram uma a uma.
+  const [mostradas, setMostradas] = useState(() => (jaVisto ? Infinity : 0))
   const novoTrecho = useRef<HTMLDivElement>(null)
-  const completo = passo >= ultimo
+  const linhasDoTrecho = segmentos[passo]?.linhas ?? []
+  const rolando = mostradas < linhasDoTrecho.length
+  const completo = passo >= ultimo && !rolando
   useEffect(() => { aoRevelar(tarefa.id, completo) }, [tarefa.id, completo, aoRevelar])
-  const avancar = () => { setPasso(p => p + 1); window.setTimeout(() => novoTrecho.current?.focus(), 0) }
+  useEffect(() => {
+    if (!rolando) return
+    const t = window.setTimeout(() => setMostradas(m => m + 1), atrasoParaMostrar(linhasDoTrecho[mostradas], mostradas, passo === 0))
+    return () => window.clearTimeout(t)
+  }, [rolando, mostradas, linhasDoTrecho, passo])
+  const avancar = () => { setPasso(p => p + 1); setMostradas(0); window.setTimeout(() => novoTrecho.current?.focus(), 0) }
+  const proxima = rolando ? linhasDoTrecho[mostradas] : undefined
+  const quemDigita = proxima?.match(FALA)?.[1] ?? null
 
   const liberados = new Set(segmentos.slice(0, passo + 1).flatMap(sg => sg.campos ?? []))
   const comMarcador = new Set(segmentos.flatMap(sg => sg.campos ?? []))
   const visivel = (campo: CampoResposta) => {
+    // Enquanto a conversa do trecho rola, as alternativas ficam escondidas.
+    if (rolando) return false
     if (comMarcador.has(campo.id) ? !liberados.has(campo.id) : !completo) return false
     if (!campo.visivelSe) return true
     const { campos, comecaCom } = campo.visivelSe
@@ -133,9 +147,10 @@ function TarefaDoCase({ tarefa, tituloDoCheckpoint, respostas, erros, salvoEm, b
   return <article className="case-tarefa">
     {tarefa.titulo !== tituloDoCheckpoint && <h3>{tarefa.titulo}</h3>}
     <div aria-live="polite" className="case-segmentos">
-      {segmentos.slice(0, passo + 1).map((sg, i) => <div key={i} ref={i === passo ? novoTrecho : undefined} tabIndex={i === passo && i > 0 ? -1 : undefined} className="case-segmento"><TextoDoSegmento linhas={sg.linhas}/></div>)}
+      {segmentos.slice(0, passo + 1).map((sg, i) => <div key={i} ref={i === passo ? novoTrecho : undefined} tabIndex={i === passo && i > 0 ? -1 : undefined} className="case-segmento"><TextoDoSegmento linhas={i === passo ? sg.linhas.slice(0, mostradas) : sg.linhas} digitando={i === passo ? quemDigita : null}/></div>)}
     </div>
-    {!completo && <div className="case-acoes"><Button variant="ghost" onClick={avancar}>Continuar</Button></div>}
+    {rolando && <div className="case-acoes"><Button variant="ghost" onClick={() => setMostradas(Infinity)}>Mostrar tudo</Button></div>}
+    {!rolando && passo < ultimo && <div className="case-acoes"><Button variant="ghost" onClick={avancar}>Continuar</Button></div>}
     {dados && completo && <div className="dados-apoio">
       <strong>{dados.titulo}</strong>
       <div className="dados-rolagem"><table>
