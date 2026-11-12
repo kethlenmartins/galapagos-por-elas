@@ -24,6 +24,7 @@ import { PointsStatement } from './telas/participante/ExtratoPontos'
 import { Home } from './telas/participante/Home'
 import { Onboarding } from './telas/participante/Onboarding'
 import { Profile } from './telas/participante/Perfil'
+import { Forum } from './telas/participante/Forum'
 
 const telas: Record<Route, () => ReactElement> = {
   landing: () => <Landing />,
@@ -41,6 +42,7 @@ const telas: Record<Route, () => ReactElement> = {
   training: () => <Treino />,
   simulation: () => <Simulacao />,
   jobs: () => <Vagas />,
+  forum: () => <Forum />,
   case: () => <CasePage />,
   task: () => <CasePage />,
   result: () => <CasePage />,

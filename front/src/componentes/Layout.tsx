@@ -12,6 +12,7 @@ export const participantNav: { label: string; route: Route; icon: IconName }[] =
   { label: 'Início', route: 'home', icon: 'home' },
   { label: 'Ilhas', route: 'trail', icon: 'case' },
   { label: 'Vagas', route: 'jobs', icon: 'chart' },
+  { label: 'Fórum', route: 'forum', icon: 'book' },
   { label: 'Perfil', route: 'profile', icon: 'user' },
 ]
 
@@ -83,7 +84,6 @@ export function AppShell({ route, children, admin = false }: { route: Route; chi
             {!admin && <button onClick={() => go('profile')}><Icon name="user"/> Meu perfil</button>}
             {admin && <button onClick={() => go('home')}><Icon name="home"/> Ir para área da participante</button>}
             {!admin && sessao?.papel === 'equipe' && <button onClick={() => go('admin-cases')}><Icon name="settings"/> Ir para a administração</button>}
-            <button onClick={() => go('session-expired')}><Icon name="clock"/> Simular sessão expirada</button>
             <button onClick={logout}><Icon name="logout"/> Sair</button>
           </div>}
         </div>

@@ -37,7 +37,9 @@ export function Trilha() {
   const [ilhas, setIlhas] = useState<IlhaDaArea[]>([])
   const [fase, setFase] = useState<'carregando' | 'ok' | 'erro'>('carregando')
   const [mensagem, setMensagem] = useState('')
-  const [escolhida, setEscolhida] = useState<string | null>(null)
+  // `undefined` só vale antes da primeira interação, para destacar uma ilha.
+  // `null` representa a escolha explícita de recolher o painel.
+  const [escolhida, setEscolhida] = useState<string | null | undefined>(undefined)
 
   const carregar = useCallback(async () => {
     const [t, a, d] = await Promise.all([caseService.obterTrilha(), catalogoService.listarAreas(), diagnosticoService.obterResultadoDiagnostico()])
@@ -76,7 +78,7 @@ export function Trilha() {
     emblema: <svg viewBox="0 0 120 90" width="40" height="30" aria-hidden="true"><path className="ilha-terra" d="M14 58C10 40 26 22 46 24c8-14 30-14 38 2 18-2 30 14 22 32-10 8-28 10-46 10S22 66 14 58z"/><path className="ilha-copa" d="M52 40c-2-10 8-18 16-12 8-6 18 4 12 12-4 6-24 8-28 0z"/></svg>,
     progresso: i.cases.length ? (i.cases.filter(c => c.estado === 'concluido').length / i.cases.length) * 100 : 0,
   }))
-  const escolhidaEfetiva = escolhida ?? nos.find(n => n.estado === 'atual')?.id ?? nos.find(n => n.estado !== 'bloqueado')?.id ?? null
+  const escolhidaEfetiva = escolhida === undefined ? nos.find(n => n.estado === 'atual')?.id ?? nos.find(n => n.estado !== 'bloqueado')?.id ?? null : escolhida
   const detalheDaIlha = (no: NoDoCaminho) => {
     const i = ilhas.find(x => x.area.id === no.id)
     if (!i) return null
@@ -124,7 +126,7 @@ export function Trilha() {
 
       {ilhas.length === 0
         ? <div className="empty-state"><span><Icon name="case" size={34} /></span><h2>Ainda não há ilhas publicadas</h2><p>Assim que a equipe publicar o primeiro case, a ilha da área aparece aqui.</p></div>
-        : <CaminhoDeBolinhas rotuloDaLista="Ilhas, uma por área" nos={nos} escolhido={escolhidaEfetiva} aoEscolher={setEscolhida} detalhe={detalheDaIlha}/>}
+        : <CaminhoDeBolinhas rotuloDaLista="Ilhas, uma por área" nos={nos} escolhido={escolhidaEfetiva} aoEscolher={id => setEscolhida(atual => (atual === id || (atual === undefined && escolhidaEfetiva === id)) ? null : id)} detalhe={detalheDaIlha}/>}
     </>}
   </div></AppShell>
 }

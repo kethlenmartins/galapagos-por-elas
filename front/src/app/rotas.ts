@@ -2,7 +2,7 @@
 
 export type Route =
   | 'landing' | 'signup' | 'login' | 'forgot' | 'reset' | 'validate'
-  | 'onboarding' | 'diagnostic' | 'match' | 'home' | 'trail' | 'island' | 'training' | 'simulation' | 'jobs' | 'case' | 'task'
+  | 'onboarding' | 'diagnostic' | 'match' | 'home' | 'trail' | 'island' | 'training' | 'simulation' | 'jobs' | 'forum' | 'case' | 'task'
   | 'result' | 'certificates' | 'profile'
   | 'admin-cases' | 'admin-editor' | 'admin-review' | 'admin-content' | 'admin-jobs'
   | 'terms' | 'privacy' | 'points' | 'forbidden' | 'system-error' | 'maintenance' | 'session-expired'
@@ -11,7 +11,7 @@ export const routes: Record<Route, string> = {
   landing: 'Início', signup: 'Cadastro', login: 'Entrar', forgot: 'Recuperar senha',
   reset: 'Nova senha', validate: 'Validar certificado', onboarding: 'Seu perfil',
   diagnostic: 'Diagnóstico', match: 'Seu Mapa de Carreira', home: 'Início',
-  trail: 'Suas ilhas', island: 'Ilha', training: 'Treino de entrevista', simulation: 'Simulação de entrevista', jobs: 'Vagas', case: 'Case', task: 'Case', result: 'Case',
+  trail: 'Suas ilhas', island: 'Ilha', training: 'Treino de entrevista', simulation: 'Simulação de entrevista', jobs: 'Vagas', forum: 'Fórum', case: 'Case', task: 'Case', result: 'Case',
   certificates: 'Certificados', profile: 'Perfil',
   'admin-cases': 'Cases', 'admin-editor': 'Editor de case',
   'admin-review': 'Fila de correção', 'admin-content': 'Conteúdos', 'admin-jobs': 'Vagas',

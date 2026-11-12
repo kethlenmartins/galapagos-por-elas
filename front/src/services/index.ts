@@ -23,4 +23,5 @@ export const treinoService = servicosAtivos.treino
 export const adminCasesService = servicosAtivos.adminCases
 export const adminCorrecaoService = servicosAtivos.adminCorrecao
 export const adminConteudosService = servicosAtivos.adminConteudos
+export const forumService = servicosAtivos.forum
 export { mockDebug, servicosMock } from './mock/index.ts'

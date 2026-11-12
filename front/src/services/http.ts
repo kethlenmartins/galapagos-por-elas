@@ -135,6 +135,19 @@ const adminVagas: Servicos['adminVagas'] = {
   removerVaga: id => api('/admin/jobs/' + encodeURIComponent(id), { method: 'DELETE' }),
 }
 
+const forum: Servicos['forum'] = {
+  listarCategorias: () => api('/forum/categories'),
+  obterMeuPerfil: () => api('/forum/profile'),
+  salvarMeuPerfil: dados => api('/forum/profile', { method: 'PUT', body: JSON.stringify(dados) }),
+  listarPosts: filtro => { const q = new URLSearchParams(); if (filtro?.categoriaId) q.set('categoriaId', filtro.categoriaId); if (filtro?.areaId) q.set('areaId', filtro.areaId); if (filtro?.busca) q.set('busca', filtro.busca); if (filtro?.ordem) q.set('ordem', filtro.ordem); return api('/forum/posts' + (q.size ? '?' + q : '')) },
+  obterPost: id => api('/forum/posts/' + encodeURIComponent(id)),
+  criarPost: dados => api('/forum/posts', { method: 'POST', body: JSON.stringify(dados) }),
+  criarResposta: (postId, dados) => api('/forum/posts/' + encodeURIComponent(postId) + '/replies', { method: 'POST', body: JSON.stringify(dados) }),
+  votar: (alvo, id) => api('/forum/' + alvo + 's/' + encodeURIComponent(id) + '/vote', { method: 'POST' }),
+  denunciar: (alvo, id, motivo, detalhe) => api('/forum/' + alvo + 's/' + encodeURIComponent(id) + '/report', { method: 'POST', body: JSON.stringify({ motivo, detalhe }) }),
+  seguir: postId => api('/forum/posts/' + encodeURIComponent(postId) + '/follow', { method: 'POST' }),
+}
+
 const simulacao: Servicos['simulacao'] = {
   obterResumoDaSimulacao: areaId => api('/interview/' + encodeURIComponent(areaId)),
   iniciarSimulacao: config => api('/interview/sessions', { method: 'POST', body: JSON.stringify(config) }),
@@ -147,5 +160,5 @@ const treino: Servicos['treino'] = {
   responderPergunta: (perguntaId, letra) => api('/training/questions/' + encodeURIComponent(perguntaId) + '/answer', { method: 'POST', body: JSON.stringify({ letra }) }),
 }
 
-export const servicosHttp: Servicos = { vagas, adminVagas, simulacao, treino, sessao, perfil, catalogo, pontos, diagnostico, caso, conteudos, certificados, adminCases, adminCorrecao, adminConteudos }
+export const servicosHttp: Servicos = { forum, vagas, adminVagas, simulacao, treino, sessao, perfil, catalogo, pontos, diagnostico, caso, conteudos, certificados, adminCases, adminCorrecao, adminConteudos }
 export const servicosAtivos: Servicos = import.meta.env.VITE_API_URL ? servicosHttp : servicosMock

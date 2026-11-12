@@ -24,7 +24,8 @@ export function Ilha() {
   const [confirmando, setConfirmando] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
   const [erroDaAcao, setErroDaAcao] = useState('')
-  const [noEscolhido, setNoEscolhido] = useState<string | null>(null)
+  // `undefined` mantém a sugestão inicial; `null` recolhe o conteúdo por escolha da usuária.
+  const [noEscolhido, setNoEscolhido] = useState<string | null | undefined>(undefined)
 
   const carregar = useCallback(async () => {
     if (!areaId) return go('trail')
@@ -104,7 +105,7 @@ export function Ilha() {
     { id: 'simulacao', rotulo: 'Simulação', detalhe: !basicoConcluido ? 'Bloqueado' : simulacao?.historico.length ? `${simulacao.historico.length} feita${simulacao.historico.length === 1 ? '' : 's'}` : undefined, estado: !basicoConcluido || (simulacao && !simulacao.disponivel) ? 'bloqueado' : simulacao?.historico.length ? 'feito' : 'aberto', icone: 'user' },
     { id: 'vagas', rotulo: 'Vagas', estado: 'aberto', icone: 'chart' },
   ]
-  const escolhido = noEscolhido ?? primeiroPendente?.caseId ?? nos.find(n => n.estado !== 'bloqueado')?.id ?? null
+  const escolhido = noEscolhido === undefined ? primeiroPendente?.caseId ?? nos.find(n => n.estado !== 'bloqueado')?.id ?? null : noEscolhido
 
   const painelDoNo = (no: NoDoCaminho) => {
     if (no.id === 'conteudos') return (
@@ -177,7 +178,7 @@ export function Ilha() {
         <h2>Seu caminho nesta ilha</h2>
         <p className="trilha-dica">Comece pelo case básico: concluí-lo abre os cases avançados, o treino e a simulação. Toque numa bolinha para ver os detalhes.</p>
         {cases.length === 0 && <div className="empty-state"><span><Icon name="case" size={34} /></span><h2>Em breve: o case desta ilha</h2><p>A equipe ainda vai publicar o case básico. Enquanto isso, leia sobre a área e fique de olho nas vagas.</p></div>}
-        <CaminhoDeBolinhas rotuloDaLista="Etapas da ilha" nos={nos} escolhido={escolhido} aoEscolher={setNoEscolhido} detalhe={painelDoNo}/>
+        <CaminhoDeBolinhas rotuloDaLista="Etapas da ilha" nos={nos} escolhido={escolhido} aoEscolher={id => setNoEscolhido(atual => (atual === id || (atual === undefined && escolhido === id)) ? null : id)} detalhe={painelDoNo}/>
       </section>
     </>}
   </div></AppShell>

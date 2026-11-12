@@ -13,6 +13,7 @@ import { sessaoService } from './sessao.ts'
 import { simulacaoService } from './simulacao.ts'
 import { treinoService } from './treino.ts'
 import { adminVagasService, vagaService } from './vagas.ts'
+import { forumService } from './forum.ts'
 import { definirDebug, obterDebug, obterEstado, resetarEstado } from './store.ts'
 
 export {
@@ -31,9 +32,11 @@ export {
   treinoService,
   vagaService,
   adminVagasService,
+  forumService,
 }
 
 export const servicosMock: Servicos = {
+  forum: forumService,
   sessao: sessaoService,
   perfil: perfilService,
   catalogo: catalogoService,
