@@ -29,14 +29,15 @@ export const treinoService: TreinoService = {
       const perguntasPorNivel = Object.fromEntries(
         NIVEIS.map(n => [n, PERGUNTAS_ENTREVISTA.filter(p => p.areaId === areaId && p.nivel === n).length]),
       ) as ResumoTreino['perguntasPorNivel']
-      return ok({ areaId, ...liberacao(estado, usuario.id, areaId), perguntasPorNivel })
+      const temas = [...new Set(PERGUNTAS_ENTREVISTA.filter(p => p.areaId === areaId && p.tema).map(p => p.tema as string))]
+      return ok({ areaId, ...liberacao(estado, usuario.id, areaId), perguntasPorNivel, temas })
     }),
 
-  sortearPerguntas: ({ areaId, nivel, quantidade }) =>
+  sortearPerguntas: ({ areaId, nivel, quantidade, tema }) =>
     executarLogada(({ estado, usuario }) => {
       const { liberado, motivoBloqueio } = liberacao(estado, usuario.id, areaId)
       if (!liberado) return falha('VALIDACAO', motivoBloqueio ?? 'O treino ainda não está liberado.')
-      const banco = PERGUNTAS_ENTREVISTA.filter(p => p.areaId === areaId && (nivel === 'misto' || p.nivel === nivel))
+      const banco = PERGUNTAS_ENTREVISTA.filter(p => p.areaId === areaId && (nivel === 'misto' || p.nivel === nivel) && (!tema || p.tema === tema))
       if (!banco.length) return falha('NAO_ENCONTRADO', 'Ainda não há perguntas publicadas para esta escolha.')
       const sorteadas = embaralhar(banco).slice(0, Math.max(1, quantidade))
       return ok(sorteadas.map<PerguntaTreino>(({ resposta: _r, feedback: _f, ...publica }) => publica))

@@ -92,7 +92,7 @@ const caso: Servicos['caso'] = {
 // para o mock. Assim o seletor de ambiente não quebra telas fora do piloto.
 const treino: Servicos['treino'] = {
   obterResumoDoTreino: areaId => api('/training/' + encodeURIComponent(areaId)),
-  sortearPerguntas: ({ areaId, nivel, quantidade }) => api(`/training/${encodeURIComponent(areaId)}/questions?nivel=${nivel}&quantidade=${quantidade}`),
+  sortearPerguntas: ({ areaId, nivel, quantidade, tema }) => api(`/training/${encodeURIComponent(areaId)}/questions?nivel=${nivel}&quantidade=${quantidade}${tema ? '&tema=' + encodeURIComponent(tema) : ''}`),
   responderPergunta: (perguntaId, letra) => api('/training/questions/' + encodeURIComponent(perguntaId) + '/answer', { method: 'POST', body: JSON.stringify({ letra }) }),
 }
 

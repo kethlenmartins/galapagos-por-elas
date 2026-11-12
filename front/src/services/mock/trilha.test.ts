@@ -442,6 +442,7 @@ test('treino de entrevista: só abre com o certificado do case básico, sorteia 
 
   const vc = dados(await s.treino.obterResumoDoTreino('venture-capital'))
   assert.equal(vc.perguntasPorNivel.facil + vc.perguntasPorNivel.medio + vc.perguntasPorNivel.dificil, 50)
+  assert.deepEqual(dados(await s.treino.obterResumoDoTreino('investment-banking')).temas.sort(), ['DCM', 'ECM', 'M&A'])
   const { PERGUNTAS_ENTREVISTA } = await import('./dados/perguntas-entrevista.ts')
   const p = PERGUNTAS_ENTREVISTA.find(q => q.areaId === 'venture-capital')!
   const certa = dados(await s.treino.responderPergunta(p.id, p.resposta))

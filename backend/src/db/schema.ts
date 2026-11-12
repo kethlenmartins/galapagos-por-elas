@@ -50,5 +50,5 @@ export const aiLogs = pgTable('ai_logs', {
   id: uuid('id').defaultRandom().primaryKey(), deliveryId: uuid('delivery_id').notNull(), provider: text('provider').notNull(), model: text('model').notNull(), promptVersion: text('prompt_version').notNull(), status: text('status').notNull(), latencyMs: integer('latency_ms').notNull(), costTicks: text('cost_ticks'), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 export const interviewQuestions = pgTable('interview_questions', {
-  id: text('id').primaryKey(), areaId: text('area_id').notNull(), level: text('level').notNull(), position: integer('position').notNull(), prompt: text('prompt').notNull(), options: jsonb('options').$type<Array<{ letra: string; texto: string }>>().notNull(), answer: text('answer').notNull(), feedback: text('feedback').notNull(),
+  id: text('id').primaryKey(), areaId: text('area_id').notNull(), level: text('level').notNull(), topic: text('topic'), position: integer('position').notNull(), prompt: text('prompt').notNull(), options: jsonb('options').$type<Array<{ letra: string; texto: string }>>().notNull(), answer: text('answer').notNull(), feedback: text('feedback').notNull(),
 })

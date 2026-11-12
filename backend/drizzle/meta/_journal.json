@@ -64,6 +64,13 @@
       "when": 1794489300000,
       "tag": "0008_treino_entrevista",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794575700000,
+      "tag": "0009_treino_temas",
+      "breakpoints": true
     }
   ]
 }

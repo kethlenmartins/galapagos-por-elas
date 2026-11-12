@@ -32,6 +32,7 @@ export function Treino() {
   const [mensagem, setMensagem] = useState('')
 
   const [nivel, setNivel] = useState<Nivel>('misto')
+  const [tema, setTema] = useState('')
   const [quantidade, setQuantidade] = useState(10)
   const [cronometrado, setCronometrado] = useState(false)
 
@@ -71,7 +72,7 @@ export function Treino() {
     if (!areaId) return
     setOcupado(true)
     setErroDaAcao('')
-    const r = await treinoService.sortearPerguntas({ areaId, nivel, quantidade })
+    const r = await treinoService.sortearPerguntas({ areaId, nivel, quantidade, tema: tema || undefined })
     setOcupado(false)
     if (r.erro) {
       if (sessaoExpirou(r.erro)) return
@@ -140,6 +141,20 @@ export function Treino() {
       {resumo.liberado && semPerguntas && <div className="alert alert-warning" role="note"><p>As perguntas desta área ainda não foram publicadas.</p></div>}
       {erroDaAcao && <div className="alert alert-error" role="alert"><p>{erroDaAcao}</p></div>}
 
+      {resumo.temas.length > 0 && (
+        <fieldset className="treino-grupo" disabled={!resumo.liberado || semPerguntas}>
+          <legend>Tema</legend>
+          <div className="treino-opcoes treino-curtas">
+            {['', ...resumo.temas].map(t => (
+              <label key={t || 'todos'} className={`treino-opcao ${tema === t ? 'marcada' : ''}`}>
+                <input type="radio" name="tema" checked={tema === t} onChange={() => setTema(t)} />
+                <strong>{t || 'Todos'}</strong>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
+
       <fieldset className="treino-grupo" disabled={!resumo.liberado || semPerguntas}>
         <legend>Dificuldade</legend>
         <div className="treino-opcoes">
@@ -185,6 +200,7 @@ export function Treino() {
       <div className="treino-topo">
         <Tag tone="blue">{`PERGUNTA ${indice + 1} DE ${perguntas.length}`}</Tag>
         <Tag tone="gray">{rotuloDoNivel(pergunta.nivel).toUpperCase()}</Tag>
+        {pergunta.tema && <Tag tone="gray">{pergunta.tema.toUpperCase()}</Tag>}
         {cronometrado && <span className={`treino-tempo ${restante <= 10 && !atual ? 'urgente' : ''}`} role="timer" aria-label={`${restante} segundos restantes`}>{atual ? '—' : `${restante}s`}</span>}
       </div>
       <Progress value={((indice + (atual ? 1 : 0)) / perguntas.length) * 100} />

@@ -317,23 +317,24 @@ app.get('/api/training/:areaId', async (req, reply) => {
   const user = await usuarioAtual(req)
   if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
   const { areaId } = req.params as { areaId: string }
-  const rows = await db.select({ level: interviewQuestions.level }).from(interviewQuestions).where(eq(interviewQuestions.areaId, areaId))
+  const rows = await db.select({ level: interviewQuestions.level, topic: interviewQuestions.topic }).from(interviewQuestions).where(eq(interviewQuestions.areaId, areaId))
   const perguntasPorNivel = Object.fromEntries(NIVEIS_TREINO.map(n => [n, rows.filter(r => r.level === n).length]))
-  return { dados: { areaId, ...(await treinoLiberado(user.id, areaId)), perguntasPorNivel }, erro: null }
+  return { dados: { areaId, ...(await treinoLiberado(user.id, areaId)), perguntasPorNivel, temas: [...new Set(rows.flatMap(r => (r.topic ? [r.topic] : [])))] }, erro: null }
 })
 
 app.get('/api/training/:areaId/questions', async (req, reply) => {
   const user = await usuarioAtual(req)
   if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
   const { areaId } = req.params as { areaId: string }
-  const consulta = z.object({ nivel: z.enum(['facil', 'medio', 'dificil', 'misto']).default('misto'), quantidade: z.coerce.number().int().min(1).max(50).default(10) }).safeParse(req.query)
+  const consulta = z.object({ nivel: z.enum(['facil', 'medio', 'dificil', 'misto']).default('misto'), quantidade: z.coerce.number().int().min(1).max(50).default(10), tema: z.string().max(60).optional() }).safeParse(req.query)
   if (!consulta.success) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Escolha um nível e uma quantidade válidos.' } })
   const { liberado, motivoBloqueio } = await treinoLiberado(user.id, areaId)
   if (!liberado) return reply.code(403).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: motivoBloqueio ?? 'O treino ainda não está liberado.' } })
-  const { nivel, quantidade } = consulta.data
-  const rows = await db.select().from(interviewQuestions).where(nivel === 'misto' ? eq(interviewQuestions.areaId, areaId) : and(eq(interviewQuestions.areaId, areaId), eq(interviewQuestions.level, nivel))).orderBy(sql`random()`).limit(quantidade)
+  const { nivel, quantidade, tema } = consulta.data
+  const filtros = [eq(interviewQuestions.areaId, areaId), ...(nivel === 'misto' ? [] : [eq(interviewQuestions.level, nivel)]), ...(tema ? [eq(interviewQuestions.topic, tema)] : [])]
+  const rows = await db.select().from(interviewQuestions).where(and(...filtros)).orderBy(sql`random()`).limit(quantidade)
   if (!rows.length) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Ainda não há perguntas publicadas para esta escolha.' } })
-  return { dados: rows.map(q => ({ id: q.id, areaId: q.areaId, nivel: q.level, enunciado: q.prompt, opcoes: q.options })), erro: null }
+  return { dados: rows.map(q => ({ id: q.id, areaId: q.areaId, nivel: q.level, tema: q.topic, enunciado: q.prompt, opcoes: q.options })), erro: null }
 })
 
 app.post('/api/training/questions/:id/answer', async (req, reply) => {

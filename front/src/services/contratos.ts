@@ -813,6 +813,8 @@ export type ResumoTreino = {
   motivoBloqueio: string | null
   /** Quantas perguntas existem por nível. Tudo zero: a área ainda não tem perguntas publicadas. */
   perguntasPorNivel: Record<NivelPergunta, number>
+  /** Subtemas da área (ex.: M&A, DCM, ECM). Vazio quando a área não se divide. */
+  temas: string[]
 }
 
 /** Uma pergunta de múltipla escolha, sem o gabarito (ele só vem em `RespostaTreino`). */
@@ -820,6 +822,7 @@ export type PerguntaTreino = {
   id: string
   areaId: string
   nivel: NivelPergunta
+  tema: string | null
   enunciado: string
   opcoes: { letra: string; texto: string }[]
 }
@@ -833,7 +836,7 @@ export type RespostaTreino = {
 export interface TreinoService {
   obterResumoDoTreino(areaId: string): Promise<Resultado<ResumoTreino>>
   /** Sorteia perguntas da área. `misto` junta os três níveis. Erro `VALIDACAO` se o treino ainda não está liberado. */
-  sortearPerguntas(filtro: { areaId: string; nivel: NivelPergunta | 'misto'; quantidade: number }): Promise<Resultado<PerguntaTreino[]>>
+  sortearPerguntas(filtro: { areaId: string; nivel: NivelPergunta | 'misto'; quantidade: number; tema?: string }): Promise<Resultado<PerguntaTreino[]>>
   /** `letra` nula: o tempo acabou sem resposta (conta como erro). */
   responderPergunta(perguntaId: string, letra: string | null): Promise<Resultado<RespostaTreino>>
 }
