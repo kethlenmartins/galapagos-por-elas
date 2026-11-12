@@ -1,180 +1,149 @@
-# PRD — Fórum
+Crie uma seção chamada **Comunidade** na nossa plataforma de capacitação de mulheres para o mercado financeiro.
 
-> Proposta para revisão. Nada disto está implementado. As decisões marcadas com **[DECIDIR]** precisam da sua resposta antes de eu construir; para cada uma há uma recomendação.
+A página deve funcionar como um fórum inspirado no Reddit: um feed de tópicos, conversas com comentários e um botão flutuante para começar uma nova discussão. O público principal são universitárias no início da carreira, que querem tirar dúvidas, compartilhar experiências e encontrar apoio.
 
-## 1. Visão geral
+**1. Identidade visual e organização**
 
-O fórum é um espaço público onde as participantes pedem ajuda, contam o que está acontecendo com elas e respondem umas às outras. A inspiração é o Reddit: posts com título e texto, respostas em árvore, votos, e organização por assunto.
+Mantenha o menu lateral atual e adicione “Comunidade” abaixo de “Ilhas”. Quando selecionada, use o mesmo destaque dos outros itens: fundo azul mais claro e detalhe rosa na lateral.
 
-Duas regras vêm da sua descrição e valem como princípios do produto:
+Preserve a identidade da imagem de referência: azul-escuro, fundo claro levemente azulado, cards brancos, cantos arredondados, ícones simples e detalhes em rosa. Reutilize a tipografia e os componentes existentes.
 
-1. **Todo post é público** para quem está logada na plataforma. Não há post privado, grupo fechado nem mensagem direta.
-2. **O fórum vive só na sua seção.** Posts e respostas não aparecem na Home, nas ilhas, no perfil de outras pessoas nem em notificações por e-mail com o texto do post. A Home e as ilhas podem, no máximo, ter um link "Ir para o fórum".
+No desktop, organize o conteúdo em um feed principal largo e uma pequena coluna de apoio à direita. Nessa coluna, coloque uma mensagem de boas-vindas e as regras da comunidade. No celular, concentre a experiência em uma coluna.
 
-Fora do escopo desta versão: mensagens diretas, grupos privados, imagens e anexos, enquetes, menções (@), hashtags livres, busca semântica, voz.
+**2. Cabeçalho e navegação do feed**
 
-## 2. Por que isto precisa de cuidado
+Use um cabeçalho compacto:
 
-Texto livre e público de pessoas que "contam o que está acontecendo com elas" traz riscos que o resto da plataforma não tem:
+Título: **Comunidade**
 
-- **Dados pessoais e sensíveis.** Quem desabafa conta de saúde, assédio, dívidas, família. O texto fica público e pode ser copiado.
-- **Exposição profissional.** Criticar uma empresa, um processo seletivo ou uma pessoa pode ter consequência para a autora e para a plataforma.
-- **Assédio, discriminação e golpes.** Spam de vaga falsa, pedido de dinheiro, cursos milagrosos.
-- **Aconselhamento financeiro.** Uma resposta "compra essa ação" lida como recomendação.
-- **Menores de idade e LGPD.** Ver seção 9.
+Subtítulo: **“Pergunte, compartilhe e encontre quem está construindo esse caminho com você.”**
 
-Por isso moderação, denúncia e identidade da autora estão no desenho desde o começo, não como "depois".
+Abaixo, coloque uma busca com o placeholder “Buscar uma dúvida, assunto ou experiência”.
 
-## 3. Identidade: quem aparece em cada post
+Inclua filtros em formato de pequenas etiquetas clicáveis: “Todos” e as cinco categorias abaixo. A busca deve funcionar junto com o filtro selecionado.
 
-**[DECIDIR 1] Nome exibido.** Recomendação: **apelido escolhido pela participante** (ex.: "Analista_em_Formação"), único, que pode ser trocado uma vez por mês. O nome real e o e-mail nunca aparecem. A equipe vê a conta real por trás do apelido.
-
-- Por que não nome real: o conteúdo é sensível e público; o apelido reduz exposição sem permitir anonimato total (a equipe consegue agir sobre abuso).
-- Alternativa A: nome social do perfil (mais acolhedor, mais exposição).
-- Alternativa B: opção "postar como anônima" por post, com a equipe ainda vendo a autora. Pode ser incluída depois sem mudar o modelo.
-
-Mostrar ao lado do apelido, opcionalmente e só se a autora ativar: **área de interesse** (ex.: "Interesse: Equity Research") e **medalhas** (certificados da plataforma). Isso dá credibilidade às respostas sem expor dados pessoais.
-
-## 4. Estrutura
-
-### 4.1 Categorias (fixas, criadas pela equipe)
-
-Recomendação inicial, cada uma com uma descrição de uma frase:
-
-| Categoria | Para quê |
+| Categoria | Conteúdo |
 |---|---|
-| Boas-vindas e apresentações | Quem é você e o que busca |
-| Dúvidas sobre o mercado | Conceitos, carreira, "por onde começar" |
-| Cases e estudos | Dúvidas sobre os cases e o treino (sem postar gabarito) |
-| Entrevistas e processos seletivos | Experiências, dicas, preparação |
-| Vagas e oportunidades | Conversa sobre as vagas da aba Vagas e outras; sem pedir ou oferecer dinheiro |
-| Bastidores e desabafos | O que está acontecendo com você: dificuldades, dúvidas, vitórias |
+| Primeiros passos | Escolha de área, organização dos estudos e preparação inicial. |
+| Processos seletivos | Currículo, entrevistas, dinâmicas, cases e experiências em seleções. |
+| Dúvidas técnicas | Finanças, contabilidade, valuation, Excel e conceitos do mercado. |
+| Experiências e conselhos | Relatos de estágio, dificuldades, conquistas e pedidos de conselho. |
+| Conexões e estudos | Grupos de estudo, prática de entrevistas e troca entre participantes. |
 
-Além das categorias, **uma etiqueta opcional por área** (as 13 áreas), para filtrar "só Equity Research". Etiqueta, não categoria, para não multiplicar espaços.
+Acima das publicações, inclua três abas:
 
-### 4.2 Post
+- **Recentes:** publicações mais novas primeiro.
+- **Em alta:** publicações dos últimos sete dias com mais marcações “Foi útil”.
+- **Sem resposta:** publicações que ainda não receberam comentários.
 
-- Título (5 a 140 caracteres) e texto (até 5.000), com formatação mínima: parágrafos, listas, negrito, itálico e links. Sem HTML, sem imagens.
-- Uma categoria obrigatória; uma etiqueta de área opcional.
-- Editável pela autora por 15 minutos; depois só edição com marca "editado".
-- A autora pode apagar o post. Se já tem respostas, o texto vira "[removido pela autora]" e as respostas ficam.
+Disponibilize também atalhos discretos para **“Minhas conversas”** e **“Salvas”**.
 
-### 4.3 Respostas
+**3. Aparência de cada publicação**
 
-- Em árvore, até 3 níveis de aninhamento (depois, resposta ao mesmo nível).
-- Até 2.000 caracteres, mesma formatação.
-- A autora do post pode marcar **uma resposta como "ajudou"**, que sobe ao topo.
+Exiba as conversas em cards, uma abaixo da outra, com esta hierarquia:
 
-### 4.4 Votos
+No topo: avatar, nome da autora e tempo da publicação, como “Marina · há 2 horas”.
 
-- **Útil** (um voto positivo por pessoa por post ou resposta). Sem voto negativo.
-- Ordenações: **Recentes** (padrão), **Mais úteis**, **Sem resposta**.
-- **[DECIDIR 2]** Recomendação: **sem voto negativo e sem placar público de pessoas** (nada de "karma" individual). Contador de úteis só no post e na resposta. Evita o efeito de ranking e a competição, que não combinam com o público e com o tema de desabafo.
+Abaixo: categoria e tags opcionais de área, como “Processos seletivos” e “IB”.
 
-## 5. Moderação e segurança
+Depois: título em destaque e uma prévia do texto limitada a três linhas.
 
-### 5.1 Regras da comunidade (texto curto, mostrado antes da primeira postagem e fixado no topo)
+No rodapé:
 
-Respeito, sem assédio, sem discriminação, sem dados pessoais de terceiros, sem pedir ou oferecer dinheiro, sem divulgar gabarito de case, sem recomendação de compra ou venda de ativos, sem cadastro de vagas que cobram para participar.
+- Seta para cima com contador e rótulo “Foi útil”.
+- Ícone de comentários com o número de respostas.
+- Ícone para salvar.
+- Menu de três pontos com as ações disponíveis.
 
-### 5.2 Denúncia
+Ao marcar “Foi útil”, destaque o botão e atualize o contador. Cada participante pode marcar uma vez e desfazer sua marcação.
 
-Cada post e resposta tem "Denunciar" com motivo (assédio, spam ou golpe, dado pessoal, gabarito de case, recomendação de investimento, outro) e campo livre opcional. A denúncia entra numa **fila da equipe**.
+Clicar no título ou no corpo do card abre a conversa. Os botões de interação devem funcionar separadamente.
 
-### 5.3 Ações da equipe
+**4. Botão flutuante “Nova conversa”**
 
-Ocultar (some para as participantes, a autora vê que foi ocultado e o motivo), restaurar, apagar de vez, advertir a conta, **silenciar por N dias** (não posta nem responde), banir. Toda ação fica num **registro de auditoria**.
+Coloque um botão **“+ Nova conversa” fixo no canto inferior direito**, com aproximadamente 24 px de distância das bordas.
 
-### 5.4 Proteções automáticas
+Use formato arredondado, fundo azul e texto branco, seguindo os botões principais do site. Ele deve permanecer acessível durante a rolagem e respeitar a área segura do celular.
 
-- **Limite de uso:** por exemplo, 5 posts e 30 respostas por dia por conta; conta nova (menos de 24 h) com limite menor.
-- **Filtro de padrões** antes de publicar: e-mail, telefone, CPF, endereço e links encurtados são **bloqueados com aviso** ("Você incluiu um dado pessoal; remova para publicar"). Links normais são permitidos, com `rel="noopener noreferrer nofollow"`.
-- **Palavras de gatilho** (ofensas graves) mandam o post direto para a fila de moderação antes de aparecer.
-- **Sem HTML e sem imagens** elimina a maior parte de XSS e conteúdo abusivo por upload. O texto é sempre escapado na exibição.
+Ao clicar, abra uma janela com:
 
-**[DECIDIR 3] Quem modera e com que prazo.** Recomendação: a **equipe** (papel `equipe` já existente) com meta de tratar denúncias em até 24 horas úteis, e um e-mail de alerta para a equipe quando entrar denúncia grave. Se não houver quem faça isso, o fórum não deve abrir: um fórum público sem moderação é pior que nenhum.
+- **Título:** “Qual é o assunto?”
+- **Texto:** “Conte sua dúvida ou experiência. Um pouco de contexto ajuda outras meninas a responder.”
+- **Categoria:** escolha obrigatória entre as cinco opções.
+- **Área:** até três tags opcionais, reutilizando as áreas da plataforma, como IB, PE, VC, Asset Management, Research e Quant.
+- **Checkbox:** “Publicar sem mostrar meu nome”.
+- Botões **“Publicar conversa”** e **“Cancelar”**.
 
-**[DECIDIR 4] Moderação com IA.** Recomendação para a v1: **sem IA decidindo nada**. Se quiser, uma sugestão de IA (classificar a denúncia por gravidade) só para ordenar a fila, nunca para ocultar sozinha. Segue o princípio do PRD de que a IA não decide sobre pessoas.
+Exija título, texto e categoria. Preserve o preenchimento se ocorrer um erro. Após publicar, abra a nova conversa.
 
-### 5.4.1 Casos de risco emocional
+**5. Página de uma conversa**
 
-Posts em "Bastidores e desabafos" com sinais de crise (palavras-chave sobre autolesão, por exemplo) recebem um **aviso fixo** com recursos de apoio (CVV 188) e vão para a fila de moderação para acompanhamento humano. A plataforma não faz atendimento psicológico e isso deve estar dito nas regras.
+Mantenha o menu lateral e inclua “← Voltar para a comunidade”. Ao voltar, preserve os filtros e a posição da rolagem.
 
-## 6. Notificações
+Mostre a publicação completa, com autora, categoria, tags e ações para marcar como útil, salvar e seguir a conversa.
 
-- Dentro da plataforma: sino com "respondeu ao seu post", "marcou sua resposta como útil", "sua publicação foi ocultada".
-- **E-mail:** só aviso genérico ("Você tem uma resposta no fórum"), **sem o texto do post**, respeitando as preferências de e-mail que já existem no perfil.
-- A participante pode **seguir** um post para ser avisada de respostas, e **silenciar** um post.
+Abaixo, inclua o campo **“Entre na conversa…”** e o botão **“Comentar”**.
 
-## 7. Telas
+Cada comentário deve mostrar avatar, nome, data, texto, “Foi útil” e “Responder”. As respostas a um comentário aparecem agrupadas logo abaixo dele, com um pequeno recuo. Limite a um nível visual de recuo para manter a leitura confortável.
 
-1. **Fórum (lista):** abas de categoria, filtro de área, ordenação, busca por título, botão "Novo post". Cada item: título, trecho, categoria, apelido, tempo, nº de respostas e de úteis.
-2. **Post:** texto, ações (útil, responder, denunciar, seguir), respostas em árvore.
-3. **Novo post / editar:** título, categoria, etiqueta de área, texto com prévia, regras resumidas ao lado.
-4. **Meus posts e respostas:** histórico da própria autora, com apagar.
-5. **Admin, fila de denúncias:** denúncia, trecho, histórico da conta, ações.
-6. **Admin, categorias e regras:** edita categorias e o texto das regras.
+Identifique os comentários da criadora do tópico com a etiqueta **“Autora”**.
 
-Acessível por teclado e leitor de tela, mesmo padrão do restante. Entrada no menu principal como "Fórum".
+A autora pode destacar uma resposta com **“Esta resposta me ajudou”**. Mostre o selo **“Destacada pela autora”** junto dessa resposta, preservando sua posição na conversa.
 
-## 8. Modelo de dados (alto nível)
+**6. Acolhimento e participação anônima**
 
-- `forum_profiles`: usuária, apelido único, mostrar área e medalhas (booleanos), apelido alterado em.
-- `forum_categories`: id, nome, descrição, ordem.
-- `forum_posts`: id, autora, categoria, área (opcional), título, texto, status (`publicado`, `oculto`, `removido`), criado em, editado em, contador de úteis e de respostas.
-- `forum_replies`: id, post, resposta pai (nula se de primeiro nível), autora, texto, status, "ajudou" (bool), criado em.
-- `forum_votes`: usuária, alvo (post ou resposta), alvo id (único por par).
-- `forum_follows`: usuária, post.
-- `forum_reports`: denunciante, alvo, motivo, texto, status, tratado por, tratado em.
-- `forum_moderation_log`: quem, ação, alvo, motivo, quando.
-- `forum_sanctions`: usuária, tipo (advertência, silenciada, banida), até quando, motivo.
+Na coluna de apoio, coloque um card com:
 
-A API fica sob `/api/forum/*`, com checagem de papel `equipe` nas rotas de moderação, no mesmo padrão da API de vagas.
+**“Você também faz parte dessa conversa”**
 
-## 9. Privacidade, LGPD e menores
+“Você não precisa saber tudo para participar. Sua dúvida pode ajudar outra menina, e sua experiência também tem valor.”
 
-- **Base e transparência:** texto no cadastro e nas regras explicando que o que se posta é público para as demais participantes e que a equipe pode ver a conta por trás do apelido.
-- **Direitos:** a participante pode apagar seus posts e respostas e pedir a exclusão da conta; ao excluir a conta, o conteúdo vira "[removido]" e o apelido é liberado.
-- **Menores de 18 anos:** hoje o cadastro aceita data de nascimento. **[DECIDIR 5]** Recomendação: **fórum só para maiores de 18 anos** na v1 (data de nascimento já existe); menores continuam com o resto da plataforma. Se houver menores entre o público, isso precisa de consentimento parental e de moderação reforçada, e eu não recomendo começar por aí.
-- **Retenção:** conteúdo oculto ou removido é apagado de vez após 90 dias, exceto o registro de auditoria da moderação.
-- **Antes de abrir:** os termos de uso e a política de privacidade precisam ser atualizados e revisados por quem cuida da parte jurídica. Eu não escrevo texto jurídico definitivo.
+Inclua um tópico fixado na aba “Recentes”:
 
-## 10. Métricas de sucesso
+**“Comece por aqui: apresente-se e conte seu próximo objetivo”**
 
-- Participantes que abrem o fórum por semana e que postam ou respondem.
-- Posts com pelo menos uma resposta em 24 horas (meta: 80%).
-- Tempo médio para tratar uma denúncia (meta: menos de 24 horas úteis).
-- Taxa de denúncias por 100 posts (saúde da comunidade).
-- Respostas marcadas como "ajudou".
+Texto: “Qual curso você faz? Que área desperta sua curiosidade? E qual próximo passo você quer dar? Compartilhe o que se sentir confortável em contar.”
 
-## 11. Riscos e mitigação
+Quando uma publicação for anônima, mostre **“Participante anônima”** e um avatar neutro. As respostas da autora naquele tópico também devem preservar o anonimato. Sua identidade real deve ficar protegida e acessível somente à própria autora e à moderação autorizada.
 
-| Risco | Mitigação |
-|---|---|
-| Comunidade vazia no começo | Equipe semeia posts por categoria; botão "Novo post" visível; mentoras respondem nas primeiras semanas |
-| Conteúdo tóxico ou assédio | Regras claras, denúncia, silenciamento, banimento, log de auditoria |
-| Vazamento de dado pessoal | Filtro de padrões, apelido, sem imagens, edição e exclusão pela autora |
-| Spam e golpe | Limite de uso, conta nova mais limitada, links só normais, fila de moderação |
-| Recomendação de investimento | Regra explícita e categoria de denúncia própria |
-| Sobrecarga da equipe | Meta de 24 h úteis, alerta de denúncia grave, abrir por fases (ver seção 12) |
-| Responsabilidade legal | Termos atualizados e revisão jurídica antes de abrir |
+**7. Acompanhamento e moderação**
 
-## 12. Fases de entrega
+Ao comentar em uma conversa, ofereça a opção de acompanhá-la. Avise sobre respostas nas próprias publicações e nas conversas seguidas, reutilizando as notificações existentes.
 
-1. **Núcleo:** apelido, categorias, posts, respostas, útil, ordenações, apagar o próprio conteúdo, regras, limites de uso e filtro de dados pessoais.
-2. **Moderação:** denúncia, fila e ações da equipe, silenciamento, registro de auditoria, alertas por e-mail para a equipe.
-3. **Engajamento:** seguir, notificações no sino, marcar "ajudou", etiqueta e filtro de área, medalhas ao lado do apelido.
-4. **Depois:** busca melhor, sugestão de IA só para ordenar a fila, e ideias como "pergunte à mentora" ligadas ao fórum.
+Permita editar e excluir os próprios textos, com confirmação antes de excluir.
 
-Recomendação: **só abrir ao público depois das fases 1 e 2 juntas.** Postar sem poder denunciar nem moderar não é seguro.
+Inclua “Denunciar” no menu de publicações e comentários, com os motivos: desrespeito, spam, exposição de informações pessoais ou outro. As denúncias devem ficar disponíveis para revisão da moderação.
 
-## 13. Perguntas em aberto (preciso da sua decisão)
+Mostre três regras curtas na coluna de apoio:
 
-1. **Identidade:** apelido (recomendado), nome social ou opção de anônima por post?
-2. **Votos:** só "útil" e sem placar de pessoas (recomendado), ou voto negativo e ranking?
-3. **Moderação:** quem da equipe cuida, com que prazo, e quem recebe o alerta de denúncia grave?
-4. **IA na moderação:** nenhuma na v1 (recomendado), ou só para ordenar a fila?
-5. **Menores:** fórum só para maiores de 18 anos (recomendado)?
-6. **Categorias:** a lista da seção 4.1 serve? Falta alguma, ou sobra?
-7. **Posts de desabafo:** mantemos "Bastidores e desabafos" com o aviso de apoio e a fila de revisão, ou melhor não ter essa categoria na v1?
-8. **Abertura:** o fórum abre para todas ao mesmo tempo ou só para quem concluiu pelo menos um case (reduz spam e dá contexto)?
+“Respeite diferentes trajetórias e níveis de conhecimento.”
+
+“Compartilhe experiências preservando informações pessoais e confidenciais.”
+
+“Contribua com a conversa e evite spam.”
+
+**8. Conteúdo específico para demonstrar o fórum**
+
+No ambiente de demonstração, crie estes tópicos com textos coerentes com os títulos:
+
+- **Primeiros passos:** “Estou no 2º semestre: o que vale aprender antes de procurar estágio?”
+- **Processos seletivos · IB:** “Recebi minha primeira entrevista em IB. Como organizo uma semana de preparação?”
+- **Dúvidas técnicas · Valuation:** “Uma empresa pode ter EBITDA positivo e estar sem dinheiro?”
+- **Experiências e conselhos · Anônimo:** “Deixei de me candidatar porque achei que não estava pronta. Vocês já passaram por isso?”
+- **Conexões e estudos:** “Alguém quer praticar entrevistas em dupla duas vezes por semana?”
+
+Inclua algumas respostas demonstrativas acolhedoras e específicas. Deixe pelo menos uma conversa sem resposta para mostrar esse filtro funcionando. Os contadores devem corresponder às interações cadastradas.
+
+**9. Estados e funcionamento**
+
+Prepare mensagens para situações específicas:
+
+Busca vazia: **“Ainda não encontramos uma conversa sobre isso. Que tal começar uma?”**
+
+Tópico sem comentários: **“Essa conversa está começando. Você pode ser a primeira a ajudar.”**
+
+Publicação concluída: **“Sua conversa foi publicada!”**
+
+Reutilize a autenticação e a infraestrutura da plataforma. Publicações, comentários, reações e itens salvos devem persistir ao recarregar a página. Indique na entrega qualquer funcionalidade que ainda esteja apenas demonstrada.
+
+Priorize o feed, a leitura das conversas e a facilidade de participar, com boa adaptação para celular.

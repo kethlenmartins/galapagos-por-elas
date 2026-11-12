@@ -371,7 +371,7 @@ test('certificado em PDF: nome do case e da usuária, código e estrutura válid
 
 test('certificado: só a dona baixa, e o LinkedIn leva o código e o endereço de validação', async () => {
   const certificado = await marinaConclui()
-  assert.match(certificado.codigo, /^GPE-\d{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/)
+  assert.match(certificado.codigo, /^ALU-\d{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/)
   assert.equal(certificado.area, 'Equity Research')
   assert.ok(certificado.urlValidacao.includes('#/validate?codigo='))
 

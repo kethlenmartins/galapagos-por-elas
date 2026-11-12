@@ -922,3 +922,40 @@
 .forum-resposta p { white-space: pre-wrap; }
 .forum-resposta > div { display: flex; gap: var(--space-4); }
 @media (max-width: 640px) { .forum-card { grid-template-columns: 1fr; gap: var(--space-3); } .forum-card aside { justify-content: start; text-align: left; } .forum-filtros .field { width: 100%; } }
+
+/* Comunidade */
+.community-page { position: relative; max-width: 1180px; padding-bottom: 88px; }
+.community-header { margin-bottom: var(--space-6); }
+.community-header h1 { margin: var(--space-1) 0; }
+.community-header p { color: var(--ink-600); }
+.community-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: var(--space-6); align-items: start; }
+.community-search { display: flex; align-items: center; gap: var(--space-2); padding: 0 var(--space-4); border: 1px solid var(--ink-200); border-radius: var(--radius-md); background: var(--white); color: var(--ink-500); }
+.community-search input { width: 100%; min-height: 48px; border: 0; outline: 0; font: inherit; }
+.community-chips { display: flex; gap: var(--space-2); overflow-x: auto; padding: var(--space-4) 0; }
+.community-chips button, .community-tabs button { flex: 0 0 auto; border: 0; border-radius: var(--radius-pill); background: var(--ink-100); color: var(--ink-600); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.community-chips button { padding: 9px 13px; }
+.community-chips button.active, .community-tabs button.active { background: var(--blue-600); color: var(--white); }
+.community-tabs { display: flex; align-items: center; gap: var(--space-2); padding-bottom: var(--space-3); border-bottom: 1px solid var(--ink-200); }
+.community-tabs button { padding: 8px 10px; background: transparent; }
+.community-tabs span { flex: 1; }
+.community-tabs button:nth-last-child(-n+2) { color: var(--blue-700); }
+.community-post { display: grid; grid-template-columns: 40px 1fr; gap: var(--space-3); padding: var(--space-5) 0; border-bottom: 1px solid var(--ink-200); }
+.community-avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: var(--pink-100); color: var(--pink-700); font-weight: 800; }
+.community-avatar.anonymous { background: var(--ink-200); color: var(--ink-600); }
+.community-post header small { color: var(--ink-500); }
+.community-tags { display: flex; gap: var(--space-2); margin: var(--space-2) 0; }
+.community-title { padding: 0; border: 0; background: transparent; color: var(--ink-900); font: inherit; font-size: 18px; font-weight: 800; text-align: left; cursor: pointer; }
+.community-post p { display: -webkit-box; overflow: hidden; margin: var(--space-2) 0 var(--space-3); color: var(--ink-600); line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.community-post footer { display: flex; align-items: center; gap: var(--space-4); color: var(--ink-600); font-size: 13px; }
+.community-post footer button { border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.community-post footer button.voted { color: var(--blue-700); font-weight: 800; }
+.community-aside { display: grid; gap: var(--space-4); }
+.community-aside section { padding: var(--space-5); border-radius: var(--radius-md); background: var(--white); box-shadow: var(--shadow-sm); }
+.community-aside h2 { margin-bottom: var(--space-2); font-size: 16px; }
+.community-aside p, .community-aside li { color: var(--ink-600); font-size: 13px; line-height: 1.5; }
+.community-aside ol { display: grid; gap: var(--space-3); margin: 0; padding-left: var(--space-5); }
+.community-pinned { border: 1px solid var(--pink-200); background: var(--pink-50) !important; }
+.community-pinned small { color: var(--pink-700); font-weight: 800; letter-spacing: .06em; }
+.community-new { position: fixed; right: 24px; bottom: 24px; z-index: 8; border-radius: var(--radius-pill); box-shadow: var(--shadow); }
+@media (max-width: 800px) { .community-layout { grid-template-columns: 1fr; } .community-aside { grid-template-columns: 1fr; } }
+@media (max-width: 540px) { .community-tabs { overflow-x: auto; } .community-tabs span { display: none; } .community-post footer { gap: var(--space-2); } .community-new { right: 16px; bottom: 76px; } }

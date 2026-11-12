@@ -12,7 +12,7 @@ export const participantNav: { label: string; route: Route; icon: IconName }[] =
   { label: 'Início', route: 'home', icon: 'home' },
   { label: 'Ilhas', route: 'trail', icon: 'case' },
   { label: 'Vagas', route: 'jobs', icon: 'chart' },
-  { label: 'Fórum', route: 'forum', icon: 'book' },
+  { label: 'Comunidade', route: 'forum', icon: 'book' },
   { label: 'Perfil', route: 'profile', icon: 'user' },
 ]
 

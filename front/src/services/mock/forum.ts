@@ -3,12 +3,11 @@ import { AREAS } from './dados/areas.ts'
 import { executarLogada, falha, novoId, ok } from './store.ts'
 
 const categorias: CategoriaForum[] = [
-  ['boas-vindas', 'Boas-vindas e apresentações', 'Quem é você e o que busca'],
-  ['mercado', 'Dúvidas sobre o mercado', 'Conceitos, carreira e por onde começar'],
-  ['cases', 'Cases e estudos', 'Dúvidas sobre cases e treino, sem gabaritos'],
-  ['entrevistas', 'Entrevistas e processos seletivos', 'Experiências, dicas e preparação'],
-  ['vagas', 'Vagas e oportunidades', 'Conversa sobre oportunidades, sem pedir dinheiro'],
-  ['bastidores', 'Bastidores e desabafos', 'Dificuldades, dúvidas e vitórias'],
+  ['boas-vindas', 'Primeiros passos', 'Escolha de área, estudos e preparação inicial'],
+  ['entrevistas', 'Processos seletivos', 'Currículo, entrevistas, dinâmicas e cases'],
+  ['mercado', 'Dúvidas técnicas', 'Finanças, valuation, Excel e conceitos do mercado'],
+  ['bastidores', 'Experiências e conselhos', 'Relatos, dificuldades, conquistas e conselhos'],
+  ['vagas', 'Conexões e estudos', 'Grupos de estudo e prática entre participantes'],
 ].map(([id, nome, descricao], ordem) => ({ id, nome, descricao, ordem }))
 
 let perfis = new Map<string, { apelido: string; mostrarArea: boolean; mostrarMedalhas: boolean; alteradoEm: string | null }>()
@@ -48,7 +47,8 @@ export const forumService: ForumService = {
     const campos = { ...validarTexto(dados.titulo, 140, 'titulo'), ...validarTexto(dados.texto, 5000, 'texto') }; const categoria = categorias.find(c => c.id === dados.categoriaId)
     if (!categoria) campos.categoriaId = 'Escolha uma categoria.'; if (dados.areaId && !AREAS.some(a => a.id === dados.areaId)) campos.areaId = 'Escolha uma área válida.'
     if (Object.keys(campos).length) return falha('VALIDACAO', 'Confira os campos.', campos)
-    const post: PostForum = { id: novoId('post'), titulo: dados.titulo.trim(), texto: dados.texto.trim(), categoria: categoria!, areaId: dados.areaId ?? null, autora: autor(usuario.id, p.apelido), criadoEm: agora.toISOString(), editadoEm: null, respostas: 0, uteis: 0, meuVoto: false, removido: false }; posts.push(post); return ok(post)
+    const anonima = dados.anonima ?? false
+    const post: PostForum = { id: novoId('post'), titulo: dados.titulo.trim(), texto: dados.texto.trim(), categoria: categoria!, areaId: dados.areaId ?? null, autora: anonima ? { apelido: 'Participante anônima', areaId: null } : autor(usuario.id, p.apelido), anonima, criadoEm: agora.toISOString(), editadoEm: null, respostas: 0, uteis: 0, meuVoto: false, removido: false }; posts.push(post); return ok(post)
   }),
   criarResposta: (postId, dados) => executarLogada(({ usuario, agora }) => {
     const p = perfil(usuario.id); if (!p) return falha('VALIDACAO', 'Defina seu nome de usuário no Perfil antes de responder.', { apelido: 'Defina seu nome de usuário.' })

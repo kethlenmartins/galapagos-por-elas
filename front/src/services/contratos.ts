@@ -984,7 +984,7 @@ export type OrdemForum = 'recentes' | 'uteis' | 'sem_resposta'
 export type MotivoDenuncia = 'assedio' | 'spam_golpe' | 'dado_pessoal' | 'gabarito_case' | 'investimento' | 'outro'
 export type PerfilForum = { apelido: string; mostrarArea: boolean; mostrarMedalhas: boolean; alteradoEm: DataISO | null }
 export type AutorForum = { apelido: string; areaId: string | null }
-export type PostForum = { id: string; titulo: string; texto: string; categoria: CategoriaForum; areaId: string | null; autora: AutorForum; criadoEm: DataISO; editadoEm: DataISO | null; respostas: number; uteis: number; meuVoto: boolean; removido: boolean }
+export type PostForum = { id: string; titulo: string; texto: string; categoria: CategoriaForum; areaId: string | null; autora: AutorForum; anonima: boolean; criadoEm: DataISO; editadoEm: DataISO | null; respostas: number; uteis: number; meuVoto: boolean; removido: boolean }
 export type RespostaForum = { id: string; postId: string; paiId: string | null; texto: string; autora: AutorForum; criadoEm: DataISO; uteis: number; meuVoto: boolean; ajudou: boolean; removida: boolean }
 export type DetalhePostForum = PostForum & { respostasArvore: RespostaForum[]; seguindo: boolean }
 
@@ -994,7 +994,7 @@ export interface ForumService {
   salvarMeuPerfil(dados: Omit<PerfilForum, 'alteradoEm'>): Promise<Resultado<PerfilForum>>
   listarPosts(filtro?: { categoriaId?: string; areaId?: string; busca?: string; ordem?: OrdemForum }): Promise<Resultado<PostForum[]>>
   obterPost(id: string): Promise<Resultado<DetalhePostForum>>
-  criarPost(dados: { titulo: string; texto: string; categoriaId: string; areaId?: string | null }): Promise<Resultado<PostForum>>
+  criarPost(dados: { titulo: string; texto: string; categoriaId: string; areaId?: string | null; anonima?: boolean }): Promise<Resultado<PostForum>>
   criarResposta(postId: string, dados: { texto: string; paiId?: string | null }): Promise<Resultado<RespostaForum>>
   votar(alvo: 'post' | 'resposta', id: string): Promise<Resultado<{ uteis: number; meuVoto: boolean }>>
   denunciar(alvo: 'post' | 'resposta', id: string, motivo: MotivoDenuncia, detalhe?: string): Promise<Resultado<true>>
