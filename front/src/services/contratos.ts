@@ -867,6 +867,8 @@ export type ResumoSimulacao = {
   motivoBloqueio: string | null
   /** `false` quando a IA não está configurada no servidor. */
   disponivel: boolean
+  /** `true` quando a área tem banco de perguntas reais de entrevista: a IA reage e avalia contra o que uma boa resposta mostra. */
+  perguntasReais: boolean
   /** `true` no mock: perguntas e feedback roteirizados, sem IA. */
   demonstracao: boolean
   restantesHoje: number

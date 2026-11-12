@@ -7,9 +7,11 @@ import { z } from 'zod'
 export type RigorSimulacao = 'acolhedor' | 'equilibrado' | 'exigente'
 export type DificuldadeSimulacao = 'iniciante' | 'intermediario' | 'avancado'
 export type ConfigSimulacao = { vaga: string | null; rigor: RigorSimulacao; dificuldade: DificuldadeSimulacao; perguntas: number }
-export type TurnoSalvo = { pergunta: string; resposta: string | null; reacao?: string }
+/** `referencia`: o que uma boa resposta mostra (só do banco de perguntas reais). Régua da IA; nunca vai ao navegador. */
+export type TurnoSalvo = { pergunta: string; resposta: string | null; reacao?: string; referencia?: string }
 
 const ProximaSchema = z.object({ reacao: z.string().max(700).optional(), proximaPergunta: z.string().min(5).max(600) })
+const ReacaoSchema = z.object({ reacao: z.string().min(1).max(700) })
 const FeedbackSchema = z.object({
   resumo: z.string().min(1).max(900),
   criterios: z.array(z.object({ nome: z.string().min(1).max(60), nota: z.number().min(0).max(10), comentario: z.string().min(1).max(500) })).min(1).max(6),
@@ -73,7 +75,8 @@ async function chamar<T>(system: string, usuario: unknown, schema: z.ZodType<T>,
   return null
 }
 
-const historicoParaIA = (historico: TurnoSalvo[]) => historico.map(t => ({ pergunta: t.pergunta, resposta: t.resposta ?? '(sem resposta: o tempo acabou)' }))
+const historicoParaIA = (historico: TurnoSalvo[]) =>
+  historico.map(t => ({ pergunta: t.pergunta, resposta: t.resposta ?? '(sem resposta: o tempo acabou)', ...(t.referencia ? { criterio: t.referencia } : {}) }))
 
 /** A primeira pergunta (histórico vazio) ou a reação à última resposta mais a próxima pergunta. */
 export function proximaPergunta(areaNome: string, config: ConfigSimulacao, historico: TurnoSalvo[], fetchFn: Fetch = fetch) {
@@ -92,6 +95,24 @@ export function proximaPergunta(areaNome: string, config: ConfigSimulacao, histo
   )
 }
 
+/**
+ * Banco de perguntas reais: a pergunta já está escolhida; a IA só reage à última resposta
+ * comparando com o critério ("o que uma boa resposta mostra"), sem entregar a resposta pronta.
+ */
+export function reagir(areaNome: string, config: ConfigSimulacao, historico: TurnoSalvo[], fetchFn: Fetch = fetch) {
+  return chamar(
+    promptDoSistema(areaNome, config),
+    {
+      vaga: config.vaga,
+      historico: historicoParaIA(historico),
+      tarefa:
+        'Reaja à última resposta da candidata em 1 ou 2 frases, de acordo com o rigor. Compare com o "criterio" dessa pergunta: reconheça o que ela cobriu e indique, sem dar a resposta pronta nem copiar o critério, o que faltou. Não faça outra pergunta. Formato: {"reacao": "..."}',
+    },
+    ReacaoSchema,
+    fetchFn,
+  )
+}
+
 export function feedbackFinal(areaNome: string, config: ConfigSimulacao, historico: TurnoSalvo[], fetchFn: Fetch = fetch) {
   return chamar(
     promptDoSistema(areaNome, config),
@@ -99,7 +120,7 @@ export function feedbackFinal(areaNome: string, config: ConfigSimulacao, histori
       vaga: config.vaga,
       historico: historicoParaIA(historico),
       tarefa:
-        'A entrevista terminou. Avalie o desempenho da candidata como treino, sem prometer resultado em processo seletivo. Use critérios como clareza, conhecimento técnico, estrutura da resposta e aderência à vaga (notas de 0 a 10, coerentes com o rigor). Respostas em branco ou sem tempo devem pesar. ' +
+        'A entrevista terminou. Quando uma pergunta tiver "criterio" (o que uma boa resposta mostra), use-o como régua para avaliar aquela resposta, sem copiá-lo. Avalie o desempenho da candidata como treino, sem prometer resultado em processo seletivo. Use critérios como clareza, conhecimento técnico, estrutura da resposta e aderência à vaga (notas de 0 a 10, coerentes com o rigor). Respostas em branco ou sem tempo devem pesar. ' +
         'Formato: {"resumo": "...", "criterios": [{"nome": "...", "nota": 0, "comentario": "..."}], "pontosFortes": ["..."], "pontosAMelhorar": ["..."], "proximosPassos": ["..."]}',
     },
     FeedbackSchema,

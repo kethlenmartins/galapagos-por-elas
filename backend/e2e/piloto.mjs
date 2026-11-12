@@ -157,6 +157,20 @@ try {
     assert.equal(historico.length, 1)
     assert.equal(historico[0].notaMedia, 7)
   }
+  // Banco de perguntas reais (Corporate Finance): a pergunta vem do banco e o critério nunca vai ao navegador.
+  if (resumoSim.disponivel) {
+    const cf = await request('/interview/corporate-finance')
+    assert.equal(cf.perguntasReais, true)
+    assert.equal((await request('/interview/venture-capital')).perguntasReais, false)
+    const real = await request('/interview/sessions', { method: 'POST', body: { areaId: 'corporate-finance', rigor: 'equilibrado', dificuldade: 'intermediario', perguntas: 3 } })
+    const noBanco = await pool.query('SELECT prompt, good_answer FROM interview_open_questions WHERE prompt = $1', [real.pergunta])
+    assert.equal(noBanco.rowCount, 1, 'a pergunta é do banco')
+    const r1 = await request(`/interview/sessions/${real.sessaoId}/answer`, { method: 'POST', body: { resposta: 'Sim, porque lucro não é caixa.' } })
+    assert.ok(r1.reacao.length > 0 && r1.proximo.numero === 2)
+    assert.ok(!JSON.stringify([real, r1]).includes(noBanco.rows[0].good_answer), 'o critério da pergunta não vai ao navegador')
+    const guardado = await pool.query('SELECT turns->0->>\'referencia\' AS referencia FROM interview_sessions WHERE id=$1', [real.sessaoId])
+    assert.equal(guardado.rows[0].referencia, noBanco.rows[0].good_answer)
+  }
   const misto = await request('/training/venture-capital/questions?nivel=misto&quantidade=50')
   assert.equal(misto.length, 50)
   assert.equal((await fetch(`${base}/training/questions/${perguntas[0].id}/answer`, { method: 'POST', headers: { cookie, origin, 'content-type': 'application/json' }, body: JSON.stringify({ letra: 'Z' }) })).status, 400)

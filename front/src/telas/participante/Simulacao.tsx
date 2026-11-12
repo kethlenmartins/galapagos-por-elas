@@ -167,6 +167,7 @@ export function Simulacao() {
       <PageTitle eyebrow={`SIMULAÇÃO DE ENTREVISTA · ${areaNome.toUpperCase()}`} title="Monte a sua entrevista" subtitle="Uma entrevistadora faz as perguntas, uma de cada vez, e no fim você recebe um feedback. Ajuste a vaga, o rigor e a dificuldade." />
       {resumo.demonstracao && <div className="alert alert-warning" role="note"><p>Modo demonstração: perguntas e feedback são roteirizados, sem IA.</p></div>}
       {aviso && <div className="alert alert-warning" role="note"><p>{aviso}</p></div>}
+      {resumo.perguntasReais && <p className="trilha-dica">As perguntas são de entrevistas reais da área. A entrevistadora compara cada resposta com o que uma boa resposta costuma mostrar.</p>}
       {erroDaAcao && <div className="alert alert-error" role="alert"><p>{erroDaAcao}</p></div>}
 
       <fieldset className="treino-grupo" disabled={indisponivel}>

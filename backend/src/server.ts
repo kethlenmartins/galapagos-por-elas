@@ -8,10 +8,10 @@ import { eq, and, isNull, desc, sql, inArray } from 'drizzle-orm'
 import argon2 from 'argon2'
 import { z } from 'zod'
 import { db } from './db/client.js'
-import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProgress, deliveries, assessments, pointEvents, contents, contentCompletions, certificates, reviewRequests, aiLogs, interviewQuestions, interviewSessions, trainingAnswers, jobs } from './db/schema.js'
+import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProgress, deliveries, assessments, pointEvents, contents, contentCompletions, certificates, reviewRequests, aiLogs, interviewQuestions, interviewSessions, trainingAnswers, jobs, interviewOpenQuestions } from './db/schema.js'
 import { configuracaoPublica, gerarResultado } from '../../front/src/services/fit/motor.ts'
 import { AREAS } from '../../front/src/services/mock/dados/areas.ts'
-import { GROQ_URL, feedbackFinal, iaDisponivel, proximaPergunta, type TurnoSalvo } from './entrevista-ia.js'
+import { GROQ_URL, feedbackFinal, iaDisponivel, proximaPergunta, reagir, type TurnoSalvo } from './entrevista-ia.js'
 import { montarPdfCertificado, slug } from '../../front/src/services/mock/pdf.ts'
 
 const app = Fastify({ logger: true, trustProxy: true })
@@ -382,7 +382,7 @@ app.get('/api/interview/:areaId', async (req, reply) => {
   const user = await usuarioAtual(req)
   if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
   const { areaId } = req.params as { areaId: string }
-  return { dados: { areaId, ...(await treinoLiberado(user.id, areaId)), disponivel: iaDisponivel(), demonstracao: false, restantesHoje: Math.max(0, SIMULACOES_POR_DIA - (await simulacoesDeHoje(user.id))), historico: await historicoDaSimulacao(user.id, areaId) }, erro: null }
+  return { dados: { areaId, ...(await treinoLiberado(user.id, areaId)), disponivel: iaDisponivel(), demonstracao: false, perguntasReais: (await db.select({ id: interviewOpenQuestions.id }).from(interviewOpenQuestions).where(eq(interviewOpenQuestions.areaId, areaId)).limit(1)).length > 0, restantesHoje: Math.max(0, SIMULACOES_POR_DIA - (await simulacoesDeHoje(user.id))), historico: await historicoDaSimulacao(user.id, areaId) }, erro: null }
 })
 
 app.post('/api/interview/sessions', async (req, reply) => {
@@ -397,6 +397,13 @@ app.post('/api/interview/sessions', async (req, reply) => {
   if (!liberado) return reply.code(403).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: motivoBloqueio ?? 'A simulação ainda não está liberada.' } })
   if (!iaDisponivel()) return reply.code(503).send({ dados: null, erro: { codigo: 'IA_INDISPONIVEL', mensagem: 'A simulação com IA não está disponível agora. Tente o treino de perguntas.' } })
   if ((await simulacoesDeHoje(user.id)) >= SIMULACOES_POR_DIA) return reply.code(429).send({ dados: null, erro: { codigo: 'LIMITE_EXCEDIDO', mensagem: `Você já fez ${SIMULACOES_POR_DIA} simulações nas últimas 24 horas. Volte mais tarde.` } })
+  // Áreas com banco de perguntas reais: sorteia as perguntas; a IA só reage e avalia. As demais: a IA conduz a conversa.
+  const banco = (await db.select().from(interviewOpenQuestions).where(eq(interviewOpenQuestions.areaId, areaId))).sort(() => Math.random() - 0.5).slice(0, perguntas)
+  if (banco.length >= perguntas) {
+    const config = { vaga: vaga || null, rigor, dificuldade, perguntas, banco: banco.map(q => q.id) }
+    const [sessao] = await db.insert(interviewSessions).values({ userId: user.id, areaId, config, turns: [{ pergunta: banco[0].prompt, resposta: null, referencia: banco[0].goodAnswer }] }).returning()
+    return { dados: { sessaoId: sessao.id, numero: 1, total: perguntas, pergunta: banco[0].prompt }, erro: null }
+  }
   const config = { vaga: vaga || null, rigor, dificuldade, perguntas }
   const primeira = await proximaPergunta(area.nome, config, [])
   if (!primeira) return reply.code(502).send({ dados: null, erro: { codigo: 'IA_INDISPONIVEL', mensagem: 'A entrevistadora não respondeu agora. Tente de novo em instantes.' } })
@@ -414,11 +421,21 @@ app.post('/api/interview/sessions/:id/answer', async (req, reply) => {
   const [sessao] = await db.select().from(interviewSessions).where(and(eq(interviewSessions.id, id), eq(interviewSessions.userId, user.id))).limit(1)
   if (!sessao) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Simulação não encontrada.' } })
   if (sessao.status !== 'em_andamento') return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Esta simulação já terminou.' } })
-  const config = sessao.config as { vaga: string | null; rigor: 'acolhedor' | 'equilibrado' | 'exigente'; dificuldade: 'iniciante' | 'intermediario' | 'avancado'; perguntas: number }
+  const config = sessao.config as { vaga: string | null; rigor: 'acolhedor' | 'equilibrado' | 'exigente'; dificuldade: 'iniciante' | 'intermediario' | 'avancado'; perguntas: number; banco?: string[] }
   const area = areasPublicas.find(a => a.id === sessao.areaId)
   const turnos: TurnoSalvo[] = sessao.turns.map(t => ({ ...t }))
   turnos[turnos.length - 1] = { ...turnos[turnos.length - 1], resposta: corpo.data.resposta || null }
   const indisponivel = () => reply.code(502).send({ dados: null, erro: { codigo: 'IA_INDISPONIVEL', mensagem: 'A entrevistadora não respondeu agora. Envie a resposta de novo.' } })
+  if (turnos.length < config.perguntas && config.banco) {
+    const reacao = await reagir(area?.nome ?? sessao.areaId, config, turnos)
+    if (!reacao) return indisponivel()
+    const [proximaDoBanco] = await db.select().from(interviewOpenQuestions).where(eq(interviewOpenQuestions.id, config.banco[turnos.length])).limit(1)
+    if (!proximaDoBanco) return indisponivel()
+    turnos[turnos.length - 1].reacao = reacao.reacao
+    turnos.push({ pergunta: proximaDoBanco.prompt, resposta: null, referencia: proximaDoBanco.goodAnswer })
+    await db.update(interviewSessions).set({ turns: turnos }).where(eq(interviewSessions.id, id))
+    return { dados: { reacao: reacao.reacao, proximo: { numero: turnos.length, pergunta: proximaDoBanco.prompt }, feedbackFinal: null }, erro: null }
+  }
   if (turnos.length < config.perguntas) {
     const proxima = await proximaPergunta(area?.nome ?? sessao.areaId, config, turnos)
     if (!proxima) return indisponivel()

@@ -53,11 +53,14 @@ export const interviewQuestions = pgTable('interview_questions', {
   id: text('id').primaryKey(), areaId: text('area_id').notNull(), level: text('level').notNull(), topic: text('topic'), position: integer('position').notNull(), prompt: text('prompt').notNull(), options: jsonb('options').$type<Array<{ letra: string; texto: string }>>().notNull(), answer: text('answer').notNull(), feedback: text('feedback').notNull(),
 })
 export const interviewSessions = pgTable('interview_sessions', {
-  id: uuid('id').defaultRandom().primaryKey(), userId: uuid('user_id').notNull(), areaId: text('area_id').notNull(), config: jsonb('config').$type<Record<string, unknown>>().notNull(), turns: jsonb('turns').$type<Array<{ pergunta: string; resposta: string | null; reacao?: string }>>().notNull().default([]), status: text('status').notNull().default('em_andamento'), feedback: jsonb('feedback').$type<Record<string, unknown> | null>(), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(), finishedAt: timestamp('finished_at', { withTimezone: true }),
+  id: uuid('id').defaultRandom().primaryKey(), userId: uuid('user_id').notNull(), areaId: text('area_id').notNull(), config: jsonb('config').$type<Record<string, unknown>>().notNull(), turns: jsonb('turns').$type<Array<{ pergunta: string; resposta: string | null; reacao?: string; referencia?: string }>>().notNull().default([]), status: text('status').notNull().default('em_andamento'), feedback: jsonb('feedback').$type<Record<string, unknown> | null>(), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(), finishedAt: timestamp('finished_at', { withTimezone: true }),
 })
 export const trainingAnswers = pgTable('training_answers', {
   id: uuid('id').defaultRandom().primaryKey(), userId: uuid('user_id').notNull(), questionId: text('question_id').notNull(), correct: boolean('correct').notNull(), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 export const jobs = pgTable('jobs', {
   id: text('id').primaryKey(), areaId: text('area_id').notNull(), company: text('company').notNull(), title: text('title').notNull(), location: text('location').notNull(), kind: text('kind').notNull().default('outro'), url: text('url').notNull(), status: text('status').notNull().default('rascunho'), checkedAt: date('checked_at'), note: text('note'), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+export const interviewOpenQuestions = pgTable('interview_open_questions', {
+  id: text('id').primaryKey(), areaId: text('area_id').notNull(), position: integer('position').notNull(), prompt: text('prompt').notNull(), goodAnswer: text('good_answer').notNull(),
 })

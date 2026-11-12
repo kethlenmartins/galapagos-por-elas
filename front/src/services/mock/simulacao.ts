@@ -1,6 +1,7 @@
 /** Simulação de entrevista de demonstração: perguntas e feedback roteirizados, sem IA. O backend real usa a IA. */
 import type { ConfigSimulacao, ItemHistoricoSimulacao, SimulacaoService } from '../contratos.ts'
 import { AREAS } from './dados/areas.ts'
+import { PERGUNTAS_ABERTAS } from './dados/perguntas-abertas.ts'
 import { executarLogada, falha, novoId, ok } from './store.ts'
 import { liberacao } from './treino.ts'
 
@@ -17,7 +18,7 @@ const PERGUNTAS = (area: string) => [
 
 const nomeDaArea = (areaId: string) => AREAS.find(a => a.id === areaId)?.nome ?? areaId
 
-type Sessao = { config: ConfigSimulacao; respostas: (string | null)[] }
+type Sessao = { config: ConfigSimulacao; respostas: (string | null)[]; perguntas: string[] }
 /** Simulações concluídas, por usuária (só na sessão do mock). */
 const historicos = new Map<string, (ItemHistoricoSimulacao & { areaId: string })[]>()
 const sessoes = new Map<string, Sessao>()
@@ -27,7 +28,7 @@ const usadas = new Map<string, number>()
 export const simulacaoService: SimulacaoService = {
   obterResumoDaSimulacao: areaId =>
     executarLogada(({ estado, usuario }) =>
-      ok({ areaId, ...liberacao(estado, usuario.id, areaId), disponivel: true, demonstracao: true, restantesHoje: Math.max(0, LIMITE_POR_DIA - (usadas.get(usuario.id) ?? 0)), historico: (historicos.get(usuario.id) ?? []).filter(h => h.areaId === areaId).slice(0, 5).map(({ areaId: _a, ...item }) => item) }),
+      ok({ areaId, ...liberacao(estado, usuario.id, areaId), disponivel: true, demonstracao: true, perguntasReais: PERGUNTAS_ABERTAS.some(p => p.areaId === areaId), restantesHoje: Math.max(0, LIMITE_POR_DIA - (usadas.get(usuario.id) ?? 0)), historico: (historicos.get(usuario.id) ?? []).filter(h => h.areaId === areaId).slice(0, 5).map(({ areaId: _a, ...item }) => item) }),
     ),
 
   iniciarSimulacao: config =>
@@ -37,8 +38,11 @@ export const simulacaoService: SimulacaoService = {
       if ((usadas.get(usuario.id) ?? 0) >= LIMITE_POR_DIA) return falha('LIMITE_EXCEDIDO', `Você já fez ${LIMITE_POR_DIA} simulações hoje. Volte mais tarde.`)
       usadas.set(usuario.id, (usadas.get(usuario.id) ?? 0) + 1)
       const sessaoId = novoId('sim')
-      sessoes.set(sessaoId, { config, respostas: [] })
-      return ok({ sessaoId, numero: 1, total: config.perguntas, pergunta: PERGUNTAS(nomeDaArea(config.areaId))[0] })
+      // Áreas com banco de perguntas reais usam essas perguntas; as demais, o roteiro genérico.
+      const banco = PERGUNTAS_ABERTAS.filter(p => p.areaId === config.areaId).map(p => p.pergunta).sort(() => Math.random() - 0.5)
+      const perguntas = banco.length >= config.perguntas ? banco.slice(0, config.perguntas) : PERGUNTAS(nomeDaArea(config.areaId))
+      sessoes.set(sessaoId, { config, respostas: [], perguntas })
+      return ok({ sessaoId, numero: 1, total: config.perguntas, pergunta: perguntas[0] })
     }),
 
   responderSimulacao: (sessaoId, resposta) =>
@@ -48,7 +52,7 @@ export const simulacaoService: SimulacaoService = {
       sessao.respostas.push(resposta?.trim() || null)
       const numero = sessao.respostas.length
       const reacao = !resposta?.trim() ? 'Sem resposta desta vez. Vamos seguir.' : resposta.trim().length < 80 ? 'Resposta curta: tente dar um exemplo concreto.' : 'Obrigada, resposta clara.'
-      if (numero < sessao.config.perguntas) return ok({ reacao, proximo: { numero: numero + 1, pergunta: PERGUNTAS(nomeDaArea(sessao.config.areaId))[numero] }, feedbackFinal: null })
+      if (numero < sessao.config.perguntas) return ok({ reacao, proximo: { numero: numero + 1, pergunta: sessao.perguntas[numero] }, feedbackFinal: null })
       const respondidas = sessao.respostas.filter((r): r is string => !!r)
       const media = respondidas.length ? respondidas.reduce((s, r) => s + r.length, 0) / respondidas.length : 0
       const nota = Math.min(10, Math.round((respondidas.length / sessao.respostas.length) * 4 + Math.min(media, 300) / 50))

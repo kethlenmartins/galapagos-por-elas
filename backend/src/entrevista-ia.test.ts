@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { afterEach, beforeEach, test } from 'node:test'
-import { feedbackFinal, iaDisponivel, promptDoSistema, proximaPergunta, type ConfigSimulacao } from './entrevista-ia.ts'
+import { feedbackFinal, iaDisponivel, promptDoSistema, proximaPergunta, reagir, type ConfigSimulacao } from './entrevista-ia.ts'
 
 const config: ConfigSimulacao = { vaga: 'Estágio em IB', rigor: 'exigente', dificuldade: 'intermediario', perguntas: 3 }
 const resposta = (conteudo: unknown, ok = true) => (async () => ({ ok, json: async () => ({ choices: [{ message: { content: typeof conteudo === 'string' ? conteudo : JSON.stringify(conteudo) } }] }) })) as unknown as typeof fetch
@@ -43,4 +43,14 @@ test('o feedback final exige critérios com nota de 0 a 10', async () => {
   assert.equal((await feedbackFinal('IB', config, [{ pergunta: 'Q?', resposta: 'R' }], resposta(bom)))?.criterios[0].nota, 7)
   const nota11 = { ...bom, criterios: [{ nome: 'Clareza', nota: 11, comentario: 'x' }] }
   assert.equal(await feedbackFinal('IB', config, [], resposta(nota11)), null)
+})
+
+test('com banco de perguntas, a IA recebe o critério da pergunta e só devolve a reação', async () => {
+  let corpo = ''
+  const espia = (async (_url: string, init: { body: string }) => { corpo = init.body; return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify({ reacao: 'Cobriu o essencial, faltou falar de caixa.' }) } }] }) } }) as unknown as typeof fetch
+  const r = await reagir('Corporate Finance', config, [{ pergunta: 'Uma empresa com lucro pode quebrar?', resposta: 'Pode.', referencia: 'Lucro não é caixa' }], espia)
+  assert.equal(r?.reacao, 'Cobriu o essencial, faltou falar de caixa.')
+  assert.match(corpo, /Lucro não é caixa/)
+  assert.match(corpo, /criterio/)
+  assert.equal(await reagir('CF', config, [], resposta({ outra: 1 })), null)
 })
