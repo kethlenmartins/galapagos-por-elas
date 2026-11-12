@@ -144,7 +144,7 @@ export function Treino() {
       {resumo.temas.length > 0 && (
         <fieldset className="treino-grupo" disabled={!resumo.liberado || semPerguntas}>
           <legend>Tema</legend>
-          <div className="treino-opcoes treino-curtas">
+          <div className="treino-opcoes">
             {['', ...resumo.temas].map(t => (
               <label key={t || 'todos'} className={`treino-opcao ${tema === t ? 'marcada' : ''}`}>
                 <input type="radio" name="tema" checked={tema === t} onChange={() => setTema(t)} />
@@ -232,7 +232,7 @@ export function Treino() {
         {registros.filter(r => !r.resposta.correta).map(r => (
           <article key={r.pergunta.id} className="trilha-card">
             <h3>{r.pergunta.enunciado}</h3>
-            <p className="trilha-aviso">{r.letra === null ? 'Sem resposta (tempo esgotado).' : `Você marcou ${r.letra}.`} A certa era <strong>{r.resposta.letraCerta}) {r.pergunta.opcoes.find(o => o.letra === r.resposta.letraCerta)?.texto}</strong></p>
+            <p className="trilha-aviso"><span>{r.letra === null ? 'Sem resposta (tempo esgotado).' : `Você marcou ${r.letra}.`} A certa era <strong>{r.resposta.letraCerta}) {r.pergunta.opcoes.find(o => o.letra === r.resposta.letraCerta)?.texto}</strong></span></p>
             <p className="trilha-resumo">{r.resposta.feedback}</p>
           </article>
         ))}

@@ -562,7 +562,7 @@ export function CasePage() {
         <span className="eyebrow">{ROTULO_ETAPA[ativo.etapa].toUpperCase()}</span>
         <h2>{ativo.titulo}</h2>
         {ativo.tarefaIds.map(id => tarefas[id] && <TarefaDoCase key={id} tarefa={tarefas[id]} tituloDoCheckpoint={ativo.titulo} respostas={respostas[id] ?? {}} erros={erros} salvoEm={salvoEm[id]} bloqueado={ocupado} aoMudar={(campo, valor) => mudarCampo(id, campo, valor)} aoRevelar={registrarRevelada}/>)}
-        {ativo.tarefaIds.every(id => !tarefas[id] || reveladas[id]) && <div className="case-acoes"><Button onClick={() => concluir(ativo)} disabled={ocupado}>{ocupado ? 'Concluindo…' : `Concluir este checkpoint (+${ativo.pontos} pts)`}</Button></div>}
+        {ativo.tarefaIds.every(id => !tarefas[id] || reveladas[id]) && <div className="case-acoes"><Button onClick={() => concluir(ativo)} disabled={ocupado}>{ocupado ? 'Concluindo…' : `Concluir etapa (+${ativo.pontos} pts)`}</Button></div>}
         <small>Depois de concluir, as respostas deste checkpoint ficam travadas.</small>
       </section>}
 

@@ -202,7 +202,7 @@ export function Diagnostico() {
         {alerta}
         <div className="diagnostico-acoes">
           <Button variant="ghost" onClick={voltar} disabled={ocupada}>Voltar</Button>
-          {respondidas > 0 && !voltarParaRevisao && <Button variant="ghost" onClick={() => setFase('revisao')} disabled={ocupada}>Revisar respostas</Button>}
+          {respondidas > 0 && !voltarParaRevisao && <Button variant="ghost" onClick={() => setFase('revisao')} disabled={ocupada}>Revisar</Button>}
         </div>
       </div>
     </section>}
@@ -222,7 +222,7 @@ export function Diagnostico() {
       {alerta}
       <div className="diagnostico-acoes">
         <Button variant="ghost" onClick={() => editar(total - 1)} disabled={ocupada}>Voltar</Button>
-        <Button onClick={enviar} disabled={faltam > 0 || ocupada}>{ocupada ? 'Enviando…' : 'Ver meu resultado'}</Button>
+        <Button onClick={enviar} disabled={faltam > 0 || ocupada}>{ocupada ? 'Enviando…' : 'Ver resultado'}</Button>
       </div>
     </section>}
 

@@ -189,7 +189,7 @@ export function AdminReview() {
     <PageTitle eyebrow="AVALIAÇÃO" title="Fila de correção" subtitle="Revise as sugestões da IA antes de publicar os resultados." action={acaoPublicar}/>
     {aviso && <div className={`alert alert-${aviso.tom}`} role="status">{aviso.texto}</div>}
     <div className="review-tabs"><button className={aba === 'entregas' ? 'active' : ''} onClick={() => setAba('entregas')}>Entregas <span>{lista.length}</span></button>
-      <button className={aba === 'pedidos' ? 'active' : ''} onClick={() => setAba('pedidos')}>Pedidos de revisão <span>{abertos}</span></button></div>
+      <button className={aba === 'pedidos' ? 'active' : ''} onClick={() => setAba('pedidos')}>Revisões <span>{abertos}</span></button></div>
 
     {aba === 'entregas' && (!entregas ? <p aria-busy="true">Carregando…</p> : lista.length === 0 ? <p className="table-empty">Nenhuma entrega ainda.</p> :
       <div className="review-layout"><section className="review-queue"><div className="queue-head"><strong>{pendentes} {pendentes === 1 ? 'pendente' : 'pendentes'}</strong><small>{lista.length} no total</small></div>

@@ -162,10 +162,11 @@ export function Ilha() {
 
     {fase === 'ok' && trilha && area && <>
       <PageTitle eyebrow="ILHA" title={area.nome} subtitle={area.oQueFaz} />
-      <section className="ilha-apresentacao" aria-label={`Sobre a área de ${area.nome}`}>
-        <h2>Sobre a área</h2>
+      {/* No celular o texto longo da área começa recolhido, para o caminho da ilha aparecer logo. */}
+      <details className="ilha-apresentacao" open={typeof window === 'undefined' || !window.matchMedia?.('(max-width: 720px)').matches}>
+        <summary>Sobre a área</summary>
         <p>{area.descricao}</p>
-      </section>
+      </details>
 
       {!trilha.diagnosticoConcluido && (
         <div className="alert alert-warning" role="note">

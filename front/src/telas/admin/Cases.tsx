@@ -62,12 +62,12 @@ export function AdminCases() {
         </select></label>
       </div>
       {!cases ? <p aria-busy="true" className="table-empty">Carregando…</p> : visiveis.length === 0 ? <p className="table-empty">Nenhum case encontrado.</p> :
-      <div className="table-scroll"><table><thead><tr><th>Título</th><th>Área</th><th>Status</th><th>Ações</th></tr></thead><tbody>
+      <div className="table-scroll"><table className="tabela-cartoes"><thead><tr><th>Título</th><th>Área</th><th>Status</th><th>Ações</th></tr></thead><tbody>
         {visiveis.map(c => <tr key={c.id}>
-          <td><strong>{c.titulo}</strong>{c.geradoPorIA && <AIBadge compact admin/>}</td>
-          <td>{c.area}</td>
-          <td><Tag tone={STATUS_CASE[c.status].tom}>{STATUS_CASE[c.status].rotulo}</Tag></td>
-          <td>{confirmando === c.id
+          <td data-label="Título"><strong>{c.titulo}</strong>{c.geradoPorIA && <AIBadge compact admin/>}</td>
+          <td data-label="Área">{c.area}</td>
+          <td data-label="Situação"><Tag tone={STATUS_CASE[c.status].tom}>{STATUS_CASE[c.status].rotulo}</Tag></td>
+          <td data-label="Ações">{confirmando === c.id
             ? <span className="row-confirm">Quem já começou mantém o progresso. <button className="text-link" onClick={() => arquivar(c.id)}>Arquivar</button> <button className="text-link" onClick={() => setConfirmando(null)}>Cancelar</button></span>
             : <span className="row-actions">
               <button className="icon-btn" onClick={() => irParaEditor(c.id)} aria-label={`${c.status === 'publicado' || c.status === 'arquivado' ? 'Ver' : 'Editar'} ${c.titulo}`}><Icon name="edit"/></button>

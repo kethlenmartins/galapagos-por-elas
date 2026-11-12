@@ -98,9 +98,9 @@ export function AdminContent() {
       <div className="table-toolbar"><label><Icon name="search"/><input placeholder="Buscar conteúdo..." value={busca} onChange={e => setBusca(e.target.value)}/></label>
         <label className="field"><select aria-label="Filtrar por tipo" value={tipo} onChange={e => setTipo(e.target.value as '' | TipoConteudo)}><option value="">Todos os tipos</option>{(Object.keys(TIPOS) as TipoConteudo[]).map(t => <option key={t} value={t}>{TIPOS[t]}</option>)}</select></label></div>
       {!lista ? <p aria-busy="true" className="table-empty">Carregando…</p> : visiveis.length === 0 ? <p className="table-empty">Nenhum conteúdo encontrado.</p> :
-        <div className="table-scroll"><table><thead><tr><th>Título</th><th>Tipo</th><th>Área</th><th>Vinculado a</th><th>Ações</th></tr></thead><tbody>
-          {visiveis.map(c => <tr key={c.id}><td><strong>{c.titulo}</strong></td><td><Tag>{TIPOS[c.tipo]}</Tag></td><td>{nomeDaArea(c.areaId)}</td><td>{c.caseIds.length} {c.caseIds.length === 1 ? 'case' : 'cases'}</td>
-            <td>{removendo === c.id ? <span className="row-confirm">Remover de vez? <button className="text-link" onClick={() => remover(c.id)}>Remover</button> <button className="text-link" onClick={() => setRemovendo(null)}>Cancelar</button></span>
+        <div className="table-scroll"><table className="tabela-cartoes"><thead><tr><th>Título</th><th>Tipo</th><th>Área</th><th>Vinculado a</th><th>Ações</th></tr></thead><tbody>
+          {visiveis.map(c => <tr key={c.id}><td data-label="Título"><strong>{c.titulo}</strong></td><td data-label="Tipo"><Tag>{TIPOS[c.tipo]}</Tag></td><td data-label="Área">{nomeDaArea(c.areaId)}</td><td data-label="Vinculado a">{c.caseIds.length} {c.caseIds.length === 1 ? 'case' : 'cases'}</td>
+            <td data-label="Ações">{removendo === c.id ? <span className="row-confirm">Remover de vez? <button className="text-link" onClick={() => remover(c.id)}>Remover</button> <button className="text-link" onClick={() => setRemovendo(null)}>Cancelar</button></span>
               : <span className="row-actions"><button className="icon-btn" onClick={() => setEditando(c)} aria-label={`Editar ${c.titulo}`}><Icon name="edit"/></button><button className="text-link" onClick={() => setRemovendo(c.id)}>Remover</button></span>}</td></tr>)}
         </tbody></table></div>}
     </section>

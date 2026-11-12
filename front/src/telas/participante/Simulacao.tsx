@@ -217,9 +217,11 @@ export function Simulacao() {
       {ditado.erro && <div className="alert alert-warning" role="note"><p>{ditado.erro}</p></div>}
       <textarea className="sim-resposta" rows={5} maxLength={2000} value={texto} onChange={e => setTexto(e.target.value)} disabled={ocupado} placeholder="Escreva a sua resposta…" aria-label="Sua resposta" />
       {ditado.ouvindo && <p className="sim-parcial" role="status"><span className="sim-gravando" aria-hidden="true" /> Ouvindo… {ditado.parcial}</p>}
+      {(ditado.disponivel || fala.disponivel) && <div className="sim-voz">
+        {ditado.disponivel && <Button variant="ghost" onClick={ditado.ouvindo ? ditado.parar : ditado.iniciar} disabled={ocupado} pressed={ditado.ouvindo}>{ditado.ouvindo ? '⏹ Parar' : '🎤 Ditar'}</Button>}
+        {fala.disponivel && <Button variant="ghost" onClick={() => (fala.falando ? fala.parar() : setVozAtiva(v => !v))} pressed={vozAtiva}>{fala.falando ? '🔇 Silenciar' : vozAtiva ? '🔊 Voz ligada' : '🔈 Voz desligada'}</Button>}
+      </div>}
       <div className="trilha-acoes">
-        {ditado.disponivel && <Button variant="ghost" onClick={ditado.ouvindo ? ditado.parar : ditado.iniciar} disabled={ocupado} pressed={ditado.ouvindo}>{ditado.ouvindo ? 'Parar de ouvir' : '🎤 Falar a resposta'}</Button>}
-        {fala.disponivel && <Button variant="ghost" onClick={() => (fala.falando ? fala.parar() : setVozAtiva(v => !v))} pressed={vozAtiva}>{fala.falando ? 'Silenciar' : vozAtiva ? 'Voz ligada' : 'Voz desligada'}</Button>}
         <Button onClick={() => enviar(texto.trim() || null)} disabled={ocupado || !texto.trim()} icon="arrow">{turno.numero >= turno.total ? 'Enviar e ver o feedback' : 'Enviar resposta'}</Button>
         <small className="trilha-motivo">{texto.length}/2000</small>
       </div>

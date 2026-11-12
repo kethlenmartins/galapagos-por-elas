@@ -97,13 +97,13 @@ export function AdminVagas() {
         <label className="field"><select aria-label="Filtrar por status" value={status} onChange={e => setStatus(e.target.value as '' | StatusVaga)}><option value="">Todas</option>{(Object.keys(STATUS) as StatusVaga[]).map(s => <option key={s} value={s}>{STATUS[s].rotulo}</option>)}</select></label>
       </div>
       {!lista ? <p aria-busy="true" className="table-empty">Carregando…</p> : visiveis.length === 0 ? <p className="table-empty">Nenhuma vaga neste filtro.</p> :
-        <div className="table-scroll"><table><thead><tr><th>Vaga</th><th>Área</th><th>Status</th><th>Conferida em</th><th>Ações</th></tr></thead><tbody>
+        <div className="table-scroll"><table className="tabela-cartoes"><thead><tr><th>Vaga</th><th>Área</th><th>Status</th><th>Conferida em</th><th>Ações</th></tr></thead><tbody>
           {visiveis.map(v => <tr key={v.id}>
-            <td><strong>{v.titulo}</strong><br/><small>{v.empresa} · {v.local} · {TIPOS_DE_VAGA[v.tipo]}</small><br/><a href={v.url} target="_blank" rel="noopener noreferrer" className="text-link">Abrir o link para conferir</a></td>
-            <td>{nomeDaArea(v.areaId)}</td>
-            <td><Tag tone={STATUS[v.status].tom}>{STATUS[v.status].rotulo.toUpperCase()}</Tag></td>
-            <td>{v.conferidaEm ? new Date(v.conferidaEm).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—'}</td>
-            <td>{removendo === v.id
+            <td data-label="Vaga"><strong>{v.titulo}</strong><br/><small>{v.empresa} · {v.local} · {TIPOS_DE_VAGA[v.tipo]}</small><br/><a href={v.url} target="_blank" rel="noopener noreferrer" className="text-link">Abrir o link para conferir</a></td>
+            <td data-label="Área">{nomeDaArea(v.areaId)}</td>
+            <td data-label="Situação"><Tag tone={STATUS[v.status].tom}>{STATUS[v.status].rotulo.toUpperCase()}</Tag></td>
+            <td data-label="Conferida em">{v.conferidaEm ? new Date(v.conferidaEm).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—'}</td>
+            <td data-label="Ações">{removendo === v.id
               ? <span className="row-confirm">Remover de vez? <button className="text-link" onClick={() => agir(adminVagasService.removerVaga(v.id), 'Vaga removida.')}>Remover</button> <button className="text-link" onClick={() => setRemovendo(null)}>Cancelar</button></span>
               : <span className="row-actions">
                   {v.status !== 'aberta' && <button className="text-link" onClick={() => agir(adminVagasService.publicarVaga(v.id), 'Vaga publicada com a conferência de hoje.')}>Conferi, publicar</button>}

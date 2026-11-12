@@ -1008,3 +1008,94 @@
 @media (max-width: 540px) {
   .modal-backdrop:has(.community-thread) { padding: 0; align-items: stretch; }
 }
+
+/* ===== Revisão para celular (12/11/2026) ===== */
+
+/* Pop-ups: no celular a barra do navegador cobre o fim de uma janela medida em `vh` e o botão de baixo fica inacessível.
+   Usamos `dvh` (altura realmente visível), viram uma folha que sobe da base e o botão de fechar acompanha a rolagem. */
+.modal { max-height: min(90vh, 900px); max-height: min(90dvh, 900px); overscroll-behavior: contain; }
+.forum-modal { max-height: min(90vh, 820px); max-height: min(90dvh, 820px); }
+.community-thread { max-height: min(92vh, 820px); max-height: min(92dvh, 820px); }
+@media (max-width: 560px) {
+  .modal-backdrop { align-items: flex-end; padding: 0; }
+  .modal, .modal.modal-wide, .forum-modal { width: 100%; max-width: none; max-height: 92vh; max-height: 92dvh; padding: var(--space-5) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom, 0px)); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .modal-close { position: sticky; top: 0; float: right; z-index: 3; margin: 0 0 var(--space-2) var(--space-2); }
+  .modal h2 { padding-right: var(--space-2); }
+  .community-thread { height: 100vh; height: 100dvh; max-height: 100vh; max-height: 100dvh; border-radius: 0; }
+  .modal-backdrop:has(.community-thread) { align-items: stretch; }
+}
+
+/* Tabelas da equipe: no celular cada linha vira um cartão (antes só a primeira coluna aparecia e as ações ficavam fora da tela). */
+@media (max-width: 720px) {
+  .tabela-cartoes thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tabela-cartoes, .tabela-cartoes tbody, .tabela-cartoes tr, .tabela-cartoes td { display: block; width: 100%; }
+  .tabela-cartoes tr { padding: var(--space-4); border-bottom: 1px solid var(--ink-200); }
+  .tabela-cartoes td { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-2) 0; border: 0; text-align: right; }
+  .tabela-cartoes td::before { content: attr(data-label); flex: none; color: var(--ink-600); font-size: 12px; font-weight: 700; text-align: left; }
+  .tabela-cartoes td:first-child { display: block; padding-top: 0; text-align: left; }
+  .tabela-cartoes td:first-child::before { display: none; }
+  .tabela-cartoes .row-actions, .tabela-cartoes .row-confirm { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2) var(--space-4); }
+  .tabela-cartoes .row-actions .text-link, .tabela-cartoes .row-confirm .text-link, .tabela-cartoes .icon-btn { min-height: 40px; }
+}
+
+/* Alvos de toque: links soltos têm pelo menos 40px de altura (links dentro de frases ficam como estão). */
+@media (max-width: 900px) {
+  .text-link, .forgot-link, .form-switch button, .legal-footer button, .diagnostic-footer button, .landing footer nav button, .section-title-row button, .level-foot button { min-height: 40px; display: inline-flex; align-items: center; }
+  p .text-link, small .text-link { min-height: 0; display: inline; }
+  .landing footer nav { display: flex; flex-wrap: wrap; gap: 0 var(--space-4); }
+  .forgot-link { float: none; display: inline-flex; margin-top: var(--space-1); }
+}
+
+/* Botões e rótulos que quebravam linha. */
+.section-title-row button, .level-foot button, .points-pill, .top-user { white-space: nowrap; }
+.level-foot { flex-wrap: wrap; gap: var(--space-1) var(--space-3); }
+.review-tabs button { white-space: nowrap; }
+@media (max-width: 420px) {
+  .btn { padding-inline: var(--space-4); font-size: 15px; }
+  .level-card { padding: var(--space-5); }
+  .profile-tabs { grid-template-columns: repeat(4, 1fr); }
+  .profile-tabs button { font-size: 10px; padding: var(--space-2) 2px; }
+}
+
+/* Dados de apoio e tabelas que rolam de lado: sombra nas pontas avisa que há mais coluna. */
+.dados-rolagem, .table-scroll {
+  background:
+    linear-gradient(to right, var(--white) 30%, rgba(255,255,255,0)) left center / 28px 100% no-repeat local,
+    linear-gradient(to left, var(--white) 30%, rgba(255,255,255,0)) right center / 28px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(20,33,61,.22), rgba(20,33,61,0)) left center / 10px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(20,33,61,.22), rgba(20,33,61,0)) right center / 10px 100% no-repeat scroll;
+}
+
+/* Treino: colunas que não passam da tela. */
+.treino-curtas { grid-template-columns: repeat(3, minmax(0, 120px)); }
+@media (max-width: 480px) { .treino-curtas { grid-template-columns: repeat(3, minmax(0, 1fr)); } .treino-opcao { overflow-wrap: anywhere; } }
+
+/* Ilha: o texto da área é recolhível. */
+.ilha-apresentacao summary { cursor: pointer; font-size: 16px; font-weight: 800; list-style: none; min-height: 32px; display: flex; align-items: center; justify-content: space-between; }
+.ilha-apresentacao summary::-webkit-details-marker { display: none; }
+.ilha-apresentacao summary::after { content: '▾'; color: var(--blue-600); }
+.ilha-apresentacao[open] summary::after { content: '▴'; }
+.ilha-apresentacao[open] summary { margin-bottom: var(--space-2); }
+
+/* Caminho de etapas do case: cabem 5 bolinhas em 360px. */
+@media (max-width: 560px) {
+  .caminho-horizontal { gap: 2px; }
+  .caminho-horizontal .caminho-no { flex: 1 0 56px; }
+  .caminho-horizontal .caminho-rotulo { max-width: 62px; font-size: 10.5px; }
+  .caminho-horizontal .caminho-no:not(:last-child)::after { left: calc(50% + 25px); width: calc(100% - 50px + 2px); }
+}
+
+/* Grupos de ações no celular: botões empilhados em largura cheia (antes três botões numa linha quebravam o texto). */
+@media (max-width: 520px) {
+  .trilha-acoes { flex-direction: column; align-items: stretch; }
+  .trilha-acoes > .btn { width: 100%; justify-content: center; }
+  .trilha-acoes > .trilha-motivo { text-align: center; }
+  .case-acoes { flex-direction: column; align-items: stretch; }
+  .case-acoes > .btn { width: 100%; justify-content: center; }
+  /* botões de voz da simulação: lado a lado, curtos */
+  .sim-voz { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+}
+.trilha-aviso > span { min-width: 0; overflow-wrap: anywhere; }
+.logo { min-height: 44px; }
+.sim-voz { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.sim-voz > .btn { flex: 1 1 130px; }

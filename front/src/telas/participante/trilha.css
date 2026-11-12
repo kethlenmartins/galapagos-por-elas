@@ -231,3 +231,6 @@
 .case-rumo-certo { background: var(--success); color: var(--white); }
 .case-rumo-quase { background: var(--warning-bg, #fff4d6); color: var(--ink-700); }
 .case-rumo-rever { background: var(--pink-100); color: var(--pink-700); }
+
+.caminho-horizontal .caminho-bolinha { width: 48px; height: 48px; }
+.caminho-horizontal .caminho-miolo { width: 38px; height: 38px; }
