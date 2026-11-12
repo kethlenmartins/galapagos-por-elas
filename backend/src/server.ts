@@ -8,7 +8,7 @@ import { eq, and, isNull, desc, sql, inArray } from 'drizzle-orm'
 import argon2 from 'argon2'
 import { z } from 'zod'
 import { db } from './db/client.js'
-import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProgress, deliveries, assessments, pointEvents, contents, contentCompletions, certificates, reviewRequests, aiLogs, interviewQuestions, interviewSessions, trainingAnswers } from './db/schema.js'
+import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProgress, deliveries, assessments, pointEvents, contents, contentCompletions, certificates, reviewRequests, aiLogs, interviewQuestions, interviewSessions, trainingAnswers, jobs } from './db/schema.js'
 import { configuracaoPublica, gerarResultado } from '../../front/src/services/fit/motor.ts'
 import { AREAS } from '../../front/src/services/mock/dados/areas.ts'
 import { GROQ_URL, feedbackFinal, iaDisponivel, proximaPergunta, type TurnoSalvo } from './entrevista-ia.js'
@@ -431,6 +431,75 @@ app.post('/api/interview/sessions/:id/answer', async (req, reply) => {
   if (!feedback) return indisponivel()
   await db.update(interviewSessions).set({ turns: turnos, status: 'concluida', feedback, finishedAt: new Date() }).where(eq(interviewSessions.id, id))
   return { dados: { reacao: '', proximo: null, feedbackFinal: feedback }, erro: null }
+})
+
+// --- Vagas ---------------------------------------------------------------------------------------------------------
+
+const vagaPublica = (j: typeof jobs.$inferSelect) => ({ id: j.id, areaId: j.areaId, empresa: j.company, titulo: j.title, local: j.location, tipo: j.kind, url: j.url, conferidaEm: j.checkedAt ? new Date(j.checkedAt).toISOString() : null })
+const vagaAdmin = (j: typeof jobs.$inferSelect) => ({ ...vagaPublica(j), status: j.status, observacao: j.note })
+const hojeISO = () => new Date().toISOString().slice(0, 10)
+const SEM_PERMISSAO = { dados: null, erro: { codigo: 'SEM_PERMISSAO', mensagem: 'Só a equipe pode fazer isso.' } }
+const apenasHttps = z.string().trim().url().max(500).refine(u => u.startsWith('https://'), 'O link precisa começar com https://')
+const VagaSchema = z.object({
+  areaId: z.string().min(1).max(60), empresa: z.string().trim().min(1).max(120), titulo: z.string().trim().min(1).max(200), local: z.string().trim().min(1).max(120),
+  tipo: z.enum(['estagio', 'junior', 'outro']), url: apenasHttps, observacao: z.string().trim().max(400).nullable().optional(),
+})
+
+app.get('/api/jobs', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  const { areaId } = req.query as { areaId?: string }
+  const rows = await db.select().from(jobs).where(areaId ? and(eq(jobs.status, 'aberta'), eq(jobs.areaId, areaId)) : eq(jobs.status, 'aberta')).orderBy(desc(jobs.checkedAt), jobs.company)
+  return { dados: rows.map(vagaPublica), erro: null }
+})
+
+app.get('/api/admin/jobs', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  if (user.role !== 'equipe') return reply.code(403).send(SEM_PERMISSAO)
+  return { dados: (await db.select().from(jobs).orderBy(jobs.areaId, jobs.company)).map(vagaAdmin), erro: null }
+})
+
+app.post('/api/admin/jobs', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  if (user.role !== 'equipe') return reply.code(403).send(SEM_PERMISSAO)
+  const corpo = VagaSchema.extend({ id: z.string().max(80).optional() }).safeParse(req.body)
+  if (!corpo.success) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Revise os campos da vaga.', campos: Object.fromEntries(corpo.error.issues.map(i => [String(i.path[0] ?? 'geral'), i.message])) } })
+  const v = corpo.data
+  if (!areasPublicas.some(a => a.id === v.areaId)) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Escolha uma área.', campos: { areaId: 'Escolha uma área.' } } })
+  const campos = { areaId: v.areaId, company: v.empresa, title: v.titulo, location: v.local, kind: v.tipo, url: v.url, note: v.observacao ?? null }
+  if (v.id) {
+    const [atual] = await db.select().from(jobs).where(eq(jobs.id, v.id)).limit(1)
+    if (!atual) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Vaga não encontrada.' } })
+    // Mudou o link ou a vaga: precisa conferir de novo antes de aparecer para as participantes.
+    const mudou = atual.url !== v.url || atual.title !== v.titulo || atual.company !== v.empresa
+    const [novo] = await db.update(jobs).set({ ...campos, ...(mudou && atual.status === 'aberta' ? { status: 'rascunho' } : {}) }).where(eq(jobs.id, v.id)).returning()
+    return { dados: vagaAdmin(novo), erro: null }
+  }
+  const [criada] = await db.insert(jobs).values({ id: `vaga-${randomUUID().slice(0, 8)}`, ...campos }).returning()
+  return { dados: vagaAdmin(criada), erro: null }
+})
+
+for (const [acao, status] of [['publicar', 'aberta'], ['encerrar', 'encerrada']] as const) {
+  app.post(`/api/admin/jobs/:id/${acao}`, async (req, reply) => {
+    const user = await usuarioAtual(req)
+    if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+    if (user.role !== 'equipe') return reply.code(403).send(SEM_PERMISSAO)
+    const { id } = req.params as { id: string }
+    const [novo] = await db.update(jobs).set(status === 'aberta' ? { status, checkedAt: hojeISO() } : { status }).where(eq(jobs.id, id)).returning()
+    if (!novo) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Vaga não encontrada.' } })
+    return { dados: vagaAdmin(novo), erro: null }
+  })
+}
+
+app.delete('/api/admin/jobs/:id', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  if (user.role !== 'equipe') return reply.code(403).send(SEM_PERMISSAO)
+  const { id } = req.params as { id: string }
+  await db.delete(jobs).where(eq(jobs.id, id))
+  return { dados: null, erro: null }
 })
 
 app.post('/api/cases/:caseId/start', async (req, reply) => {

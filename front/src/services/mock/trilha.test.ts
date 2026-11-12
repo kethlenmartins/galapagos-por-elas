@@ -8,6 +8,7 @@ import type { BriefingCase, CodigoErro, RespostaOpcao, Resultado } from '../cont
 import { PERGUNTAS } from '../fit/perguntas.ts'
 import { mockDebug, servicosMock as s } from './index.ts'
 import { definirDebug, resetarEstado } from './store.ts'
+import { resetarVagasDoMock } from './vagas.ts'
 
 /** Quarta-feira, 11/11/2026, 10h em Brasília. */
 const QUARTA = '2026-11-11T13:00:00.000Z'
@@ -483,4 +484,31 @@ test('simulação de entrevista (demonstração): abre com o case básico, condu
   assert.equal(historico.length, 1)
   assert.equal(historico[0].perguntas, 3)
   assert.ok(historico[0].notaMedia !== null)
+})
+
+test('vagas: entram como rascunho, só aparecem depois de a equipe conferir e publicar, e só a equipe administra', async () => {
+  resetarVagasDoMock()
+  await entrar('marina@email.com')
+  assert.deepEqual(dados(await s.vagas.listarVagas()), [], 'nada publicado: nenhuma vaga para a participante')
+  assert.equal(codigo(await s.adminVagas.listarVagasAdmin()), 'SEM_PERMISSAO')
+
+  await entrar('equipe@galapagos.com.br')
+  const todas = dados(await s.adminVagas.listarVagasAdmin())
+  assert.equal(todas.length, 13)
+  assert.ok(todas.every(v => v.status === 'rascunho' && v.url.startsWith('https://')))
+  const publicada = dados(await s.adminVagas.publicarVaga(todas[0].id))
+  assert.equal(publicada.status, 'aberta')
+  assert.ok(publicada.conferidaEm, 'publicar marca a conferência')
+
+  assert.ok((await s.adminVagas.salvarVaga({ ...todas[1], url: 'http://exemplo.com' })).erro?.campos?.url, 'só links https')
+  assert.ok((await s.adminVagas.salvarVaga({ ...todas[1], url: 'javascript:alert(1)' })).erro?.campos?.url)
+  const editada = dados(await s.adminVagas.salvarVaga({ ...publicada, url: 'https://exemplo.com/nova' }))
+  assert.equal(editada.status, 'rascunho', 'mudar o link exige conferir de novo')
+
+  dados(await s.adminVagas.publicarVaga(todas[0].id))
+  await entrar('marina@email.com')
+  const visiveis = dados(await s.vagas.listarVagas())
+  assert.equal(visiveis.length, 1)
+  assert.ok(!('status' in visiveis[0]) && !('observacao' in visiveis[0]), 'a participante não recebe campos internos')
+  assert.equal(dados(await s.vagas.listarVagas({ areaId: 'sales-trading' })).length, visiveis[0].areaId === 'sales-trading' ? 1 : 0)
 })

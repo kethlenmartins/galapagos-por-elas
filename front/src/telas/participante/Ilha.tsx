@@ -144,6 +144,12 @@ export function Ilha() {
           {basicoConcluido && simulacao && !simulacao.disponivel && <p className="trilha-aviso"><Icon name="spark" size={16} /> Indisponível no momento.</p>}
           {basicoConcluido && simulacao?.disponivel && <div className="trilha-acoes"><Button onClick={() => go('simulation')} icon="arrow">Começar a simulação</Button></div>}
         </article>
+        <article className="trilha-card">
+          <div className="trilha-etiquetas"><Tag tone="blue">VAGAS</Tag></div>
+          <h3>Vagas de {area.nome}</h3>
+          <p className="trilha-resumo">Estágios e vagas de analista júnior da área, conferidas pela equipe.</p>
+          <div className="trilha-acoes"><Button variant="ghost" onClick={() => go('jobs')} icon="arrow">Ver vagas</Button></div>
+        </article>
       </section>
     </>}
   </div></AppShell>

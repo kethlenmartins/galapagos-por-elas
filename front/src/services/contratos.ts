@@ -910,7 +910,47 @@ export interface SimulacaoService {
   responderSimulacao(sessaoId: string, resposta: string | null): Promise<Resultado<RespostaSimulacao>>
 }
 
+// ---------------------------------------------------------------------------
+// Vagas
+// ---------------------------------------------------------------------------
+
+export type TipoVaga = 'estagio' | 'junior' | 'outro'
+export type StatusVaga = 'rascunho' | 'aberta' | 'encerrada'
+
+/** Uma vaga publicada, como a participante vê. A candidatura acontece no site da empresa (`url`). */
+export type Vaga = {
+  id: string
+  areaId: string
+  empresa: string
+  titulo: string
+  local: string
+  tipo: TipoVaga
+  /** Sempre `https`. */
+  url: string
+  /** Quando a equipe conferiu pela última vez que estava aberta. */
+  conferidaEm: DataISO | null
+}
+
+export type VagaAdmin = Vaga & { status: StatusVaga; observacao: string | null }
+
+export interface VagaService {
+  /** Só vagas abertas e conferidas, da mais recentemente conferida para a mais antiga. */
+  listarVagas(filtro?: { areaId?: string }): Promise<Resultado<Vaga[]>>
+}
+
+export interface AdminVagasService {
+  listarVagasAdmin(): Promise<Resultado<VagaAdmin[]>>
+  /** Cria ou edita. Vaga nova começa como rascunho; editar o link volta a vaga para rascunho (precisa conferir de novo). */
+  salvarVaga(vaga: Omit<VagaAdmin, 'id' | 'status' | 'conferidaEm'> & { id?: string }): Promise<Resultado<VagaAdmin>>
+  /** A equipe conferiu que está aberta: publica e marca a conferência de hoje. */
+  publicarVaga(id: string): Promise<Resultado<VagaAdmin>>
+  encerrarVaga(id: string): Promise<Resultado<VagaAdmin>>
+  removerVaga(id: string): Promise<Resultado<null>>
+}
+
 export type Servicos = {
+  vagas: VagaService
+  adminVagas: AdminVagasService
   simulacao: SimulacaoService
   treino: TreinoService
   sessao: SessaoService

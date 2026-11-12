@@ -134,6 +134,13 @@
       "when": 1795353300000,
       "tag": "0018_perguntas_er_wm",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1795439700000,
+      "tag": "0019_vagas",
+      "breakpoints": true
     }
   ]
 }

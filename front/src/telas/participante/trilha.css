@@ -170,3 +170,9 @@
 .case-fala { max-width: 85%; padding: var(--space-3) var(--space-4); border-radius: 16px 16px 16px 4px; background: var(--ink-100, #eef2fb); display: grid; gap: 2px; }
 .case-fala strong { font-size: 13px; }
 .case-fala-voce { justify-self: end; border-radius: 16px 16px 4px 16px; background: #fde7f0; }
+
+/* --- Vagas --- */
+.vagas-filtros { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3); }
+.vagas-lista { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.vagas-lista .trilha-card h2 { font-size: 20px; }
+.trilha-acoes a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-2); }

@@ -12,6 +12,7 @@ export const participantNav: { label: string; route: Route; icon: IconName }[] =
   { label: 'Início', route: 'home', icon: 'home' },
   { label: 'Ilhas', route: 'trail', icon: 'case' },
   { label: 'Conteúdos', route: 'content', icon: 'book' },
+  { label: 'Vagas', route: 'jobs', icon: 'chart' },
   { label: 'Perfil', route: 'profile', icon: 'user' },
 ]
 
@@ -19,6 +20,7 @@ export const adminNav: { label: string; route: Route; icon: IconName }[] = [
   { label: 'Cases', route: 'admin-cases', icon: 'case' },
   { label: 'Correção', route: 'admin-review', icon: 'check' },
   { label: 'Conteúdos', route: 'admin-content', icon: 'book' },
+  { label: 'Vagas', route: 'admin-jobs', icon: 'chart' },
 ]
 
 /** O case em andamento, para o resumo da barra lateral. Atualiza junto com os pontos (que mudam a cada checkpoint). */

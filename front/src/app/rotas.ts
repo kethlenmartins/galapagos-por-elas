@@ -2,19 +2,19 @@
 
 export type Route =
   | 'landing' | 'signup' | 'login' | 'forgot' | 'reset' | 'validate'
-  | 'onboarding' | 'diagnostic' | 'match' | 'home' | 'trail' | 'island' | 'training' | 'simulation' | 'case' | 'task'
+  | 'onboarding' | 'diagnostic' | 'match' | 'home' | 'trail' | 'island' | 'training' | 'simulation' | 'jobs' | 'case' | 'task'
   | 'result' | 'content' | 'content-item' | 'certificates' | 'profile'
-  | 'admin-cases' | 'admin-editor' | 'admin-review' | 'admin-content'
+  | 'admin-cases' | 'admin-editor' | 'admin-review' | 'admin-content' | 'admin-jobs'
   | 'terms' | 'privacy' | 'points' | 'forbidden' | 'system-error' | 'maintenance' | 'session-expired'
 
 export const routes: Record<Route, string> = {
   landing: 'Início', signup: 'Cadastro', login: 'Entrar', forgot: 'Recuperar senha',
   reset: 'Nova senha', validate: 'Validar certificado', onboarding: 'Seu perfil',
   diagnostic: 'Diagnóstico', match: 'Seu Mapa de Carreira', home: 'Início',
-  trail: 'Suas ilhas', island: 'Ilha', training: 'Treino de entrevista', simulation: 'Simulação de entrevista', case: 'Case', task: 'Case', result: 'Case',
+  trail: 'Suas ilhas', island: 'Ilha', training: 'Treino de entrevista', simulation: 'Simulação de entrevista', jobs: 'Vagas', case: 'Case', task: 'Case', result: 'Case',
   content: 'Conteúdos', 'content-item': 'Conteúdo', certificates: 'Certificados', profile: 'Perfil',
   'admin-cases': 'Cases', 'admin-editor': 'Editor de case',
-  'admin-review': 'Fila de correção', 'admin-content': 'Conteúdos',
+  'admin-review': 'Fila de correção', 'admin-content': 'Conteúdos', 'admin-jobs': 'Vagas',
   terms: 'Termos de uso', privacy: 'Política de privacidade', points: 'Extrato de pontos',
   forbidden: 'Acesso restrito', 'system-error': 'Erro', maintenance: 'Manutenção',
   'session-expired': 'Sessão expirada',
@@ -25,7 +25,7 @@ export const routes: Record<Route, string> = {
 export const rotasPublicas: Route[] = ['landing', 'signup', 'login', 'forgot', 'reset', 'validate', 'terms', 'privacy', 'forbidden', 'system-error', 'maintenance', 'session-expired']
 
 /** Rotas só da equipe. */
-export const rotasAdmin: Route[] = ['admin-cases', 'admin-editor', 'admin-review', 'admin-content']
+export const rotasAdmin: Route[] = ['admin-cases', 'admin-editor', 'admin-review', 'admin-content', 'admin-jobs']
 
 let navegar: (rota: Route) => void = () => {}
 

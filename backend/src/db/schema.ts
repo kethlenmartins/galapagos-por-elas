@@ -1,4 +1,4 @@
-import { boolean, jsonb, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid, integer } from 'drizzle-orm/pg-core'
+import { boolean, jsonb, pgEnum, pgTable, text, timestamp, date, uniqueIndex, uuid, integer } from 'drizzle-orm/pg-core'
 
 export const role = pgEnum('role', ['participante', 'equipe'])
 export const sessions = pgTable('sessions', {
@@ -57,4 +57,7 @@ export const interviewSessions = pgTable('interview_sessions', {
 })
 export const trainingAnswers = pgTable('training_answers', {
   id: uuid('id').defaultRandom().primaryKey(), userId: uuid('user_id').notNull(), questionId: text('question_id').notNull(), correct: boolean('correct').notNull(), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+export const jobs = pgTable('jobs', {
+  id: text('id').primaryKey(), areaId: text('area_id').notNull(), company: text('company').notNull(), title: text('title').notNull(), location: text('location').notNull(), kind: text('kind').notNull().default('outro'), url: text('url').notNull(), status: text('status').notNull().default('rascunho'), checkedAt: date('checked_at'), note: text('note'), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })

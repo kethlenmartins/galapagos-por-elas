@@ -18,6 +18,8 @@ import { Trilha } from './telas/participante/Trilha'
 import { Ilha } from './telas/participante/Ilha'
 import { Treino } from './telas/participante/Treino'
 import { Simulacao } from './telas/participante/Simulacao'
+import { Vagas } from './telas/participante/Vagas'
+import { AdminVagas } from './telas/admin/Vagas'
 import { ContentList, ContentPage } from './telas/participante/Conteudo'
 import { PointsStatement } from './telas/participante/ExtratoPontos'
 import { Home } from './telas/participante/Home'
@@ -39,6 +41,7 @@ const telas: Record<Route, () => ReactElement> = {
   island: () => <Ilha />,
   training: () => <Treino />,
   simulation: () => <Simulacao />,
+  jobs: () => <Vagas />,
   case: () => <CasePage />,
   task: () => <CasePage />,
   result: () => <CasePage />,
@@ -50,6 +53,7 @@ const telas: Record<Route, () => ReactElement> = {
   'admin-editor': () => <AdminEditor />,
   'admin-review': () => <AdminReview />,
   'admin-content': () => <AdminContent />,
+  'admin-jobs': () => <AdminVagas />,
   terms: () => <LegalPage type="terms" />,
   privacy: () => <LegalPage type="privacy" />,
   points: () => <PointsStatement />,
