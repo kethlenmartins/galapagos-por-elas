@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './trilha.css'
 import { horaCurta } from '../../app/formatos'
 import { FALA, atrasoParaMostrar } from '../../app/revelacao'
-import { CartaoConteudo } from './CartaoConteudo'
+import { CarrosselDeConteudos } from './CartaoConteudo'
 import { definirCaseAtual, definirIlhaAtual, go, obterCaseAtual } from '../../app/rotas'
 import { sessaoExpirou } from '../../app/sessao'
 import { Toast } from '../../componentes/Aviso'
@@ -189,7 +189,7 @@ function PainelConteudos({ caseId, checkpoint, ocupado, aoConcluir }: { caseId: 
     {lista !== null && <>
       <div className="case-apoio-titulo"><span>{feitos} de {total} concluídos</span></div>
       <Progress value={total ? (feitos / total) * 100 : 100}/>
-      <div className="conteudo-grid">{lista.map(c => <CartaoConteudo key={c.id} conteudo={c} aoConcluir={feito => setLista(l => l && l.map(x => x.id === feito.id ? feito : x))}/>)}</div>
+      <CarrosselDeConteudos conteudos={lista} aoConcluir={feito => setLista(l => l && l.map(x => x.id === feito.id ? feito : x))}/>
     </>}
     <div className="case-acoes"><Button onClick={aoConcluir} disabled={ocupado || !pronto}>{ocupado ? 'Concluindo…' : `Concluir esta etapa (+${checkpoint.pontos} pts)`}</Button></div>
     {lista !== null && !pronto && <small>Faltam {total - feitos} conteúdo{total - feitos > 1 ? 's' : ''} para liberar o próximo passo.</small>}

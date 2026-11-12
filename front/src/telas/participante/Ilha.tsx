@@ -8,7 +8,7 @@ import { AppShell } from '../../componentes/Layout'
 import { Button } from '../../componentes/Botao'
 import { caseService, catalogoService, conteudoService, simulacaoService, treinoService, type Area, type Conteudo, type ResumoSimulacao, type ResumoTreino, type TrilhaDaUsuaria } from '../../services'
 import { CartaoCase } from './CartaoCase'
-import { CartaoConteudo } from './CartaoConteudo'
+import { CarrosselDeConteudos } from './CartaoConteudo'
 
 /** Uma ilha é uma área: apresentação, case básico, cases avançados e treino de entrevista. */
 export function Ilha() {
@@ -98,8 +98,8 @@ export function Ilha() {
       {conteudos.length > 0 && (
         <section className="ilha-secao" aria-label="Conteúdos da ilha">
           <h2>Conteúdos da ilha</h2>
-          <p className="trilha-dica">Leia ou assista aqui mesmo, no seu ritmo. Os conteúdos do case básico também valem pontos e são obrigatórios dentro dele.</p>
-          <div className="conteudo-grid">{conteudos.map(c => <CartaoConteudo key={c.id} conteudo={c} aoConcluir={feito => setConteudos(l => l.map(x => x.id === feito.id ? feito : x))}/>)}</div>
+          <p className="trilha-dica">Toque em um conteúdo para ler ou assistir, no seu ritmo. Os conteúdos do case básico também valem pontos e são obrigatórios dentro dele.</p>
+          <CarrosselDeConteudos conteudos={conteudos} aoConcluir={feito => setConteudos(l => l.map(x => x.id === feito.id ? feito : x))}/>
         </section>
       )}
 
