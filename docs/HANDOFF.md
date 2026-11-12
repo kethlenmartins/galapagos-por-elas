@@ -1,7 +1,58 @@
 # Handoff — Backend e publicação (Galapagos por Elas)
 
 > Para o agente que assume o desenvolvimento. Escopo desta etapa: **construir o backend e publicar a plataforma (front + backend) para um público de teste (piloto)**.
-> Estado em 2026-11-08. O `.gitignore` e o primeiro commit já existem.
+> Escrito em 2026-11-08 e atualizado em 2026-11-12 (veja a seção 0). O `.gitignore` e o primeiro commit já existem.
+
+> **Atualização de 12/11/2026:** a seção 0 abaixo descreve o estado real e **prevalece** sobre as seções 1 a 11, escritas em 08/11 (onde falam de case semanal, prazo por semana ou "só mock", elas estão desatualizadas).
+
+## 0. Estado em 12/11/2026 (leia primeiro)
+
+### Produto hoje
+
+- **Cada área é uma ilha.** O mapa de ilhas mostra as 13 áreas; as que não têm case aparecem como "em breve". A ordem dos cases vale **dentro da área** (o primeiro por `island_order` é o case **básico**; os demais, **avançados**, abrem com o certificado dos anteriores da mesma área). As áreas são independentes: a participante entra em qualquer uma depois do diagnóstico. **Não existe mais case por semana nem prazo**; a regra é "quem começa um case termina antes de começar outro da mesma ilha".
+- **Dentro da ilha** (caminho de bolinhas: feito, atual, disponível, bloqueado): Conteúdos (carrossel com pop-up), Case básico, Cases avançados, Treino de entrevista, Simulação de entrevista com IA (texto e voz) e Vagas. Treino e simulação abrem com o certificado do case básico da área.
+- **Case:** etapas entenda, conteúdos (obrigatório: concluir todos os conteúdos do case), treino, situação e defesa. As conversas aparecem fala por fala (3 s entre elas, com "digitando…") e as alternativas só depois; campos condicionais por `visivelSe`. Ao **concluir cada etapa com atividade**, a IA (mentora Eva) dá uma visão geral automática (rumo, o que viu de bom e de ruim, dica) e há o botão "Avançar". Quem não é aprovada (< 6) vê a devolutiva, pode **refazer e reenviar** (a nova tentativa mantém o que vem antes da situação e traz as respostas anteriores como rascunho).
+- **Cases publicados no banco (15 + piloto de dev):** IB simplificado e complexo, VC, PE, ER (2), WM (2), Corporate Finance (2), Sales & Trading (2), Operações (2) e Macro ("A decisão do Copom", só o básico). O `piloto-corporate-finance` (`backend/seed/piloto.sql`) existe só em dev e CI.
+- **Treino de entrevista (múltipla escolha):** 250 perguntas (IB, VC, PE, ER, WM) por nível e tema, modo cronometrado, feedback imediato e desempenho guardado.
+- **Simulação de entrevista com IA:** vaga em texto livre, rigor, dificuldade, 3 a 8 perguntas, cronômetro opcional, **voz no navegador** (Web Speech API: ditado e leitura; áudio não passa pelo nosso servidor), histórico das últimas simulações, limite de 5 por 24 h. Em Corporate Finance, Sales & Trading e Operações as perguntas vêm de um **banco de 75 perguntas reais** e a IA avalia contra "o que uma boa resposta mostra" (critério que nunca vai ao navegador); nas demais áreas a IA conduz a conversa.
+- **Vagas:** aba para participantes (só vagas **publicadas**, links `https`, data da última conferência). As 13 vagas dos PDFs entraram como **rascunho**; a equipe confere e publica uma a uma em Admin > Vagas.
+- **Equipe (admin) usando a API real:** Correção (fila, respostas com gabarito, nota, aprovar, publicar em lote com certificado e pontos, pedidos de revisão), Vagas, Cases (listar, arquivar, republicar) e Conteúdos (CRUD). **Não existe** editor de cases na API: cases novos entram por migração SQL, e "Novo case" e abrir um case mostram uma mensagem clara.
+
+### Onde está o código
+
+- `backend/drizzle/0004` a `0022`: migrações. Cases (0005-0007, 0011-0015, 0017), perguntas do treino (0008, 0009, 0018), perguntas abertas (0020), simulação (0010), vagas (0019), avaliação (0021), revisão da IA (0022), histórico (0016).
+- `backend/src/server.ts` (rotas), `entrevista-ia.ts` (simulação) e `revisao-ia.ts` (revisão por etapa). Variável `RATE_LIMIT_MAX` só sobe o limite nos testes (padrão 100/min).
+- Geradores (rode quando mudar a fonte em `docs/cases/`): `backend/scripts/gerar-perguntas-entrevista.mjs` (para áreas novas use `--migracao 00NN_nome.sql --siglas xx`; **não rode sem argumentos**, ele reescreve a 0009 já aplicada), `gerar-perguntas-abertas.mjs`, `gerar-vagas.mjs` e `aplicar-textos-das-areas.mjs` (textos das páginas das ilhas, em `front/src/services/mock/dados/areas.ts`, lidos também pelo backend).
+- `front/src/componentes/`: `CaminhoDeBolinhas`, `Popup`. `front/src/app/`: `revelacao.ts` (3 s), `voz.ts`.
+- **Contratos:** `front/src/services/contratos.ts` continua a fonte da verdade (mock e HTTP implementam). O adaptador HTTP é `front/src/services/http.ts`; produção usa HTTP quando há `VITE_API_URL`.
+
+### Como operar
+
+- **Produção:** Render (plano free, região Oregon): API `galapagos-piloto-api`, site estático `galapagos-piloto-front` e banco Postgres (ver `render.yaml`). A API roda `pnpm db:migrate` ao iniciar, então migração nova vai no deploy.
+- **Conta da equipe:** `cd backend && DATABASE_URL=... pnpm equipe:criar "Nome" email` cria ou promove (senha pedida no terminal, ou `EQUIPE_SENHA`). O banco do Render só aceita conexão externa de IPs liberados em Networking. Existe uma conta de teste `equipe.teste@example.com` criada em 12/11: **apague-a** quando não precisar (`DELETE FROM users WHERE email='equipe.teste@example.com'`).
+- **IA em produção:** a API só tem IA se `GROQ_API_KEY` e `GROQ_MODEL` estiverem definidos no Render (declaradas em `render.yaml` com `sync: false`). Hoje **não estão**: `GET /api/interview/:area` responde `disponivel: false`, e simulação, revisão por etapa e sugestão de correção ficam indisponíveis (as telas seguem funcionando sem elas).
+- **Verificações locais:** `cd front && node_modules/.bin/tsc --noEmit`, `vite build` e `../backend/node_modules/.bin/tsx --test src/services/mock/*.test.ts src/services/fit/*.test.ts src/app/*.test.ts ../backend/src/*.test.ts` (57 testes). E2E do backend (`backend/e2e/piloto.mjs`): suba um Postgres temporário, `drizzle-kit migrate`, `psql -f seed/piloto.sql`, inicie a API com `RATE_LIMIT_MAX=5000` e `GROQ_API_URL` apontando para a IA falsa que o próprio e2e levanta (porta 4010), e rode o script. O CI faz isso (`.github/workflows/ci.yml`; **ainda não foi observado rodando no GitHub**).
+- **Git:** o push usa a conta `kethlenmartins` (`gh auth switch -u kethlenmartins`; o token precisa do escopo `workflow` para mexer em `.github/workflows`). No macOS use `sed -i ''`. Se `pnpm approve-builds` travar, use `node_modules/.bin/...` direto.
+
+### Em aberto (por prioridade)
+
+1. **Configurar `GROQ_API_KEY` e `GROQ_MODEL` no Render** (sugestão de modelo: `llama-3.3-70b-versatile`). Destrava simulação, revisão por etapa e a sugestão de correção.
+2. **Limpeza de acesso:** remover o IP liberado no banco do Render, apagar a conta de teste da equipe e trocar a senha do banco (ela passou por conversa e captura de tela).
+3. **Fórum:** especificação em `docs/PRD_Forum.md` aguarda as 8 decisões da seção 13 (identidade, votos, moderação e prazo, IA na moderação, menores, categorias, desabafos, abertura). Nada foi construído. Não abrir ao público sem moderação.
+4. **Revisão editorial do conteúdo importado:** distratores de Operações e perguntas de defesa dos cases complexos de ER, WM e S&T foram escritos pelos agentes (o PDF só trazia a resposta certa); rubricas sem os níveis 1 a 4 descritos; cards "Como se entra" com formações e calendário genéricos em ER, WM, CF e S&T; fórmula de capital de giro de CF inferida; o hedge proporcional de S&T é discutível pelas contas (nuance registrada no gabarito); o case de ER usa a Lojas Renner (empresa real); textos das páginas das áreas estão marcados `[A REVISAR]`.
+5. **Vagas:** conferir e publicar as 13 no admin (os documentos pedem reconferir antes de publicar). ER e WM não têm vagas listadas nos PDFs.
+6. **Diagnóstico:** definir o perfil de Corporate Finance, Sales & Trading e Operações nos 12 eixos (e de Macro, se ainda faltar); Quant, Crédito e Risco, Asset Management e Fintechs seguem sem case.
+7. **Editor de cases na API** (criar e editar cases pela plataforma, geração de rascunho com IA, conferência de gabarito): hoje só por SQL. As telas de Cases/Conteúdos da equipe cobrem listar, arquivar e republicar.
+8. **Perguntas abertas** com "o que uma boa resposta mostra" para IB, VC, PE, ER e WM (hoje só CF, S&T e Operações têm banco para a simulação).
+9. **Macro:** o desfecho (Selic sobe 0,50 p.p., para 14,25%) está só no gabarito; falta uma tela final sem campos para mostrá-lo.
+10. **Qualidade:** testar em celular real e acessibilidade (as capturas foram em Chrome headless com o mock); teste de carga; sugestão de nota pela IA na correção (hoje a correção é manual, com o gabarito ao lado); pontos para treino e simulação (hoje não dão pontos).
+11. **Itens antigos ainda abertos** (ver `TODO.md`): verificação de e-mail, recuperação de senha (sem SMTP), excluir conta e baixar meus dados (LGPD), termos e privacidade revisados pelo jurídico, monitoramento, backup e domínio.
+
+### Riscos conhecidos
+
+- A IA recebe o gabarito e a rubrica como régua privada (revisão por etapa e simulação com banco). Há instruções para não revelar, mas um modelo de linguagem pode vazar. Alternativa: mandar só a rubrica qualitativa.
+- O mock guarda histórico de treino, simulações e vagas só em memória (some ao recarregar).
+- O repositório agora contém PDFs e protótipos de origem (`docs/cases/*.pdf`, `Elas na Ilha*`): confirmar que o repositório é privado.
 
 ## 1. O que é o produto
 

@@ -6,6 +6,38 @@
 >
 > **Duas trilhas:** o front é gerado por uma IA (só front, com adaptador mock). O backend é construído por nós atrás da camada de serviços. Tags: **[F]** front · **[B]** backend · **[F+B]** integração.
 
+## Atualização de 12/11/2026 — ilhas, jornada e operação
+
+> O plano das etapas abaixo é de 08/11 (case semanal). O que mudou e o que ficou em aberto está aqui; o estado completo e como operar estão em `docs/HANDOFF.md` (seção 0).
+
+Feito
+- [x] Cada área é uma ilha, com ordem por área (básico → avançados), entrada livre e fim do case por semana e prazo; "quem começa termina" dentro da ilha `G`
+- [x] Conteúdos obrigatórios dentro do case e em carrossel com pop-up na ilha e no case (sem tela separada) `M`
+- [x] Conversas do case fala por fala (3 s) com alternativas só no fim; campos condicionais (`visivelSe`) `M`
+- [x] Cases importados: IB (2), VC, PE, ER (2), WM (2), CF (2), S&T (2), Operações (2) e Macro; perguntas do treino (250); textos das áreas `G`
+- [x] Treino de entrevista (nível, tema, cronometrado, feedback, desempenho) `G`
+- [x] Simulação de entrevista com IA (texto e voz no navegador, vaga, rigor, dificuldade, histórico, limite diário; banco de 75 perguntas reais em CF, S&T e Operações) `G`
+- [x] Aba de vagas, com publicação só depois da conferência da equipe `M`
+- [x] Equipe usando a API real: correção e publicação em lote (com certificado e pontos), pedidos de revisão, vagas, cases (arquivar e republicar) e conteúdos `G`
+- [x] Revisão automática da IA ao concluir cada etapa (rumo, bom e ruim, "Avançar"), refazer e reenviar o case, devolutiva para quem não foi aprovada `G`
+- [x] Caminho de bolinhas (mapa de ilhas, ilha e etapas do case), todas as 13 ilhas visíveis `M`
+- [x] Script `pnpm equipe:criar`, e2e com IA falsa no CI, limite de requisições configurável para testes `P`
+
+Em aberto (detalhes na seção 0 do HANDOFF)
+- [ ] **Configurar `GROQ_API_KEY` e `GROQ_MODEL` no Render** (destrava simulação, revisão por etapa e correção assistida) `P`
+- [ ] Remover o IP liberado no banco, apagar a conta `equipe.teste@example.com` e trocar a senha do banco `P`
+- [ ] **Fórum:** decidir as 8 perguntas de `docs/PRD_Forum.md` e construir a fase 1 (núcleo) e a fase 2 (moderação) juntas `G`
+- [ ] Revisão editorial dos cases e conteúdos importados (distratores e perguntas de defesa escritos por agentes, rubricas, "Como se entra", textos das áreas) `M`
+- [ ] Conferir e publicar as 13 vagas importadas; buscar vagas de ER e WM `P`
+- [ ] Definir o perfil de CF, S&T, Operações (e Macro) nos 12 eixos do diagnóstico; avaliar cases para Quant, Crédito e Risco, Asset Management e Fintechs `M`
+- [ ] Editor de cases na API (criar, editar, gerar rascunho com IA, conferir gabarito) `G`
+- [ ] Perguntas abertas com critério para IB, VC, PE, ER e WM (banco da simulação) `M`
+- [ ] Tela final do case de Macro com o desfecho `P`
+- [ ] Pontos para treino e simulação (decidir) e sugestão de nota pela IA na correção `M`
+- [ ] Observar o CI rodando no GitHub e corrigir o que falhar `P`
+- [ ] Testar em celular real e acessibilidade (WCAG AA) das telas novas (caminho de bolinhas, pop-ups, voz) `M`
+- [ ] Atualizar termos e privacidade (IA, voz no navegador, vagas, fórum) com o jurídico `M`
+
 ## Etapa 0 — Decisões e fundação
 
 **Entrega:** decisões fechadas e ambientes prontos.
