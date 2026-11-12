@@ -12,7 +12,7 @@ import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProg
 import { configuracaoPublica, gerarResultado } from '../../front/src/services/fit/motor.ts'
 import { AREAS } from '../../front/src/services/mock/dados/areas.ts'
 import { revisarEtapa } from './revisao-ia.js'
-import { GROQ_URL, feedbackFinal, iaDisponivel, proximaPergunta, reagir, type TurnoSalvo } from './entrevista-ia.js'
+import { GROQ_URL, diagnosticarIA, feedbackFinal, iaDisponivel, proximaPergunta, reagir, type TurnoSalvo } from './entrevista-ia.js'
 import { montarPdfCertificado, slug } from '../../front/src/services/mock/pdf.ts'
 
 const app = Fastify({ logger: true, trustProxy: true })
@@ -736,6 +736,12 @@ app.post('/api/checkpoints/:checkpointId/ai-review', async (req, reply) => {
   if (!revisao) return reply.code(502).send({ dados: null, erro: { codigo: 'IA_INDISPONIVEL', mensagem: 'A mentora não respondeu agora. Você pode avançar sem a revisão.' } })
   await db.insert(taskReviews).values({ userId: user.id, taskId: cp.id })
   return { dados: revisao, erro: null }
+})
+
+/** A equipe confere se a IA responde (modelo e chave certos) sem precisar ler os logs do servidor. */
+app.get('/api/admin/ia/status', async (req, reply) => {
+  if (!(await usuarioEquipe(req, reply))) return
+  return { dados: await diagnosticarIA(), erro: null }
 })
 
 app.post('/api/cases/:caseId/start', async (req, reply) => {

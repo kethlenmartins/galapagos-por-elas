@@ -51,6 +51,12 @@ export function promptDoSistema(areaNome: string, c: ConfigSimulacao): string {
 
 type Fetch = typeof fetch
 
+/** O texto de erro que o provedor devolve (ex.: "model not found"), curto e sem a chave. */
+function erroDoProvedor(payload: unknown): string {
+  const msg = (payload as { error?: { message?: unknown } } | null)?.error?.message
+  return typeof msg === 'string' ? msg.slice(0, 240) : 'resposta sem conteúdo'
+}
+
 export async function chamarIA<T>(system: string, usuario: unknown, schema: z.ZodType<T>, fetchFn: Fetch): Promise<T | null> {
   const key = process.env.GROQ_API_KEY
   const model = process.env.GROQ_MODEL
@@ -65,11 +71,15 @@ export async function chamarIA<T>(system: string, usuario: unknown, schema: z.Zo
       })
       const payload = (await response.json().catch(() => null)) as { choices?: Array<{ message?: { content?: string | null } }> } | null
       const content = payload?.choices?.[0]?.message?.content
-      if (!response.ok || !content) continue
+      if (!response.ok || !content) {
+        // O motivo vai para o log do servidor (nunca com a chave) e ajuda a achar modelo ou chave errados.
+        console.error(`[ia] falha HTTP ${response.status}: ${erroDoProvedor(payload)}`)
+        continue
+      }
       const parsed = schema.safeParse(JSON.parse(content))
       if (parsed.success) return parsed.data
-    } catch {
-      /* tenta de novo; sem resposta válida o chamador mostra o erro */
+    } catch (e) {
+      console.error(`[ia] erro na chamada: ${e instanceof Error ? e.message : String(e)}`)
     }
   }
   return null
@@ -126,4 +136,24 @@ export function feedbackFinal(areaNome: string, config: ConfigSimulacao, histori
     FeedbackSchema,
     fetchFn,
   )
+}
+
+/** Teste rápido da configuração da IA (usado pela equipe): chama o provedor com um pedido mínimo e diz o que deu errado. */
+export async function diagnosticarIA(fetchFn: Fetch = fetch) {
+  const modelo = process.env.GROQ_MODEL ?? null
+  if (!process.env.GROQ_API_KEY || !modelo) return { configurada: false, modelo, ok: false, httpStatus: null as number | null, erro: 'Faltam GROQ_API_KEY e/ou GROQ_MODEL no servidor.' }
+  try {
+    const response = await fetchFn(GROQ_URL, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${process.env.GROQ_API_KEY}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ model: modelo, temperature: 0, max_tokens: 20, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: 'Responda somente com um objeto JSON: {"ok": true}' }, { role: 'user', content: 'teste' }] }),
+      signal: AbortSignal.timeout(20_000),
+    })
+    const payload = (await response.json().catch(() => null)) as { choices?: Array<{ message?: { content?: string | null } }> } | null
+    const conteudo = payload?.choices?.[0]?.message?.content
+    if (response.ok && conteudo) return { configurada: true, modelo, ok: true, httpStatus: response.status, erro: null as string | null }
+    return { configurada: true, modelo, ok: false, httpStatus: response.status, erro: erroDoProvedor(payload) }
+  } catch (e) {
+    return { configurada: true, modelo, ok: false, httpStatus: null, erro: `Sem resposta do provedor: ${e instanceof Error ? e.message : String(e)}` }
+  }
 }
