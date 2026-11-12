@@ -523,3 +523,32 @@ test('revisão da IA ao fechar a etapa (demonstração): só depois de concluir,
   assert.equal(codigo(await s.caso.revisarCheckpointComIA('case-1-cp-5')), 'VALIDACAO', 'etapa ainda não concluída')
   assert.equal(codigo(await s.caso.revisarCheckpointComIA('nao-existe')), 'NAO_ENCONTRADO')
 })
+
+test('tema da semana: só a equipe publica; as participantes comentam e dão amei; a equipe encerra', async () => {
+  await entrar('marina@email.com')
+  const categorias = dados(await s.forum.listarCategorias())
+  assert.equal(categorias[0].id, 'tema-da-semana', 'a categoria vem primeiro')
+  const tema = { titulo: 'IA no mercado financeiro e dilemas éticos', texto: 'Onde a IA ajuda e onde ela cria riscos? Conte sua visão.', categoriaId: 'tema-da-semana' }
+  assert.equal(codigo(await s.forum.criarPost(tema)), 'SEM_PERMISSAO', 'participante não publica o tema')
+
+  await entrar('equipe@galapagos.com.br')
+  const publicado = dados(await s.forum.criarPost(tema))
+  assert.equal(publicado.oficial, true)
+  assert.equal(publicado.autora.apelido, 'Equipe Alumna', 'sem precisar de apelido e nunca anônima')
+  assert.equal(codigo(await s.forum.encerrarTema('inexistente')), 'NAO_ENCONTRADO')
+
+  await entrar('marina@email.com')
+  dados(await s.forum.salvarMeuPerfil({ apelido: 'marina_analista', mostrarArea: false, mostrarMedalhas: false }))
+  const lista = dados(await s.forum.listarPosts({ categoriaId: 'tema-da-semana' }))
+  assert.equal(lista[0].id, publicado.id)
+  dados(await s.forum.criarResposta(publicado.id, { texto: 'A IA acelera análises, mas precisa de revisão humana e transparência.' }))
+  assert.equal(dados(await s.forum.obterPost(publicado.id)).respostasArvore.length, 1)
+  const amei = dados(await s.forum.votar('post', publicado.id))
+  assert.deepEqual([amei.meuVoto, amei.uteis], [true, 1])
+  assert.equal(dados(await s.forum.votar('post', publicado.id)).meuVoto, false, 'o coração liga e desliga')
+  assert.equal(codigo(await s.forum.encerrarTema(publicado.id)), 'SEM_PERMISSAO', 'participante não encerra')
+
+  await entrar('equipe@galapagos.com.br')
+  assert.equal(dados(await s.forum.encerrarTema(publicado.id)), true)
+  assert.equal(dados(await s.forum.listarPosts({ categoriaId: 'tema-da-semana' })).length, 0)
+})

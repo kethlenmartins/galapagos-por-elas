@@ -146,6 +146,7 @@ const forum: Servicos['forum'] = {
   votar: (alvo, id) => api('/forum/' + alvo + 's/' + encodeURIComponent(id) + '/vote', { method: 'POST' }),
   denunciar: (alvo, id, motivo, detalhe) => api('/forum/' + alvo + 's/' + encodeURIComponent(id) + '/report', { method: 'POST', body: JSON.stringify({ motivo, detalhe }) }),
   seguir: postId => api('/forum/posts/' + encodeURIComponent(postId) + '/follow', { method: 'POST' }),
+  encerrarTema: id => api('/forum/posts/' + encodeURIComponent(id) + '/archive', { method: 'POST' }),
 }
 
 const simulacao: Servicos['simulacao'] = {

@@ -1099,3 +1099,52 @@
 .logo { min-height: 44px; }
 .sim-voz { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .sim-voz > .btn { flex: 1 1 130px; }
+
+/* ===== Comunidade: tema da semana, coração "Amei" e comentário fácil ===== */
+.community-tema { display: grid; gap: var(--space-3); margin-bottom: var(--space-6); padding: var(--space-5); border: 2px solid var(--pink-200); border-radius: var(--radius-md); background: linear-gradient(135deg, var(--pink-50), var(--white) 60%); box-shadow: var(--shadow-sm); }
+.community-tema-vazio { border-style: dashed; justify-items: start; }
+.community-tema-topo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.community-tema-topo small { color: var(--ink-600); }
+.community-tema h2 { margin: 0; font-size: 22px; line-height: 1.25; overflow-wrap: anywhere; }
+.community-tema-texto { margin: 0; color: var(--ink-700); line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; overflow: hidden; }
+.community-tema-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.community-tema-comentar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2); align-items: end; }
+.community-tema-comentar textarea { width: 100%; resize: vertical; min-height: 52px; padding: var(--space-3); border: 1px solid var(--ink-300); border-radius: var(--radius-sm); background: var(--white); font: inherit; }
+.community-tema-comentar textarea:focus-visible { outline: 3px solid var(--blue-500); outline-offset: 1px; }
+.community-tema-equipe { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding-top: var(--space-3); border-top: 1px dashed var(--pink-200); }
+.community-avatar.oficial { background: var(--pink-500); color: var(--white); }
+
+/* Coração: o toque liga e desliga, com área de toque confortável. */
+.community-post footer, .community-thread-actions, .community-reply-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.community-action { min-height: 44px; padding: 0 var(--space-3); }
+.community-coracao { font-size: 20px; line-height: 1; }
+.community-amei.voted { color: var(--pink-700) !important; font-weight: 800; }
+.community-amei.voted .community-coracao { color: var(--pink-500); }
+@media (prefers-reduced-motion: no-preference) { .community-amei.voted .community-coracao { animation: community-bate .35s ease-out; } }
+@keyframes community-bate { 40% { transform: scale(1.35); } }
+.community-comentar { color: var(--blue-700); }
+
+/* Comentar: a caixa fica sempre à mão no fim da conversa e dá para responder a um comentário. */
+.community-reply-acoes { margin-top: var(--space-1); }
+.community-reply .community-amei { min-height: 40px; }
+.community-reply-acoes .text-link { min-height: 40px; display: inline-flex; align-items: center; }
+.community-thread .community-comment-box { position: sticky; bottom: calc(var(--space-5) * -1); z-index: 2; margin: var(--space-4) calc(var(--space-2) * -1) calc(var(--space-2) * -1); padding: var(--space-3); border-radius: var(--radius-md); background: var(--white); box-shadow: 0 -6px 16px rgba(20,33,61,.12); }
+.community-comment-linha { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2); align-items: end; }
+.community-comment-linha textarea { width: 100%; resize: none; min-height: 52px; max-height: 140px; padding: var(--space-3); border: 1px solid var(--ink-300); border-radius: var(--radius-sm); font: inherit; }
+.community-comment-linha .btn { align-self: stretch; }
+.community-respondendo { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); background: var(--blue-50); color: var(--ink-700); font-size: 13px; }
+
+@media (max-width: 540px) {
+  .community-post footer { display: flex; margin-left: calc(var(--space-2) * -1); }
+  .community-post footer .community-action { flex: 1 1 0; justify-content: center; }
+  /* os contadores do coração e dos comentários ficam visíveis */
+  .community-amei strong, .community-comentar strong { display: inline; }
+  .community-tema { padding: var(--space-4); }
+  .community-tema h2 { font-size: 19px; }
+  .community-tema-comentar { grid-template-columns: 1fr; }
+  .community-tema-comentar .btn { width: 100%; }
+  .community-thread .community-comment-box { bottom: calc(var(--space-4) * -1); margin-bottom: calc(var(--space-4) * -1); padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px)); }
+  .community-comment-linha { grid-template-columns: 1fr; }
+  .community-comment-linha .btn { width: 100%; }
+}
+.community-page > .alert { margin-bottom: var(--space-4); }

@@ -21,6 +21,7 @@ Feito
 - [x] Equipe usando a API real: correção e publicação em lote (com certificado e pontos), pedidos de revisão, vagas, cases (arquivar e republicar) e conteúdos `G`
 - [x] Revisão automática da IA ao concluir cada etapa (rumo, bom e ruim, "Avançar"), refazer e reenviar o case, devolutiva para quem não foi aprovada `G`
 - [x] Caminho de bolinhas (mapa de ilhas, ilha e etapas do case), todas as 13 ilhas visíveis `M`
+- [x] Comunidade: Tema da semana (só a equipe publica e encerra), coração Amei no lugar de "útil" e comentário mais fácil (caixa fixa, responder a um comentário, comentário direto no tema) `M`
 - [x] Script `pnpm equipe:criar`, e2e com IA falsa no CI, limite de requisições configurável para testes `P`
 
 Em aberto (detalhes na seção 0 do HANDOFF)
