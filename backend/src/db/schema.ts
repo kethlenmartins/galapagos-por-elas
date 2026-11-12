@@ -1,4 +1,4 @@
-import { boolean, jsonb, pgEnum, pgTable, text, timestamp, date, uniqueIndex, uuid, integer } from 'drizzle-orm/pg-core'
+import { boolean, real, jsonb, pgEnum, pgTable, text, timestamp, date, uniqueIndex, uuid, integer } from 'drizzle-orm/pg-core'
 
 export const role = pgEnum('role', ['participante', 'equipe'])
 export const sessions = pgTable('sessions', {
@@ -29,7 +29,7 @@ export const checkpointProgress = pgTable('checkpoint_progress', {
   id: uuid('id').defaultRandom().primaryKey(), enrollmentId: uuid('enrollment_id').notNull(), checkpointId: text('checkpoint_id').notNull(), answers: jsonb('answers').$type<Record<string,Record<string,string|number|null>>>().notNull().default({}), completedAt: timestamp('completed_at', { withTimezone: true }),
 }, t => [uniqueIndex('checkpoint_progress_unique').on(t.enrollmentId, t.checkpointId)])
 export const deliveries = pgTable('deliveries', {
-  id: uuid('id').defaultRandom().primaryKey(), enrollmentId: uuid('enrollment_id').notNull(), status: text('status').notNull().default('pendente'), grade: integer('grade'), feedback: text('feedback'), publishedAt: timestamp('published_at', { withTimezone: true }), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  id: uuid('id').defaultRandom().primaryKey(), enrollmentId: uuid('enrollment_id').notNull(), status: text('status').notNull().default('pendente'), grade: real('grade'), feedback: text('feedback'), publishedAt: timestamp('published_at', { withTimezone: true }), reviewedBy: uuid('reviewed_by'), reviewedAt: timestamp('reviewed_at', { withTimezone: true }), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, t => [uniqueIndex('deliveries_enrollment_unique').on(t.enrollmentId)])
 export const pointEvents = pgTable('point_events', {
   id: uuid('id').defaultRandom().primaryKey(), userId: uuid('user_id').notNull(), actionKey: text('action_key').notNull(), action: text('action').notNull(), origin: text('origin').notNull(), points: integer('points').notNull(), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -44,7 +44,7 @@ export const certificates = pgTable('certificates', {
   id: uuid('id').defaultRandom().primaryKey(), userId: uuid('user_id').notNull(), caseId: text('case_id').notNull(), code: text('code').notNull(), issuedAt: timestamp('issued_at', { withTimezone: true }).defaultNow().notNull(),
 }, t => [uniqueIndex('certificate_user_case_unique').on(t.userId, t.caseId), uniqueIndex('certificate_code_unique').on(t.code)])
 export const reviewRequests = pgTable('review_requests', {
-  id: uuid('id').defaultRandom().primaryKey(), deliveryId: uuid('delivery_id').notNull(), taskId: text('task_id').notNull(), userId: uuid('user_id').notNull(), reason: text('reason').notNull(), status: text('status').notNull().default('aberto'), response: text('response'), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  id: uuid('id').defaultRandom().primaryKey(), deliveryId: uuid('delivery_id').notNull(), taskId: text('task_id').notNull(), userId: uuid('user_id').notNull(), reason: text('reason').notNull(), status: text('status').notNull().default('aberto'), response: text('response'), resolvedAt: timestamp('resolved_at', { withTimezone: true }), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 export const aiLogs = pgTable('ai_logs', {
   id: uuid('id').defaultRandom().primaryKey(), deliveryId: uuid('delivery_id').notNull(), provider: text('provider').notNull(), model: text('model').notNull(), promptVersion: text('prompt_version').notNull(), status: text('status').notNull(), latencyMs: integer('latency_ms').notNull(), costTicks: text('cost_ticks'), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

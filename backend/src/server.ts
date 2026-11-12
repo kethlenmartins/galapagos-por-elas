@@ -519,6 +519,125 @@ app.delete('/api/admin/jobs/:id', async (req, reply) => {
   return { dados: null, erro: null }
 })
 
+// --- Avaliação dos cases pela equipe --------------------------------------------------------------------------------
+
+/** Só a equipe passa: responde 401/403 e devolve `null` quando não pode. */
+async function usuarioEquipe(req: FastifyRequest, reply: { code: (n: number) => { send: (b: unknown) => unknown } }) {
+  const user = await usuarioAtual(req)
+  if (!user) { reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } }); return null }
+  if (user.role !== 'equipe') { reply.code(403).send(SEM_PERMISSAO); return null }
+  return user
+}
+const STATUS_ENTREGA = ['pendente', 'revisada', 'publicada'] as const
+
+async function resumoDaEntrega(d: typeof deliveries.$inferSelect) {
+  const [m] = await db.select().from(enrollments).where(eq(enrollments.id, d.enrollmentId)).limit(1)
+  const [u] = m ? await db.select().from(users).where(eq(users.id, m.userId)).limit(1) : []
+  const [c] = m ? await db.select().from(cases).where(eq(cases.id, m.caseId)).limit(1) : []
+  return { m, u, c, resumo: { id: d.id, participanteNome: u?.name ?? '—', caseId: m?.caseId ?? '', caseTitulo: c?.title ?? '—', enviadaEm: d.createdAt.toISOString(), status: d.publishedAt ? 'publicada' : d.reviewedAt ? 'revisada' : 'pendente', notaSugerida: null, notaFinal: d.grade ?? null, origem: 'manual' as const } }
+}
+
+async function detalheDaEntrega(d: typeof deliveries.$inferSelect) {
+  const { m, resumo } = await resumoDaEntrega(d)
+  const cps = m ? await db.select().from(checkpoints).where(eq(checkpoints.caseId, m.caseId)).orderBy(checkpoints.order) : []
+  const ordem = new Map(cps.map((c, i) => [c.id, i]))
+  const taskRows = m ? (await db.select().from(tasks).where(eq(tasks.caseId, m.caseId))).sort((a, b) => (ordem.get(a.checkpointId) ?? 0) - (ordem.get(b.checkpointId) ?? 0) || a.id.localeCompare(b.id)) : []
+  const progresso = m ? await db.select().from(checkpointProgress).where(eq(checkpointProgress.enrollmentId, m.id)) : []
+  const respostas = taskRows.filter(t => t.fields.length > 0).map(t => {
+    const dadas = progresso.map(p => p.answers[t.id]).find(a => a) ?? {}
+    const rotulos = Object.fromEntries((t.fields as Array<{ id: string; rotulo?: string }>).map(f => [f.id, f.rotulo ?? f.id]))
+    return { tarefaId: t.id, titulo: t.title, respostas: dadas, rotulos, referencia: t.answerKey ? JSON.stringify(t.answerKey, null, 2) : null }
+  })
+  const sugestao = { itens: [], notaCodigo: 0, maxCodigo: 0, notaIA: null, maxIA: 0, notaSugerida: null, origem: 'manual', feedbackGeral: '', feedbackPorTarefa: [], pontosFortes: [], pontosAMelhorar: [], versaoPrompt: 'manual-v1' }
+  const [revisor] = d.reviewedBy ? await db.select().from(users).where(eq(users.id, d.reviewedBy)).limit(1) : []
+  return { ...resumo, respostas, gabarito: [], sugestao, feedbackFinal: d.feedback ?? null, aprovadaPor: revisor?.name ?? null, aprovadaEm: d.reviewedAt?.toISOString() ?? null }
+}
+
+app.get('/api/admin/deliveries', async (req, reply) => {
+  if (!(await usuarioEquipe(req, reply))) return
+  const { status } = req.query as { status?: string }
+  const rows = await db.select().from(deliveries).orderBy(desc(deliveries.createdAt))
+  const itens = await Promise.all(rows.map(async d => (await resumoDaEntrega(d)).resumo))
+  return { dados: itens.filter(i => !status || (STATUS_ENTREGA as readonly string[]).includes(status) && i.status === status), erro: null }
+})
+
+app.get('/api/admin/deliveries/:id', async (req, reply) => {
+  if (!(await usuarioEquipe(req, reply))) return
+  const { id } = req.params as { id: string }
+  const [d] = z.string().uuid().safeParse(id).success ? await db.select().from(deliveries).where(eq(deliveries.id, id)).limit(1) : []
+  if (!d) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Entrega não encontrada.' } })
+  return { dados: await detalheDaEntrega(d), erro: null }
+})
+
+app.put('/api/admin/deliveries/:id/grade', async (req, reply) => {
+  if (!(await usuarioEquipe(req, reply))) return
+  const { id } = req.params as { id: string }
+  const corpo = z.object({ notaFinal: z.number().min(0).max(10), feedback: z.string().trim().max(4000) }).safeParse(req.body)
+  if (!corpo.success) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Revise a nota (0 a 10) e o feedback.', campos: { notaFinal: 'Digite a nota de 0 a 10.' } } })
+  const [d] = z.string().uuid().safeParse(id).success ? await db.select().from(deliveries).where(eq(deliveries.id, id)).limit(1) : []
+  if (!d) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Entrega não encontrada.' } })
+  if (d.publishedAt) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'O resultado já foi publicado. Mudanças só por pedido de revisão.' } })
+  const [novo] = await db.update(deliveries).set({ grade: Math.round(corpo.data.notaFinal * 10) / 10, feedback: corpo.data.feedback }).where(eq(deliveries.id, id)).returning()
+  return { dados: await detalheDaEntrega(novo), erro: null }
+})
+
+app.post('/api/admin/deliveries/:id/approve', async (req, reply) => {
+  const equipe = await usuarioEquipe(req, reply)
+  if (!equipe) return
+  const { id } = req.params as { id: string }
+  const [d] = z.string().uuid().safeParse(id).success ? await db.select().from(deliveries).where(eq(deliveries.id, id)).limit(1) : []
+  if (!d) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Entrega não encontrada.' } })
+  if (d.publishedAt) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'O resultado já foi publicado.' } })
+  if (d.grade === null) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Defina a nota final antes de aprovar.' } })
+  const [novo] = await db.update(deliveries).set({ status: 'revisada', reviewedBy: equipe.id, reviewedAt: new Date() }).where(eq(deliveries.id, id)).returning()
+  return { dados: await detalheDaEntrega(novo), erro: null }
+})
+
+/** Publica em lote as entregas aprovadas, com certificado e pontos. Recusa se ainda houver pendentes. */
+app.post('/api/admin/deliveries/publish', async (req, reply) => {
+  if (!(await usuarioEquipe(req, reply))) return
+  const todas = await db.select().from(deliveries).where(isNull(deliveries.publishedAt))
+  const pendentes = todas.filter(d => !d.reviewedAt).length
+  if (pendentes > 0) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: `Ainda há ${pendentes} ${pendentes === 1 ? 'entrega pendente' : 'entregas pendentes'}. Aprove todas antes de publicar.` } })
+  let publicados = 0
+  for (const d of todas) {
+    const [publicada] = await db.update(deliveries).set({ status: 'publicada', publishedAt: new Date() }).where(eq(deliveries.id, d.id)).returning()
+    const { m, u, c } = await resumoDaEntrega(publicada)
+    if (m && u && c) await certificadoDaEntrega(u, c, publicada)
+    publicados++
+  }
+  return { dados: { publicados }, erro: null }
+})
+
+app.get('/api/admin/reviews', async (req, reply) => {
+  if (!(await usuarioEquipe(req, reply))) return
+  const rows = await db.select().from(reviewRequests).orderBy(desc(reviewRequests.createdAt))
+  const dados = await Promise.all(rows.map(async r => {
+    const [d] = await db.select().from(deliveries).where(eq(deliveries.id, r.deliveryId)).limit(1)
+    const { resumo } = d ? await resumoDaEntrega(d) : { resumo: null }
+    return { id: r.id, entregaId: r.deliveryId, tarefaId: r.taskId, participanteNome: resumo?.participanteNome ?? '—', caseTitulo: resumo?.caseTitulo ?? '—', motivo: r.reason, status: r.status === 'resolvido' ? 'resolvido' : 'aberto', criadoEm: r.createdAt.toISOString() }
+  }))
+  return { dados, erro: null }
+})
+
+app.post('/api/admin/reviews/:id/resolve', async (req, reply) => {
+  if (!(await usuarioEquipe(req, reply))) return
+  const { id } = req.params as { id: string }
+  const corpo = z.object({ resposta: z.string().trim().min(1).max(2000), novaNota: z.number().min(0).max(10).optional() }).safeParse(req.body)
+  if (!corpo.success) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Escreva a resposta para a participante (e, se houver, a nova nota de 0 a 10).' } })
+  const [pedido] = z.string().uuid().safeParse(id).success ? await db.select().from(reviewRequests).where(eq(reviewRequests.id, id)).limit(1) : []
+  if (!pedido) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Pedido não encontrado.' } })
+  if (corpo.data.novaNota !== undefined) {
+    const [d] = await db.update(deliveries).set({ grade: Math.round(corpo.data.novaNota * 10) / 10 }).where(eq(deliveries.id, pedido.deliveryId)).returning()
+    const { m, u, c } = d ? await resumoDaEntrega(d) : { m: null, u: null, c: null }
+    if (d?.publishedAt && m && u && c) await certificadoDaEntrega(u, c, d)
+  }
+  const [novo] = await db.update(reviewRequests).set({ status: 'resolvido', response: corpo.data.resposta, resolvedAt: new Date() }).where(eq(reviewRequests.id, id)).returning()
+  const [d] = await db.select().from(deliveries).where(eq(deliveries.id, novo.deliveryId)).limit(1)
+  const { resumo } = d ? await resumoDaEntrega(d) : { resumo: null }
+  return { dados: { id: novo.id, entregaId: novo.deliveryId, tarefaId: novo.taskId, participanteNome: resumo?.participanteNome ?? '—', caseTitulo: resumo?.caseTitulo ?? '—', motivo: novo.reason, status: 'resolvido', criadoEm: novo.createdAt.toISOString() }, erro: null }
+})
+
 app.post('/api/cases/:caseId/start', async (req, reply) => {
   const user = await usuarioAtual(req)
   if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })

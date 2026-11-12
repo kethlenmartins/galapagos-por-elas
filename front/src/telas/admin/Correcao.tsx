@@ -68,12 +68,14 @@ function Detalhe({ detalhe, aoMudar, aoFalhar }: { detalhe: DetalheEntregaAdmin;
     <div className="review-detail-head"><div><Tag>{detalhe.participanteNome.toUpperCase()}</Tag><h2>{detalhe.caseTitulo}</h2><small>Enviada em {dataEHora(detalhe.enviadaEm)}</small></div>
       <span>{manual ? 'Correção manual' : <>Nota sugerida <AIBadge compact admin/></>}<strong>{nota(s.notaSugerida)}</strong></span></div>
 
-    {manual && <div className="alert alert-warning"><Icon name="clock"/><div><strong>A IA não estava disponível</strong><p>Só a parte numérica foi conferida por código. Defina a nota final a partir das respostas abaixo.</p></div></div>}
+    {manual && <div className="alert alert-warning"><Icon name="clock"/><div><strong>Correção manual</strong><p>Compare as respostas com o gabarito e a rubrica do case e defina a nota final. A participante só vê o resultado quando você publicar.</p></div></div>}
 
     {detalhe.respostas.map(r => <div key={r.tarefaId} className="answer-compare">
       <div><span className="eyebrow">RESPOSTA · {r.titulo.toUpperCase()}</span>
-        {Object.entries(r.respostas).map(([campo, valor]) => <p key={campo}><strong>{s.itens.find(i => i.campoId === campo)?.rotulo ?? campo}:</strong> {valor === null || valor === '' ? <em>em branco</em> : String(valor)}</p>)}</div>
-      <div><span className="eyebrow">SUGESTÃO DA IA</span><p>{s.feedbackPorTarefa.find(f => f.tarefaId === r.tarefaId)?.feedback ?? 'Sem comentário para esta tarefa.'}</p></div>
+        {Object.entries(r.respostas).map(([campo, valor]) => <p key={campo}><strong>{r.rotulos?.[campo] ?? s.itens.find(i => i.campoId === campo)?.rotulo ?? campo}:</strong> {valor === null || valor === '' ? <em>em branco</em> : String(valor)}</p>)}</div>
+      {r.referencia
+        ? <div><span className="eyebrow">GABARITO E RUBRICA DO CASE</span><pre className="review-referencia">{r.referencia}</pre></div>
+        : <div><span className="eyebrow">SUGESTÃO DA IA</span><p>{s.feedbackPorTarefa.find(f => f.tarefaId === r.tarefaId)?.feedback ?? 'Sem comentário para esta tarefa.'}</p></div>}
     </div>)}
 
     {s.itens.length > 0 && <div className="table-scroll"><table><caption>Conferência numérica (feita por código)</caption><thead><tr><th>Item</th><th>Resposta</th><th>Esperado</th><th>Resultado</th><th>Pontos</th></tr></thead>

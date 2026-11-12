@@ -90,6 +90,16 @@ const caso: Servicos['caso'] = {
 
 // Durante a migração incremental, serviços ainda não cobertos continuam apontando
 // para o mock. Assim o seletor de ambiente não quebra telas fora do piloto.
+const adminCorrecao: Servicos['adminCorrecao'] = {
+  listarEntregas: filtro => api('/admin/deliveries' + (filtro?.status ? '?status=' + filtro.status : '')),
+  obterEntregaComSugestaoIA: id => api('/admin/deliveries/' + encodeURIComponent(id)),
+  ajustarNotaEFeedback: ({ entregaId, notaFinal, feedback }) => api('/admin/deliveries/' + encodeURIComponent(entregaId) + '/grade', { method: 'PUT', body: JSON.stringify({ notaFinal, feedback }) }),
+  aprovarNota: id => api('/admin/deliveries/' + encodeURIComponent(id) + '/approve', { method: 'POST' }),
+  publicarResultados: () => api('/admin/deliveries/publish', { method: 'POST' }),
+  listarPedidosRevisao: () => api('/admin/reviews'),
+  resolverPedidoRevisao: (id, { resposta, novaNota }) => api('/admin/reviews/' + encodeURIComponent(id) + '/resolve', { method: 'POST', body: JSON.stringify({ resposta, novaNota }) }),
+}
+
 const vagas: Servicos['vagas'] = {
   listarVagas: filtro => api('/jobs' + (filtro?.areaId ? '?areaId=' + encodeURIComponent(filtro.areaId) : '')),
 }
@@ -114,5 +124,5 @@ const treino: Servicos['treino'] = {
   responderPergunta: (perguntaId, letra) => api('/training/questions/' + encodeURIComponent(perguntaId) + '/answer', { method: 'POST', body: JSON.stringify({ letra }) }),
 }
 
-export const servicosHttp: Servicos = { vagas, adminVagas, simulacao, treino, sessao, perfil, catalogo, pontos, diagnostico, caso, conteudos, certificados, adminCases: servicosMock.adminCases, adminCorrecao: servicosMock.adminCorrecao, adminConteudos: servicosMock.adminConteudos }
+export const servicosHttp: Servicos = { vagas, adminVagas, simulacao, treino, sessao, perfil, catalogo, pontos, diagnostico, caso, conteudos, certificados, adminCases: servicosMock.adminCases, adminCorrecao, adminConteudos: servicosMock.adminConteudos }
 export const servicosAtivos: Servicos = import.meta.env.VITE_API_URL ? servicosHttp : servicosMock

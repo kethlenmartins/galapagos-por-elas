@@ -895,3 +895,5 @@
 .case-apoio li { display: flex; justify-content: space-between; gap: var(--space-3); }
 .case-apoio small { color: var(--ink-600); }
 .modal-wide { width: min(100%, 640px); }
+
+.review-referencia { margin: 0; padding: var(--space-3); max-height: 320px; overflow: auto; border-radius: var(--radius-sm); background: var(--blue-50); color: var(--ink-700); font-size: 12px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }

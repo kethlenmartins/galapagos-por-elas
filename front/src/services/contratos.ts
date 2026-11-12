@@ -746,7 +746,15 @@ export type EntregaResumoAdmin = {
 
 export type DetalheEntregaAdmin = EntregaResumoAdmin & {
   /** Respostas por tarefa, com o título para exibir. */
-  respostas: { tarefaId: string; titulo: string; respostas: RespostasDaTarefa }[]
+  respostas: {
+    tarefaId: string
+    titulo: string
+    respostas: RespostasDaTarefa
+    /** Texto de cada campo (id do campo -> rótulo), para exibir a resposta com a pergunta. */
+    rotulos?: Record<string, string>
+    /** Gabarito e rubrica escritos no case, em texto. Só a equipe vê. */
+    referencia?: string | null
+  }[]
   /** Só a equipe vê o gabarito. */
   gabarito: ItemGabarito[]
   sugestao: SugestaoCorrecao
