@@ -5,6 +5,7 @@ import { sessaoExpirou } from '../../app/sessao'
 import { PageTitle, Progress, Tag } from '../../componentes/Basicos'
 import { Button } from '../../componentes/Botao'
 import { Icon } from '../../componentes/Icone'
+import { CaminhoDeBolinhas, type NoDoCaminho } from '../../componentes/CaminhoDeBolinhas'
 import { AppShell } from '../../componentes/Layout'
 import { caseService, catalogoService, type Area, type ItemTrilha, type TrilhaDaUsuaria } from '../../services'
 
@@ -33,6 +34,7 @@ export function Trilha() {
   const [ilhas, setIlhas] = useState<IlhaDaArea[]>([])
   const [fase, setFase] = useState<'carregando' | 'ok' | 'erro'>('carregando')
   const [mensagem, setMensagem] = useState('')
+  const [escolhida, setEscolhida] = useState<string | null>(null)
 
   const carregar = useCallback(async () => {
     const [t, a] = await Promise.all([caseService.obterTrilha(), catalogoService.listarAreas()])
@@ -54,6 +56,40 @@ export function Trilha() {
   const entrar = (areaId: string) => {
     definirIlhaAtual(areaId)
     go('island')
+  }
+
+  // Cada ilha é uma bolinha: preenchida quando todos os cases estão concluídos, destacada quando em andamento.
+  const estadoDaIlha = (i: IlhaDaArea): NoDoCaminho['estado'] => {
+    if (!trilha?.diagnosticoConcluido) return 'bloqueado'
+    const s = situacao(i.cases).estado
+    return s === 'concluido' ? 'feito' : s === 'em_andamento' || i.cases.some(c => c.sugerido) ? 'atual' : 'aberto'
+  }
+  const nos: NoDoCaminho[] = ilhas.map(i => ({
+    id: i.area.id,
+    rotulo: i.area.nome,
+    detalhe: `${i.cases.filter(c => c.estado === 'concluido').length} de ${i.cases.length} ${i.cases.length === 1 ? 'case' : 'cases'}`,
+    estado: estadoDaIlha(i),
+    emblema: <svg viewBox="0 0 120 90" width="40" height="30" aria-hidden="true"><path className="ilha-terra" d="M14 58C10 40 26 22 46 24c8-14 30-14 38 2 18-2 30 14 22 32-10 8-28 10-46 10S22 66 14 58z"/><path className="ilha-copa" d="M52 40c-2-10 8-18 16-12 8-6 18 4 12 12-4 6-24 8-28 0z"/></svg>,
+    progresso: (i.cases.filter(c => c.estado === 'concluido').length / i.cases.length) * 100,
+  }))
+  const escolhidaEfetiva = escolhida ?? nos.find(n => n.estado === 'atual')?.id ?? nos.find(n => n.estado !== 'bloqueado')?.id ?? null
+  const detalheDaIlha = (no: NoDoCaminho) => {
+    const i = ilhas.find(x => x.area.id === no.id)
+    if (!i) return null
+    const s = situacao(i.cases)
+    return <article className={`trilha-card trilha-${s.estado}`}>
+      <div className="trilha-etiquetas">
+        {i.posicao !== null && i.posicao <= 3 && <Tag tone="blue">{i.posicao === 1 ? 'MAIOR AFINIDADE' : `${i.posicao}ª AFINIDADE`}</Tag>}
+        {i.cases.some(c => c.sugerido) && <Tag tone="pink">COMECE POR AQUI</Tag>}
+        <span className="trilha-estado"><Tag tone={s.tom}>{s.rotulo}</Tag></span>
+      </div>
+      <h2>{i.area.nome}</h2>
+      <p className="trilha-resumo">{i.area.oQueFaz}</p>
+      {no.estado === 'bloqueado' && <p className="trilha-aviso"><Icon name="lock" size={16} /> Faça o diagnóstico para abrir as ilhas.</p>}
+      <div className="trilha-acoes">
+        <Button onClick={() => entrar(i.area.id)} icon="arrow" disabled={no.estado === 'bloqueado'}>{s.estado === 'em_andamento' ? 'Continuar na ilha' : 'Entrar na ilha'}</Button>
+      </div>
+    </article>
   }
 
   const concluidas = ilhas.filter(i => i.cases.every(c => c.estado === 'concluido')).length
@@ -81,37 +117,7 @@ export function Trilha() {
 
       {ilhas.length === 0
         ? <div className="empty-state"><span><Icon name="case" size={34} /></span><h2>Ainda não há ilhas publicadas</h2><p>Assim que a equipe publicar o primeiro case, a ilha da área aparece aqui.</p></div>
-        : <ol className="trilha-lista ilhas" aria-label="Ilhas, uma por área">
-            {ilhas.map(({ area, cases, posicao }, indice) => {
-              const s = situacao(cases)
-              const feitos = cases.filter(c => c.estado === 'concluido').length
-              const sugerida = cases.some(c => c.sugerido)
-              return (
-                <li key={area.id} className={`ilha ${indice % 2 === 0 ? 'ilha-esquerda' : 'ilha-direita'}`}>
-                  <article className={`trilha-card trilha-${s.estado} ${sugerida ? 'trilha-sugerido' : ''}`} aria-labelledby={`ilha-${area.id}`}>
-                    <span className="ilha-forma" aria-hidden="true">
-                      <svg viewBox="0 0 120 90" width="96" height="72"><path className="ilha-agua" d="M6 66c14 12 34 16 54 16s40-4 54-16c-12 18-32 6-54 6S18 84 6 66z"/><path className="ilha-terra" d="M14 58C10 40 26 22 46 24c8-14 30-14 38 2 18-2 30 14 22 32-10 8-28 10-46 10S22 66 14 58z"/><path className="ilha-copa" d="M52 40c-2-10 8-18 16-12 8-6 18 4 12 12-4 6-24 8-28 0z"/></svg>
-                      <b>{s.estado === 'concluido' ? <Icon name="check" size={22} /> : indice + 1}</b>
-                    </span>
-                    <div className="trilha-etiquetas">
-                      {posicao !== null && posicao <= 3 && <Tag tone="blue">{posicao === 1 ? 'MAIOR AFINIDADE' : `${posicao}ª AFINIDADE`}</Tag>}
-                      {sugerida && <Tag tone="pink">COMECE POR AQUI</Tag>}
-                      <span className="trilha-estado"><Tag tone={s.tom}>{s.rotulo}</Tag></span>
-                    </div>
-                    <h2 id={`ilha-${area.id}`}>{area.nome}</h2>
-                    <p className="trilha-resumo">{area.oQueFaz}</p>
-                    <div className="trilha-progresso">
-                      <Progress value={(feitos / cases.length) * 100} />
-                      <span>{feitos} de {cases.length} {cases.length === 1 ? 'case concluído' : 'cases concluídos'}</span>
-                    </div>
-                    <div className="trilha-acoes">
-                      <Button onClick={() => entrar(area.id)} icon="arrow">{s.estado === 'em_andamento' ? 'Continuar na ilha' : 'Entrar na ilha'}</Button>
-                    </div>
-                  </article>
-                </li>
-              )
-            })}
-          </ol>}
+        : <CaminhoDeBolinhas rotuloDaLista="Ilhas, uma por área" nos={nos} escolhido={escolhidaEfetiva} aoEscolher={setEscolhida} detalhe={detalheDaIlha}/>}
     </>}
   </div></AppShell>
 }

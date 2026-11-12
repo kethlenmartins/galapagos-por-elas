@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './trilha.css'
 import { horaCurta } from '../../app/formatos'
 import { FALA, atrasoParaMostrar } from '../../app/revelacao'
+import { CaminhoDeBolinhas, type NoDoCaminho } from '../../componentes/CaminhoDeBolinhas'
 import { Popup } from '../../componentes/Popup'
 import { CarrosselDeConteudos } from './CartaoConteudo'
 import { definirCaseAtual, definirIlhaAtual, go, obterCaseAtual } from '../../app/rotas'
@@ -329,6 +330,7 @@ export function CasePage() {
   const [resultado, setResultado] = useState<ResultadoCase | null>(null)
   const [fase, setFase] = useState<'carregando' | 'ok' | 'erro'>('carregando')
   const [mensagem, setMensagem] = useState('')
+  const [etapaEscolhida, setEtapaEscolhida] = useState<string | null>(null)
   const [tarefas, setTarefas] = useState<Record<string, Tarefa>>({})
   const [respostas, setRespostas] = useState<Respostas>({})
   const [salvoEm, setSalvoEm] = useState<Record<string, string>>({})
@@ -507,17 +509,28 @@ export function CasePage() {
 
       <div className="case-progresso"><Progress value={total ? (feitos / total) * 100 : 0} pink/><span>{feitos} de {total} checkpoints</span></div>
 
-      <details className="case-etapas-details">
-        <summary><span>Etapas do case</span><small>{feitos} de {total} concluídas</small><Icon name="chevron" size={18}/></summary>
-        <ol className="case-etapas" aria-label="Etapas do case">
-          {caso.checkpoints.map(c => <li key={c.id} className={`case-etapa ${c.status} ${ativo?.id === c.id ? 'atual' : ''}`} aria-current={ativo?.id === c.id ? 'step' : undefined}>
-            <span className="case-etapa-n" aria-hidden="true">{c.status === 'concluido' ? '✓' : c.ordem}</span>
-            <span className="case-etapa-texto"><small>{ROTULO_ETAPA[c.etapa]}</small><strong>{c.titulo}</strong></span>
-            <span className="case-etapa-pts">{c.status === 'concluido' ? 'Concluído' : `+${c.pontos} pts`}</span>
-            {c.status === 'concluido' && caso.estado === 'em_andamento' && <button className="text-link case-etapa-refazer" onClick={() => refazerEtapa(c)} disabled={ocupado}>Refazer</button>}
-          </li>)}
-        </ol>
-      </details>
+      <CaminhoDeBolinhas
+        orientacao="horizontal"
+        rotuloDaLista="Etapas do case"
+        escolhido={etapaEscolhida}
+        aoEscolher={id => setEtapaEscolhida(e => (e === id ? null : id))}
+        nos={caso.checkpoints.map<NoDoCaminho>(c => ({
+          id: c.id,
+          rotulo: ROTULO_ETAPA[c.etapa],
+          detalhe: c.titulo,
+          estado: c.status === 'concluido' ? 'feito' : ativo?.id === c.id ? 'atual' : 'bloqueado',
+          emblema: <>{c.ordem}</>,
+        }))}
+      />
+      {(() => {
+        const c = caso.checkpoints.find(x => x.id === etapaEscolhida)
+        if (!c) return null
+        const feita = c.status === 'concluido'
+        return <div className="case-etapa-info" role="status">
+          <span><strong>{c.titulo}</strong> · {feita ? 'Concluído' : ativo?.id === c.id ? `Etapa atual (+${c.pontos} pts)` : 'Conclua as etapas anteriores para chegar aqui'}</span>
+          {feita && caso.estado === 'em_andamento' && <Button variant="ghost" onClick={() => { setEtapaEscolhida(null); refazerEtapa(c) }} disabled={ocupado}>Refazer esta etapa</Button>}
+        </div>
+      })()}
 
       {caso.contexto && <details className="case-contexto" open={!ativo || ativo.etapa !== 'entenda'}><summary>O contexto do case</summary><p>{caso.contexto}</p></details>}
 

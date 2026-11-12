@@ -8,6 +8,7 @@ import { AppShell } from '../../componentes/Layout'
 import { Button } from '../../componentes/Botao'
 import { caseService, catalogoService, conteudoService, simulacaoService, treinoService, type Area, type Conteudo, type ResumoSimulacao, type ResumoTreino, type TrilhaDaUsuaria } from '../../services'
 import { CartaoCase } from './CartaoCase'
+import { CaminhoDeBolinhas, type NoDoCaminho } from '../../componentes/CaminhoDeBolinhas'
 import { CarrosselDeConteudos } from './CartaoConteudo'
 
 /** Uma ilha é uma área: apresentação, case básico, cases avançados e treino de entrevista. */
@@ -23,6 +24,7 @@ export function Ilha() {
   const [confirmando, setConfirmando] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
   const [erroDaAcao, setErroDaAcao] = useState('')
+  const [noEscolhido, setNoEscolhido] = useState<string | null>(null)
 
   const carregar = useCallback(async () => {
     if (!areaId) return go('trail')
@@ -82,6 +84,75 @@ export function Ilha() {
     />
   )
 
+  // O caminho da ilha: conteúdos, os cases em ordem, treino, simulação e vagas.
+  const totalPerguntas = treino ? Object.values(treino.perguntasPorNivel).reduce((x, y) => x + y, 0) : 0
+  const treinoLiberado = !!treino?.liberado && totalPerguntas > 0
+  const feitosConteudos = conteudos.filter(c => c.concluido).length
+  const primeiroPendente = cases.find(c => c.estado !== 'concluido' && c.estado !== 'bloqueado')
+  const noDoCase = (c: (typeof cases)[number]): NoDoCaminho => ({
+    id: c.caseId,
+    rotulo: c.nivel === 'basico' ? 'Case básico' : `Avançado ${avancados.indexOf(c) + 1}`,
+    detalhe: c.estado === 'bloqueado' ? 'Bloqueado' : c.estado === 'concluido' ? 'Concluído' : c.estado === 'em_avaliacao' ? 'Em avaliação' : c.progresso.total ? `${c.progresso.concluidos} de ${c.progresso.total}` : undefined,
+    estado: c.estado === 'concluido' ? 'feito' : c.estado === 'bloqueado' ? 'bloqueado' : c.caseId === primeiroPendente?.caseId ? 'atual' : 'aberto',
+    icone: c.nivel === 'basico' ? 'case' : 'award',
+    progresso: c.estado === 'em_andamento' && c.progresso.total ? (c.progresso.concluidos / c.progresso.total) * 100 : undefined,
+  })
+  const nos: NoDoCaminho[] = [
+    ...(conteudos.length > 0 ? [{ id: 'conteudos', rotulo: 'Conteúdos', detalhe: `${feitosConteudos} de ${conteudos.length}`, estado: feitosConteudos === conteudos.length ? 'feito' : 'aberto', icone: 'book', progresso: (feitosConteudos / conteudos.length) * 100 } as NoDoCaminho] : []),
+    ...cases.map(noDoCase),
+    { id: 'treino', rotulo: 'Treino', detalhe: treinoLiberado ? `${totalPerguntas} perguntas` : totalPerguntas === 0 && basicoConcluido ? 'Em breve' : 'Bloqueado', estado: treinoLiberado ? 'aberto' : 'bloqueado', icone: 'spark' },
+    { id: 'simulacao', rotulo: 'Simulação', detalhe: !basicoConcluido ? 'Bloqueado' : simulacao?.historico.length ? `${simulacao.historico.length} feita${simulacao.historico.length === 1 ? '' : 's'}` : undefined, estado: !basicoConcluido || (simulacao && !simulacao.disponivel) ? 'bloqueado' : simulacao?.historico.length ? 'feito' : 'aberto', icone: 'user' },
+    { id: 'vagas', rotulo: 'Vagas', estado: 'aberto', icone: 'chart' },
+  ]
+  const escolhido = noEscolhido ?? primeiroPendente?.caseId ?? nos.find(n => n.estado !== 'bloqueado')?.id ?? null
+
+  const painelDoNo = (no: NoDoCaminho) => {
+    if (no.id === 'conteudos') return (
+      <section className="ilha-secao" aria-label="Conteúdos da ilha">
+        <p className="trilha-dica">Toque em um conteúdo para ler ou assistir, no seu ritmo. Os conteúdos do case básico também valem pontos e são obrigatórios dentro dele.</p>
+        <CarrosselDeConteudos conteudos={conteudos} aoConcluir={feito => setConteudos(l => l.map(x => x.id === feito.id ? feito : x))}/>
+      </section>
+    )
+    const doCase = cases.find(c => c.caseId === no.id)
+    if (doCase) return cartao(doCase)
+    if (no.id === 'treino') return (
+      <article className={`trilha-card ${treinoLiberado ? '' : 'trilha-bloqueado'}`}>
+        <div className="trilha-etiquetas">
+          <Tag tone="blue">ENTREVISTA</Tag>
+          <span className="trilha-estado"><Tag tone={totalPerguntas > 0 ? 'blue' : 'yellow'}>{totalPerguntas > 0 ? `${totalPerguntas} PERGUNTAS` : 'EM BREVE'}</Tag></span>
+        </div>
+        <h3>Treine para entrevistas de {area?.nome}</h3>
+        <p className="trilha-resumo">Perguntas de entrevista por nível de dificuldade, com feedback em cada resposta e modo cronometrado.</p>
+        {!basicoConcluido && <p className="trilha-aviso"><Icon name="lock" size={16} /> Abre depois que você concluir o case básico.</p>}
+        {treino && treino.desempenho.respondidas > 0 && <p className="trilha-resumo">Você já respondeu {treino.desempenho.respondidas} {treino.desempenho.respondidas === 1 ? 'pergunta' : 'perguntas'} e acertou {Math.round((treino.desempenho.acertos / treino.desempenho.respondidas) * 100)}%.</p>}
+        {basicoConcluido && totalPerguntas === 0 && <p className="trilha-aviso"><Icon name="spark" size={16} /> As perguntas desta área ainda não foram publicadas.</p>}
+        {treinoLiberado && <div className="trilha-acoes"><Button onClick={() => go('training')} icon="arrow">Começar o treino</Button></div>}
+      </article>
+    )
+    if (no.id === 'simulacao') return (
+      <article className={`trilha-card ${basicoConcluido ? '' : 'trilha-bloqueado'}`}>
+        <div className="trilha-etiquetas">
+          <Tag tone="blue">ENTREVISTA COM IA</Tag>
+          <span className="trilha-estado"><Tag tone={simulacao?.demonstracao ? 'yellow' : 'blue'}>{simulacao?.demonstracao ? 'DEMONSTRAÇÃO' : 'TEXTO E VOZ'}</Tag></span>
+        </div>
+        <h3>Simule uma entrevista de {area?.nome}</h3>
+        <p className="trilha-resumo">Uma entrevistadora faz as perguntas, uma de cada vez. Você escolhe a vaga, o rigor e a dificuldade, e recebe um feedback no fim.</p>
+        {!basicoConcluido && <p className="trilha-aviso"><Icon name="lock" size={16} /> Abre depois que você concluir o case básico.</p>}
+        {simulacao && simulacao.historico.length > 0 && <p className="trilha-resumo">Última simulação: {new Date(simulacao.historico[0].concluidaEm).toLocaleDateString('pt-BR')}{simulacao.historico[0].notaMedia !== null ? `, nota média ${simulacao.historico[0].notaMedia}/10` : ''}. Você fez {simulacao.historico.length}{simulacao.historico.length === 5 ? '+' : ''} {simulacao.historico.length === 1 ? 'simulação' : 'simulações'} nesta ilha.</p>}
+        {basicoConcluido && simulacao && !simulacao.disponivel && <p className="trilha-aviso"><Icon name="spark" size={16} /> Indisponível no momento.</p>}
+        {basicoConcluido && simulacao?.disponivel && <div className="trilha-acoes"><Button onClick={() => go('simulation')} icon="arrow">Começar a simulação</Button></div>}
+      </article>
+    )
+    return (
+      <article className="trilha-card">
+        <div className="trilha-etiquetas"><Tag tone="blue">VAGAS</Tag></div>
+        <h3>Vagas de {area?.nome}</h3>
+        <p className="trilha-resumo">Estágios e vagas de analista júnior da área, conferidas pela equipe.</p>
+        <div className="trilha-acoes"><Button variant="ghost" onClick={() => go('jobs')} icon="arrow">Ver vagas</Button></div>
+      </article>
+    )
+  }
+
   return <AppShell route="island"><div className="trilha-page">
     <button className="back-link" onClick={voltar}>← Voltar para as ilhas</button>
 
@@ -95,14 +166,6 @@ export function Ilha() {
         <p>{area.descricao}</p>
       </section>
 
-      {conteudos.length > 0 && (
-        <section className="ilha-secao" aria-label="Conteúdos da ilha">
-          <h2>Conteúdos da ilha</h2>
-          <p className="trilha-dica">Toque em um conteúdo para ler ou assistir, no seu ritmo. Os conteúdos do case básico também valem pontos e são obrigatórios dentro dele.</p>
-          <CarrosselDeConteudos conteudos={conteudos} aoConcluir={feito => setConteudos(l => l.map(x => x.id === feito.id ? feito : x))}/>
-        </section>
-      )}
-
       {!trilha.diagnosticoConcluido && (
         <div className="alert alert-warning" role="note">
           <p>Conclua o diagnóstico para começar os cases. <button className="text-link" onClick={() => go('diagnostic')}>Fazer o diagnóstico</button></p>
@@ -110,57 +173,11 @@ export function Ilha() {
       )}
       {erroDaAcao && <div className="alert alert-error" role="alert"><p>{erroDaAcao}</p></div>}
 
-      <section className="ilha-secao" aria-label="Case básico">
-        <h2>Comece pelo case básico</h2>
-        <p className="trilha-dica">Conteúdos, etapas e certificado. Concluí-lo abre os cases avançados e o treino de entrevista desta ilha.</p>
-        {basico ? cartao(basico) : <div className="empty-state"><span><Icon name="case" size={34} /></span><h2>Ainda não há case nesta ilha</h2><p>Assim que a equipe publicar o case básico, ele aparece aqui.</p></div>}
-      </section>
-
-      <section className="ilha-secao" aria-label="Cases avançados">
-        <h2>Cases avançados</h2>
-        {avancados.length > 0
-          ? avancados.map(cartao)
-          : <p className="trilha-dica">Novos cases mais complexos desta área vão aparecer aqui.</p>}
-      </section>
-
-      <section className="ilha-secao" aria-label="Treino de entrevista">
-        <h2>Treino de entrevista</h2>
-        {(() => {
-          const total = treino ? Object.values(treino.perguntasPorNivel).reduce((x, y) => x + y, 0) : 0
-          const liberado = !!treino?.liberado && total > 0
-          return (
-            <article className={`trilha-card ${liberado ? '' : 'trilha-bloqueado'}`}>
-              <div className="trilha-etiquetas">
-                <Tag tone="blue">ENTREVISTA</Tag>
-                <span className="trilha-estado"><Tag tone={total > 0 ? 'blue' : 'yellow'}>{total > 0 ? `${total} PERGUNTAS` : 'EM BREVE'}</Tag></span>
-              </div>
-              <h3>Treine para entrevistas de {area.nome}</h3>
-              <p className="trilha-resumo">Perguntas de entrevista por nível de dificuldade, com feedback em cada resposta e modo cronometrado.</p>
-              {!basicoConcluido && <p className="trilha-aviso"><Icon name="lock" size={16} /> Abre depois que você concluir o case básico.</p>}
-              {treino && treino.desempenho.respondidas > 0 && <p className="trilha-resumo">Você já respondeu {treino.desempenho.respondidas} {treino.desempenho.respondidas === 1 ? 'pergunta' : 'perguntas'} e acertou {Math.round((treino.desempenho.acertos / treino.desempenho.respondidas) * 100)}%.</p>}
-              {basicoConcluido && total === 0 && <p className="trilha-aviso"><Icon name="spark" size={16} /> As perguntas desta área ainda não foram publicadas.</p>}
-              {liberado && <div className="trilha-acoes"><Button onClick={() => go('training')} icon="arrow">Começar o treino</Button></div>}
-            </article>
-          )
-        })()}
-        <article className={`trilha-card ${basicoConcluido ? '' : 'trilha-bloqueado'}`}>
-          <div className="trilha-etiquetas">
-            <Tag tone="blue">ENTREVISTA COM IA</Tag>
-            <span className="trilha-estado"><Tag tone={simulacao?.demonstracao ? 'yellow' : 'blue'}>{simulacao?.demonstracao ? 'DEMONSTRAÇÃO' : 'TEXTO'}</Tag></span>
-          </div>
-          <h3>Simule uma entrevista de {area.nome}</h3>
-          <p className="trilha-resumo">Uma entrevistadora faz as perguntas, uma de cada vez. Você escolhe a vaga, o rigor e a dificuldade, e recebe um feedback no fim.</p>
-          {!basicoConcluido && <p className="trilha-aviso"><Icon name="lock" size={16} /> Abre depois que você concluir o case básico.</p>}
-          {simulacao && simulacao.historico.length > 0 && <p className="trilha-resumo">Última simulação: {new Date(simulacao.historico[0].concluidaEm).toLocaleDateString('pt-BR')}{simulacao.historico[0].notaMedia !== null ? `, nota média ${simulacao.historico[0].notaMedia}/10` : ''}. Você fez {simulacao.historico.length}{simulacao.historico.length === 5 ? '+' : ''} {simulacao.historico.length === 1 ? 'simulação' : 'simulações'} nesta ilha.</p>}
-          {basicoConcluido && simulacao && !simulacao.disponivel && <p className="trilha-aviso"><Icon name="spark" size={16} /> Indisponível no momento.</p>}
-          {basicoConcluido && simulacao?.disponivel && <div className="trilha-acoes"><Button onClick={() => go('simulation')} icon="arrow">Começar a simulação</Button></div>}
-        </article>
-        <article className="trilha-card">
-          <div className="trilha-etiquetas"><Tag tone="blue">VAGAS</Tag></div>
-          <h3>Vagas de {area.nome}</h3>
-          <p className="trilha-resumo">Estágios e vagas de analista júnior da área, conferidas pela equipe.</p>
-          <div className="trilha-acoes"><Button variant="ghost" onClick={() => go('jobs')} icon="arrow">Ver vagas</Button></div>
-        </article>
+      <section className="ilha-secao" aria-label="Seu caminho na ilha">
+        <h2>Seu caminho nesta ilha</h2>
+        <p className="trilha-dica">Comece pelo case básico: concluí-lo abre os cases avançados, o treino e a simulação. Toque numa bolinha para ver os detalhes.</p>
+        {cases.length === 0 && <div className="empty-state"><span><Icon name="case" size={34} /></span><h2>Ainda não há case nesta ilha</h2><p>Assim que a equipe publicar o case básico, ele aparece aqui.</p></div>}
+        <CaminhoDeBolinhas rotuloDaLista="Etapas da ilha" nos={nos} escolhido={escolhido} aoEscolher={setNoEscolhido} detalhe={painelDoNo}/>
       </section>
     </>}
   </div></AppShell>

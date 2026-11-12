@@ -226,3 +226,6 @@
 .case-revisao-ia-painel p { margin: 0; }
 .case-revisao-ia-painel h3 { font-size: 14px; }
 .case-revisao-dica { padding: var(--space-3); border-radius: var(--radius-sm); background: var(--white); }
+
+/* Informação da etapa escolhida no caminho do case. */
+.case-etapa-info { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm); background: var(--blue-50); color: var(--ink-700); font-size: 14px; }
