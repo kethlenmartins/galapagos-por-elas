@@ -4,6 +4,7 @@ import { Toast } from '../../componentes/Aviso'
 import { Tag } from '../../componentes/Basicos'
 import { Button } from '../../componentes/Botao'
 import { Icon } from '../../componentes/Icone'
+import { Popup } from '../../componentes/Popup'
 import { avisarPontos } from '../../componentes/Pontos'
 import { conteudoService } from '../../services'
 import type { Conteudo, TipoConteudo } from '../../services'
@@ -15,39 +16,12 @@ export function Texto({ corpo }: { corpo: string }): ReactNode {
   return corpo.split(/\n{2,}/).map((paragrafo, i) => <p key={i}>{paragrafo.split(/\*\*(.+?)\*\*/g).map((parte, j) => j % 2 ? <strong key={j}>{parte}</strong> : <Fragment key={j}>{parte}</Fragment>)}</p>)
 }
 
-const FOCAVEIS = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
-
 /** O conteúdo em pop-up: lê ali mesmo (artigo e glossário) ou abre o material externo, e marca como concluído. */
 function ConteudoEmPopup({ conteudo, aoFechar, aoConcluir }: { conteudo: Conteudo; aoFechar: () => void; aoConcluir: (c: Conteudo) => void }) {
   const [ocupado, setOcupado] = useState(false)
   const [erro, setErro] = useState('')
   const [aviso, setAviso] = useState('')
-  const caixa = useRef<HTMLDivElement>(null)
   const externo = conteudo.tipo === 'video' || conteudo.tipo === 'link'
-
-  // Esc fecha, Tab fica dentro do pop-up, a página de trás não rola e o foco volta para o card ao fechar.
-  useEffect(() => {
-    const anterior = document.activeElement as HTMLElement | null
-    const overflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    caixa.current?.querySelector<HTMLElement>('.modal-close')?.focus()
-    const aoTeclar = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') return aoFechar()
-      if (e.key !== 'Tab' || !caixa.current) return
-      const itens = [...caixa.current.querySelectorAll<HTMLElement>(FOCAVEIS)]
-      if (!itens.length) return
-      const primeiro = itens[0]
-      const ultimo = itens[itens.length - 1]
-      if (e.shiftKey && document.activeElement === primeiro) { e.preventDefault(); ultimo.focus() }
-      else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primeiro.focus() }
-    }
-    document.addEventListener('keydown', aoTeclar)
-    return () => {
-      document.removeEventListener('keydown', aoTeclar)
-      document.body.style.overflow = overflow
-      anterior?.focus?.()
-    }
-  }, [aoFechar])
 
   const concluir = async () => {
     setOcupado(true)
@@ -67,9 +41,7 @@ function ConteudoEmPopup({ conteudo, aoFechar, aoConcluir }: { conteudo: Conteud
     }
   }
 
-  return <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) aoFechar() }}>
-    <div className="modal modal-wide conteudo-popup" ref={caixa} role="dialog" aria-modal="true" aria-labelledby="conteudo-popup-titulo">
-      <button className="modal-close" onClick={aoFechar} aria-label="Fechar"><Icon name="close"/></button>
+  return <Popup aoFechar={aoFechar} idDoTitulo="conteudo-popup-titulo">
       <div className="trilha-etiquetas">
         <Tag tone="blue">{TIPOS[conteudo.tipo].toUpperCase()}</Tag>
         <span className="conteudo-minutos"><Icon name="clock" size={14}/> {conteudo.minutos} min</span>
@@ -87,8 +59,7 @@ function ConteudoEmPopup({ conteudo, aoFechar, aoConcluir }: { conteudo: Conteud
         <Button variant="ghost" onClick={aoFechar}>Fechar</Button>
       </div>
       {aviso && <Toast text={aviso} show/>}
-    </div>
-  </div>
+  </Popup>
 }
 
 /**

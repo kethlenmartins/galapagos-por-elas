@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './trilha.css'
 import { horaCurta } from '../../app/formatos'
 import { FALA, atrasoParaMostrar } from '../../app/revelacao'
+import { Popup } from '../../componentes/Popup'
 import { CarrosselDeConteudos } from './CartaoConteudo'
 import { definirCaseAtual, definirIlhaAtual, go, obterCaseAtual } from '../../app/rotas'
 import { sessaoExpirou } from '../../app/sessao'
@@ -198,30 +199,57 @@ function PainelConteudos({ caseId, checkpoint, ocupado, aoConcluir }: { caseId: 
 
 function PainelEntenda({ caso, checkpoint, ocupado, aoConcluir }: { caso: CaseTrilha; checkpoint: Checkpoint; ocupado: boolean; aoConcluir: () => void }) {
   const e = caso.entenda
+  // Os cards têm tamanhos de texto diferentes: na tela ficam todos do mesmo tamanho e abrem em pop-up.
+  const [aberto, setAberto] = useState<number | null>(null)
+  const [vistos, setVistos] = useState<Set<number>>(new Set())
+  const fechar = useCallback(() => setAberto(null), [])
+  const abrir = (i: number) => {
+    setAberto(i)
+    setVistos(v => new Set(v).add(i))
+  }
+  const cards = e ? [...e.cards.map(c => ({ titulo: c.titulo, resumo: c.texto })), { titulo: `Como se entra em ${caso.area}`, resumo: e.comoSeEntra.ondeSeTrabalha }] : []
+  const COMO_ENTRA = cards.length - 1
+
   return <section className="case-painel">
     <span className="eyebrow">{ROTULO_ETAPA.entenda.toUpperCase()}</span>
     <h2>{checkpoint.titulo}</h2>
     {e ? <>
       <p>{e.resumo}</p>
       {e.links.length > 0 && <ul className="case-links">{e.links.map(l => <li key={l.url}><a href={l.url} target="_blank" rel="noopener noreferrer">{l.titulo}<span className="visualmente-oculto"> (abre em nova aba)</span></a> <small>{l.fonte}</small></li>)}</ul>}
-      <div className="case-cards">
-        {e.cards.map((c, i) => <article key={c.titulo} className="case-card">
-          <span className="case-card-num">{String(i + 1).padStart(2, '0')}</span>
-          <h3>{c.titulo}</h3>
-          <p>{c.texto}</p>
-          <div className="case-na-pratica"><b>Na prática</b> {c.naPratica}</div>
-        </article>)}
-      </div>
-      <details className="case-como-entra">
-        <summary>Como se entra em {caso.area}</summary>
-        <ul>
-          <li><b>Onde se trabalha:</b> {e.comoSeEntra.ondeSeTrabalha}</li>
-          <li><b>Formações comuns:</b> {e.comoSeEntra.formacoes}</li>
-          <li><b>Vagas para procurar:</b> {e.comoSeEntra.vagas}</li>
-          <li><b>O que ajuda:</b> {e.comoSeEntra.oQueAjuda}</li>
-          <li><b>Quando recrutam:</b> {e.comoSeEntra.quandoRecrutam}</li>
-        </ul>
-      </details>
+      <ul className="case-cards" aria-label="Cards para entender a área">
+        {cards.map((c, i) => <li key={c.titulo}>
+          <button className={`case-card ${vistos.has(i) ? 'visto' : ''}`} onClick={() => abrir(i)} aria-haspopup="dialog">
+            <span className="case-card-num">{i === COMO_ENTRA ? 'CARREIRA' : String(i + 1).padStart(2, '0')}{vistos.has(i) && <span className="case-card-lido"><Icon name="check" size={14}/> Lido</span>}</span>
+            <strong>{c.titulo}</strong>
+            <span className="case-card-trecho">{c.resumo}</span>
+            <span className="case-card-abrir">Abrir <Icon name="arrow" size={14}/></span>
+          </button>
+        </li>)}
+      </ul>
+      {e.cards.length > 0 && <small className="case-card-dica">{vistos.size} de {cards.length} cards abertos. Toque ou clique em um card para ler.</small>}
+      {aberto !== null && (aberto === COMO_ENTRA
+        ? <Popup aoFechar={fechar} idDoTitulo="card-popup-titulo">
+            <h2 id="card-popup-titulo">Como se entra em {caso.area}</h2>
+            <ul className="case-como-entra-lista">
+              <li><b>Onde se trabalha:</b> {e.comoSeEntra.ondeSeTrabalha}</li>
+              <li><b>Formações comuns:</b> {e.comoSeEntra.formacoes}</li>
+              <li><b>Vagas para procurar:</b> {e.comoSeEntra.vagas}</li>
+              <li><b>O que ajuda:</b> {e.comoSeEntra.oQueAjuda}</li>
+              <li><b>Quando recrutam:</b> {e.comoSeEntra.quandoRecrutam}</li>
+            </ul>
+            <div className="trilha-acoes"><Button variant="ghost" onClick={fechar}>Fechar</Button></div>
+          </Popup>
+        : <Popup aoFechar={fechar} idDoTitulo="card-popup-titulo">
+            <span className="case-card-num">{String(aberto + 1).padStart(2, '0')}</span>
+            <h2 id="card-popup-titulo">{e.cards[aberto].titulo}</h2>
+            <div className="conteudo-corpo"><p>{e.cards[aberto].texto}</p></div>
+            <div className="case-na-pratica"><b>Na prática</b> {e.cards[aberto].naPratica}</div>
+            <div className="trilha-acoes">
+              {aberto + 1 < e.cards.length && <Button onClick={() => abrir(aberto + 1)} icon="arrow">Próximo card</Button>}
+              {aberto + 1 >= e.cards.length && <Button onClick={() => abrir(COMO_ENTRA)} icon="arrow">Como se entra</Button>}
+              <Button variant="ghost" onClick={fechar}>Fechar</Button>
+            </div>
+          </Popup>)}
     </> : <p>{checkpoint.descricao}</p>}
     <div className="case-acoes"><Button onClick={aoConcluir} disabled={ocupado}>{ocupado ? 'Concluindo…' : `Concluir esta etapa (+${checkpoint.pontos} pts)`}</Button></div>
   </section>
