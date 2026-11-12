@@ -70,6 +70,7 @@ export function CartaoCase({
       ) : (
         <div className="trilha-acoes">
           {item.estado === 'disponivel' && <Button onClick={aoPedirConfirmacao}>{item.refazer ? 'Refazer este case' : comecou ? 'Retomar este case' : 'Começar este case'}</Button>}
+          {item.estado === 'disponivel' && item.refazer && <Button variant="ghost" onClick={abrir}>Ver a devolutiva</Button>}
           {item.estado === 'em_andamento' && <Button onClick={abrir} icon="arrow">Continuar</Button>}
           {item.estado === 'em_avaliacao' && <Button variant="ghost" onClick={abrir}>Ver o andamento</Button>}
           {item.estado === 'concluido' && (

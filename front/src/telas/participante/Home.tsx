@@ -13,7 +13,7 @@ type Dados = { trilha: TrilhaDaUsuaria; top3: AfinidadeArea[]; eventos: EventoPo
 
 /** O case que a Home destaca: o que ela está fazendo; senão o que está em avaliação. */
 const casePrincipal = (cases: ItemTrilha[]) =>
-  cases.find(c => c.estado === 'em_andamento') ?? cases.find(c => c.estado === 'em_avaliacao') ?? null
+  cases.find(c => c.estado === 'em_andamento') ?? cases.find(c => c.estado === 'em_avaliacao') ?? cases.find(c => c.estado === 'disponivel' && c.refazer) ?? null
 
 export function Home() {
   const { sessao } = useSessao()
@@ -53,12 +53,12 @@ export function Home() {
 
   return <AppShell route="home">{titulo}<div className="home-grid"><div className="home-main"><LevelCard/>
     {principal ? <section className="dashboard-card weekly-case">
-      <div className="card-top"><Tag>{principal.estado === 'em_avaliacao' ? 'EM AVALIAÇÃO' : 'CASE EM ANDAMENTO'}</Tag></div>
+      <div className="card-top"><Tag>{principal.estado === 'em_avaliacao' ? 'EM AVALIAÇÃO' : principal.estado === 'disponivel' ? 'RESULTADO PUBLICADO' : 'CASE EM ANDAMENTO'}</Tag></div>
       <h2>{principal.titulo}</h2><p>{principal.resumo}</p>
       <div className="case-meta"><span><Icon name="chart"/> {principal.area}</span></div>
       <div className="case-stat"><span>Seu progresso</span><strong>{principal.progresso.concluidos} de {principal.progresso.total} checkpoints</strong></div>
       <Progress value={principal.progresso.total ? (principal.progresso.concluidos / principal.progresso.total) * 100 : 0}/>
-      <Button onClick={() => abrir(principal.caseId)} icon="arrow">{principal.estado === 'em_avaliacao' ? 'Ver case' : 'Continuar case'}</Button>
+      <Button onClick={() => abrir(principal.caseId)} icon="arrow">{principal.estado === 'em_avaliacao' ? 'Ver case' : principal.estado === 'disponivel' ? 'Ver devolutiva' : 'Continuar case'}</Button>
     </section> : <section className="dashboard-card weekly-case">
       <div className="card-top"><Tag>ILHAS</Tag></div>
       <h2>{trilha.diagnosticoConcluido ? 'Escolha uma ilha para explorar' : 'Comece pelo diagnóstico'}</h2>
