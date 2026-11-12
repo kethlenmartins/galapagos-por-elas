@@ -52,3 +52,8 @@ fieldset:disabled .treino-opcao { opacity: .55; cursor: not-allowed; }
 .sim-criterios { display: grid; gap: var(--space-3); }
 .ilha-apresentacao ul { margin: 0; padding-left: var(--space-5); display: grid; gap: var(--space-1); }
 @media (prefers-reduced-motion: reduce) { .sim-bolhas { scroll-behavior: auto; } }
+
+.sim-parcial { display: flex; align-items: center; gap: var(--space-2); margin: 0; color: var(--ink-600); font-size: 13px; font-style: italic; }
+.sim-gravando { width: 10px; height: 10px; border-radius: 50%; background: var(--pink-500); flex: none; }
+@media (prefers-reduced-motion: no-preference) { .sim-gravando { animation: sim-pulsa 1.2s ease-in-out infinite; } }
+@keyframes sim-pulsa { 50% { opacity: .3; } }

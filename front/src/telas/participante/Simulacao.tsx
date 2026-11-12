@@ -3,6 +3,7 @@ import './trilha.css'
 import './treino.css'
 import { definirIlhaAtual, go, obterIlhaAtual } from '../../app/rotas'
 import { sessaoExpirou } from '../../app/sessao'
+import { juntarTexto, useDitado, useFala } from '../../app/voz'
 import { PageTitle, Progress, Tag } from '../../componentes/Basicos'
 import { Button } from '../../componentes/Botao'
 import { AppShell } from '../../componentes/Layout'
@@ -37,6 +38,7 @@ export function Simulacao() {
   const [dificuldade, setDificuldade] = useState<DificuldadeSimulacao>('intermediario')
   const [perguntas, setPerguntas] = useState(5)
   const [cronometrado, setCronometrado] = useState(false)
+  const [vozAtiva, setVozAtiva] = useState(false)
 
   const [turno, setTurno] = useState<TurnoSimulacao | null>(null)
   const [conversa, setConversa] = useState<Mensagem[]>([])
@@ -45,6 +47,8 @@ export function Simulacao() {
   const [feedback, setFeedback] = useState<FeedbackSimulacao | null>(null)
   const [ocupado, setOcupado] = useState(false)
   const [erroDaAcao, setErroDaAcao] = useState('')
+  const ditado = useDitado(trecho => setTexto(t => juntarTexto(t, trecho)))
+  const fala = useFala()
   const enviando = useRef(false)
   const fim = useRef<HTMLDivElement>(null)
 
@@ -71,6 +75,8 @@ export function Simulacao() {
   }, [conversa, turno])
 
   const voltar = () => {
+    ditado.cancelar()
+    fala.parar()
     definirIlhaAtual(areaId)
     go('island')
   }
@@ -87,6 +93,7 @@ export function Simulacao() {
     }
     setTurno(r.dados)
     setConversa([{ autor: 'entrevistadora', texto: r.dados.pergunta }])
+    if (vozAtiva) fala.falar(r.dados.pergunta)
     setTexto('')
     setRestante(SEGUNDOS_POR_RESPOSTA)
     enviando.current = false
@@ -96,6 +103,8 @@ export function Simulacao() {
   const enviar = useCallback(async (resposta: string | null) => {
     if (!turno || enviando.current) return
     enviando.current = true
+    ditado.cancelar()
+    fala.parar()
     setOcupado(true)
     setErroDaAcao('')
     const r = await simulacaoService.responderSimulacao(turno.sessaoId, resposta)
@@ -109,6 +118,7 @@ export function Simulacao() {
     if (r.dados.reacao) novas.push({ autor: 'entrevistadora', texto: r.dados.reacao })
     if (r.dados.proximo) novas.push({ autor: 'entrevistadora', texto: r.dados.proximo.pergunta })
     setConversa(c => [...c, ...novas])
+    if (vozAtiva) fala.falar(novas.filter(m => m.autor === 'entrevistadora').map(m => m.texto).join(' '))
     setTexto('')
     enviando.current = false
     if (r.dados.proximo) {
@@ -118,17 +128,18 @@ export function Simulacao() {
       setFeedback(r.dados.feedbackFinal)
       setFase('feedback')
     }
-  }, [turno])
+  }, [turno, vozAtiva, ditado, fala])
 
   useEffect(() => {
-    if (fase !== 'conversa' || !cronometrado || ocupado) return
+    // O tempo só corre quando a entrevistadora terminou de falar.
+    if (fase !== 'conversa' || !cronometrado || ocupado || fala.falando) return
     if (restante <= 0) {
       enviar(texto.trim() || null)
       return
     }
     const t = window.setTimeout(() => setRestante(s => s - 1), 1000)
     return () => window.clearTimeout(t)
-  }, [fase, cronometrado, ocupado, restante, texto, enviar])
+  }, [fase, cronometrado, ocupado, fala.falando, restante, texto, enviar])
 
   const indisponivel = !!resumo && (!resumo.liberado || !resumo.disponivel || resumo.restantesHoje <= 0)
   const aviso = !resumo ? null : !resumo.liberado ? resumo.motivoBloqueio : !resumo.disponivel ? 'A simulação com IA não está disponível agora. Tente o treino de perguntas.' : resumo.restantesHoje <= 0 ? 'Você usou todas as simulações de hoje. Volte amanhã.' : null
@@ -178,6 +189,10 @@ export function Simulacao() {
         <input type="checkbox" checked={cronometrado} onChange={e => setCronometrado(e.target.checked)} disabled={indisponivel} />
         <span><strong>Modo cronometrado</strong><small>{SEGUNDOS_POR_RESPOSTA / 60} minutos por resposta. Quando o tempo acaba, o que você escreveu é enviado.</small></span>
       </label>
+      <label className="sim-cronometro">
+        <input type="checkbox" checked={vozAtiva} onChange={e => setVozAtiva(e.target.checked)} disabled={indisponivel || !fala.disponivel} />
+        <span><strong>Entrevistadora fala as perguntas</strong><small>{fala.disponivel ? 'As perguntas são lidas em voz alta. Você também pode ditar as respostas pelo microfone.' : 'Este navegador não lê em voz alta; as perguntas aparecem só em texto.'}</small></span>
+      </label>
       {resumo.disponivel && <p className="trilha-dica">Restam {resumo.restantesHoje} simulações hoje. Não compartilhe dados pessoais nas respostas.</p>}
       <div className="trilha-acoes"><Button onClick={comecar} disabled={ocupado || indisponivel}>{ocupado ? 'Chamando a entrevistadora…' : 'Começar entrevista'}</Button></div>
     </>}
@@ -194,8 +209,12 @@ export function Simulacao() {
         <div ref={fim} />
       </div>
       {erroDaAcao && <div className="alert alert-error" role="alert"><p>{erroDaAcao}</p></div>}
+      {ditado.erro && <div className="alert alert-warning" role="note"><p>{ditado.erro}</p></div>}
       <textarea className="sim-resposta" rows={5} maxLength={2000} value={texto} onChange={e => setTexto(e.target.value)} disabled={ocupado} placeholder="Escreva a sua resposta…" aria-label="Sua resposta" />
+      {ditado.ouvindo && <p className="sim-parcial" role="status"><span className="sim-gravando" aria-hidden="true" /> Ouvindo… {ditado.parcial}</p>}
       <div className="trilha-acoes">
+        {ditado.disponivel && <Button variant="ghost" onClick={ditado.ouvindo ? ditado.parar : ditado.iniciar} disabled={ocupado} pressed={ditado.ouvindo}>{ditado.ouvindo ? 'Parar de ouvir' : '🎤 Falar a resposta'}</Button>}
+        {fala.disponivel && <Button variant="ghost" onClick={() => (fala.falando ? fala.parar() : setVozAtiva(v => !v))} pressed={vozAtiva}>{fala.falando ? 'Silenciar' : vozAtiva ? 'Voz ligada' : 'Voz desligada'}</Button>}
         <Button onClick={() => enviar(texto.trim() || null)} disabled={ocupado || !texto.trim()} icon="arrow">{turno.numero >= turno.total ? 'Enviar e ver o feedback' : 'Enviar resposta'}</Button>
         <small className="trilha-motivo">{texto.length}/2000</small>
       </div>
