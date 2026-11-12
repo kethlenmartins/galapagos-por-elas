@@ -100,5 +100,5 @@ export function AppShell({ route, children, admin = false }: { route: Route; chi
 
 export function PublicHeader() {
   const { sessao } = useSessao()
-  return <header className="public-header"><Logo/><nav><button onClick={() => go('validate')}>Validar certificado</button>{sessao ? <><button onClick={() => go('home')}>Minha jornada</button><Button onClick={() => go('diagnostic')}>Fazer o diagnóstico</Button></> : <><button onClick={() => go('login')}>Entrar</button><Button onClick={() => go('signup')}>Quero participar</Button></>}</nav></header>
+  return <header className="public-header"><Logo publica/><nav><button onClick={() => go('validate')}>Validar certificado</button>{sessao ? <Button onClick={() => go('home')}>Ir para a plataforma</Button> : <button onClick={() => go('login')}>Entrar</button>}</nav></header>
 }

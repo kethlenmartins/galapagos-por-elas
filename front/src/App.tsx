@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react'
-import { registrarNavegacao, rotaDoHash, rotasAdmin, rotasPublicas, type Route } from './app/rotas'
+import { go, registrarNavegacao, rotaDoHash, rotasAdmin, rotasPublicas, type Route } from './app/rotas'
 import { SessaoProvider, useSessao } from './app/sessao'
 import { Diagnostico } from './telas/participante/Diagnostico'
 import { Resultado } from './telas/participante/Resultado'
@@ -77,8 +77,15 @@ function Rotas() {
     return () => window.removeEventListener('hashchange', aoMudarOHash)
   }, [])
 
+  useEffect(() => {
+    if (sessao && rota === 'landing') go('home')
+  }, [rota, sessao])
+
   if (!telas[rota]) return <NotFound />
   if (carregando) return null
+  // A landing é externa à plataforma: uma sessão ativa nunca permanece nela,
+  // mesmo que a URL seja digitada diretamente.
+  if (sessao && rota === 'landing') return null
   if (!rotasPublicas.includes(rota) && !sessao) return <Login />
   if (rotasAdmin.includes(rota) && sessao?.papel !== 'equipe') return <SystemPage type="403" />
   return telas[rota]()

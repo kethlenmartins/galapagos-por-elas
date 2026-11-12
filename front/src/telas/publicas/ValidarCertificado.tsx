@@ -37,7 +37,7 @@ export function ValidateCertificate() {
     <h1>Validar certificado</h1>
     <p>Digite o código que aparece no certificado para confirmar sua autenticidade.</p>
     <form onSubmit={enviar}>
-      <Field label="Código do certificado" placeholder="Ex.: GPE-2026-0001-AB12" value={codigo} onChange={setCodigo}/>
+      <Field label="Código do certificado" placeholder="Ex.: ALU-2026-0001-AB12" value={codigo} onChange={setCodigo}/>
       <Button type="submit" disabled={estado.tipo === 'carregando'}>{estado.tipo === 'carregando' ? 'Validando…' : 'Validar'}</Button>
     </form>
     <div aria-live="polite">

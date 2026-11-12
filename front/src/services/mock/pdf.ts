@@ -96,7 +96,7 @@ export function montarPdfCertificado(d: DadosCertificado): string {
   c += `q ${AZUL.join(' ')} RG 3 w 24 24 ${LARGURA - 48} ${ALTURA - 48} re S Q\n`
   c += `q ${ROSA.join(' ')} RG 1 w 32 32 ${LARGURA - 64} ${ALTURA - 64} re S Q\n`
 
-  c += textoCentralizado('GALAPAGOS POR ELAS', 515, 14, { negrito: true, cor: ROSA })
+  c += textoCentralizado('ALUMNA', 515, 14, { negrito: true, cor: ROSA })
   c += textoCentralizado('Certificado de conclusão', 462, 36, { negrito: true, cor: AZUL })
   c += `q ${ROSA.join(' ')} RG 3 w ${LARGURA / 2 - 40} 440 m ${LARGURA / 2 + 40} 440 l S Q\n`
   c += textoCentralizado('Certificamos que', 400, 15, { cor: CINZA })

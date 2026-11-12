@@ -169,6 +169,13 @@
       "when": 1795785300000,
       "tag": "0023_forum",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795871700000,
+      "tag": "0024_publicar_vagas",
+      "breakpoints": true
     }
   ]
 }

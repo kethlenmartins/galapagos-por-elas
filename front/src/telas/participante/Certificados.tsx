@@ -80,7 +80,7 @@ export function Certificates() {
 
     {lista && lista.length > 0 && <div className="certificate-list">
       {lista.map(c => <article className="certificate-item" key={c.id}>
-        <div className="certificate-thumb" aria-hidden="true"><span className="logo-mark"><span/></span><small>CERTIFICADO</small><strong>Galapagos<br/>por Elas</strong><i>{iniciais(c.nomeParticipante)}</i></div>
+        <div className="certificate-thumb" aria-hidden="true"><span className="logo-mark"><span/></span><small>CERTIFICADO</small><strong>Alumna</strong><i>{iniciais(c.nomeParticipante)}</i></div>
         <div className="certificate-info">
           <Tag>{c.area.toUpperCase()}</Tag>
           <h2>{c.tituloCase}</h2>

@@ -6,7 +6,7 @@ import { Logo } from '../../componentes/Logo'
 
 export const legalSections = {
   terms: [
-    ['1. Sobre a plataforma', 'A Galapagos por Elas oferece conteúdos educacionais, diagnósticos de afinidade e desafios práticos relacionados ao mercado financeiro. O uso da plataforma não representa recomendação de investimento ou promessa de emprego.'],
+    ['1. Sobre a plataforma', 'A Alumna oferece conteúdos educacionais, diagnósticos de afinidade e desafios práticos relacionados ao mercado financeiro. O uso da plataforma não representa recomendação de investimento ou promessa de emprego.'],
     ['2. Cadastro e acesso', 'Você é responsável por manter seus dados corretos e sua senha protegida. Contas de equipe são concedidas somente pela organização e possuem permissões administrativas específicas.'],
     ['3. Conteúdos e certificados', 'Os certificados registram a conclusão dos cases e podem ser validados publicamente pelo código. Os materiais são destinados ao aprendizado pessoal.'],
     ['4. Uso de inteligência artificial', 'Usamos inteligência artificial para apoiar conversas do diagnóstico, sugerir rascunhos de cases e apoiar correções. Decisões relevantes são revisadas pela equipe.'],

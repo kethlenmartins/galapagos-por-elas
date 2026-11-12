@@ -5,7 +5,7 @@ import { montarPdfCertificado, pdfParaDataUrl, slug } from './pdf.ts'
 import { executar, executarLogada, falha, novoId, ok } from './store.ts'
 import type { CertificadoRegistro, EstadoMock, Usuario } from './tipos.ts'
 
-const ORGANIZACAO = 'Galapagos por Elas'
+const ORGANIZACAO = 'Alumna'
 
 /**
  * Endereço da página pública de validação. No navegador usa o endereço do próprio app; fora dele
@@ -13,7 +13,7 @@ const ORGANIZACAO = 'Galapagos por Elas'
  */
 function baseDeValidacao(): string {
   if (typeof location !== 'undefined' && location.origin && location.origin !== 'null') return `${location.origin}${location.pathname}`
-  return 'https://exemplo.galapagosporelas.org/'
+  return 'https://exemplo.alumna.org/'
 }
 
 export const urlDeValidacao = (codigo: string) => `${baseDeValidacao()}#/validate?codigo=${encodeURIComponent(codigo)}`
@@ -23,7 +23,7 @@ function gerarCodigo(sequencia: number, semente: string, ano: number): string {
   let hash = 5381
   for (const ch of semente) hash = ((hash << 5) + hash + ch.charCodeAt(0)) >>> 0
   const parte = (n: number) => n.toString(36).toUpperCase().padStart(4, '0').slice(-4)
-  return `GPE-${ano}-${parte(sequencia)}-${parte(hash)}`
+  return `ALU-${ano}-${parte(sequencia)}-${parte(hash)}`
 }
 
 /** Emite o certificado de uma participante para um case. Idempotente por usuária e case. */

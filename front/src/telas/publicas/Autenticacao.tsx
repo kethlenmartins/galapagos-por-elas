@@ -8,7 +8,7 @@ import { Icon } from '../../componentes/Icone'
 import { Logo } from '../../componentes/Logo'
 
 export function AuthLayout({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
-  return <div className="auth-page"><div className="auth-brand"><Logo light/><div><span className="eyebrow eyebrow-light">GALAPAGOS POR ELAS</span><h2>Conhecimento abre portas.<br/>Prática leva você além.</h2><p>Uma jornada feita para você descobrir, aprender e conquistar seu espaço no mercado financeiro.</p></div><small>Feito para mulheres que querem ir além.</small></div><main className="auth-main"><button className="back-link" onClick={() => go('landing')}>← Voltar para o início</button><div className="auth-box"><h1>{title}</h1><p>{subtitle}</p>{children}</div></main></div>
+  return <div className="auth-page"><div className="auth-brand"><Logo light publica/><div><span className="eyebrow eyebrow-light">ALUMNA</span><h2>Conhecimento abre portas.<br/>Prática leva você além.</h2><p>Uma jornada feita para você descobrir, aprender e conquistar seu espaço no mercado financeiro.</p></div><small>Feito para mulheres que querem ir além.</small></div><main className="auth-main"><button className="back-link" onClick={() => go('landing')}>← Voltar para o início</button><div className="auth-box"><h1>{title}</h1><p>{subtitle}</p>{children}</div></main></div>
 }
 
 const FORCA = ['Muito fraca', 'Fraca', 'Boa', 'Forte', 'Muito forte']

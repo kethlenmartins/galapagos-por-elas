@@ -44,14 +44,14 @@ export const forumService: ForumService = {
     return ok({ ...post, respostasArvore: respostas.filter(r => r.postId === id), seguindo: seguindo.has(`${usuario.id}:${id}`) } as DetalhePostForum)
   }),
   criarPost: dados => executarLogada(({ usuario, agora }) => {
-    const p = perfil(usuario.id); if (!p) return falha('VALIDACAO', 'Escolha seu apelido antes de publicar.', { apelido: 'Crie seu apelido do fórum.' })
+    const p = perfil(usuario.id); if (!p) return falha('VALIDACAO', 'Defina seu nome de usuário no Perfil antes de publicar.', { apelido: 'Defina seu nome de usuário.' })
     const campos = { ...validarTexto(dados.titulo, 140, 'titulo'), ...validarTexto(dados.texto, 5000, 'texto') }; const categoria = categorias.find(c => c.id === dados.categoriaId)
     if (!categoria) campos.categoriaId = 'Escolha uma categoria.'; if (dados.areaId && !AREAS.some(a => a.id === dados.areaId)) campos.areaId = 'Escolha uma área válida.'
     if (Object.keys(campos).length) return falha('VALIDACAO', 'Confira os campos.', campos)
     const post: PostForum = { id: novoId('post'), titulo: dados.titulo.trim(), texto: dados.texto.trim(), categoria: categoria!, areaId: dados.areaId ?? null, autora: autor(usuario.id, p.apelido), criadoEm: agora.toISOString(), editadoEm: null, respostas: 0, uteis: 0, meuVoto: false, removido: false }; posts.push(post); return ok(post)
   }),
   criarResposta: (postId, dados) => executarLogada(({ usuario, agora }) => {
-    const p = perfil(usuario.id); if (!p) return falha('VALIDACAO', 'Escolha seu apelido antes de responder.', { apelido: 'Crie seu apelido do fórum.' })
+    const p = perfil(usuario.id); if (!p) return falha('VALIDACAO', 'Defina seu nome de usuário no Perfil antes de responder.', { apelido: 'Defina seu nome de usuário.' })
     const post = posts.find(x => x.id === postId); if (!post) return falha('NAO_ENCONTRADO', 'Publicação não encontrada.')
     const campos = validarTexto(dados.texto, 2000, 'texto'); if (dados.paiId && !respostas.some(r => r.id === dados.paiId && r.postId === postId)) campos.paiId = 'Resposta pai inválida.'
     if (Object.keys(campos).length) return falha('VALIDACAO', 'Confira sua resposta.', campos)
