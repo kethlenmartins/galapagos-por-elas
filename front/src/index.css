@@ -737,7 +737,7 @@
   .mobile-logo .logo-mark { width: 28px; height: 28px; }
   .topbar-title { display: none; }
   .topbar { padding: 0 var(--space-4); }
-  .bottom-nav { position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; height: 68px; display: grid; grid-template-columns: repeat(4,1fr); border-top: 1px solid var(--ink-200); background: var(--white); }
+  .bottom-nav { position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; height: 68px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border-top: 1px solid var(--ink-200); background: var(--white); }
   .bottom-nav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 0; background: transparent; color: var(--ink-600); font-size: 9px; }
   .bottom-nav button.active { color: var(--blue-600); font-weight: 700; }
   .main-content { padding: var(--space-6) var(--space-4) var(--space-10); }
@@ -960,7 +960,11 @@
 .community-pinned { border: 1px solid var(--pink-200); background: var(--pink-50) !important; }
 .community-pinned small { color: var(--pink-700); font-weight: 800; letter-spacing: .06em; }
 .community-new { position: fixed; right: 24px; bottom: 24px; z-index: 8; border-radius: var(--radius-pill); box-shadow: var(--shadow); }
-@media (max-width: 800px) { .community-layout { grid-template-columns: 1fr; } .community-aside { grid-template-columns: 1fr; } }
+/* Colunas com minmax(0, 1fr): com `1fr` a coluna cresce até a largura dos chips (que não quebram linha) e a página inteira passa da tela do celular. */
+.community-layout > * { min-width: 0; }
+.community-post, .community-reply { min-width: 0; }
+.community-title, .community-post h2, .community-reply p, .community-post p, .forum-texto { overflow-wrap: anywhere; }
+@media (max-width: 800px) { .community-layout { grid-template-columns: minmax(0, 1fr); } .community-aside { grid-template-columns: minmax(0, 1fr); } }
 .community-thread { max-height: min(92vh, 820px); overflow-y: auto; }
 .community-thread h2 { margin: var(--space-3) 0 var(--space-1); }
 .community-thread h3 { margin: var(--space-6) 0 var(--space-3); }
@@ -993,4 +997,14 @@
   .community-thread { width: 100%; min-height: 100vh; max-height: 100vh; border-radius: 0; padding: var(--space-5) var(--space-4); }
   .community-comment-box .btn { width: 100%; justify-self: stretch; }
   .community-reply.indented { margin-left: var(--space-4); }
+}
+
+/* Celulares estreitos (360px): a barra do topo não pode passar da tela; a conversa da comunidade ocupa a tela toda. */
+@media (max-width: 420px) {
+  .topbar { gap: var(--space-2); }
+  .top-user { min-width: 0; max-width: 34vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .top-user svg { display: none; }
+}
+@media (max-width: 540px) {
+  .modal-backdrop:has(.community-thread) { padding: 0; align-items: stretch; }
 }
