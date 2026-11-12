@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import './trilha.css'
-import { faixaDaSemana, dataEHora } from '../../app/formatos'
 import { definirCaseAtual, go } from '../../app/rotas'
 import { sessaoExpirou } from '../../app/sessao'
 import { PageTitle, Progress, Tag } from '../../componentes/Basicos'
@@ -69,14 +68,8 @@ function Ilha({
       {item.estado === 'bloqueado' && (
         <p className="trilha-aviso"><Icon name="lock" size={16} /> {item.motivoBloqueio}</p>
       )}
-      {item.estado === 'em_andamento' && item.prazoEm && (
-        <p className="trilha-aviso trilha-prazo"><Icon name="clock" size={16} /> Prazo: {dataEHora(item.prazoEm)}</p>
-      )}
       {item.estado === 'disponivel' && item.refazer && (
-        <p className="trilha-aviso trilha-prazo"><Icon name="spark" size={16} /> Você pode refazer este case. Seus pontos já ganhos ficam guardados.</p>
-      )}
-      {item.estado === 'disponivel' && comecou && !item.refazer && (
-        <p className="trilha-aviso"><Icon name="clock" size={16} /> O prazo anterior passou, mas seu progresso foi mantido.</p>
+        <p className="trilha-aviso"><Icon name="spark" size={16} /> Você pode refazer este case. Seus pontos já ganhos ficam guardados.</p>
       )}
 
       {item.estado !== 'bloqueado' && (
@@ -87,10 +80,10 @@ function Ilha({
       )}
 
       {confirmando ? (
-        <div className="trilha-confirmacao" role="alertdialog" aria-label="Confirmar a escolha do case">
-          <p><strong>Escolher este case para a semana?</strong> Você só pode ter um case por semana, e o prazo começa a contar agora. O seu progresso fica salvo.</p>
+        <div className="trilha-confirmacao" role="alertdialog" aria-label="Confirmar o início da ilha">
+          <p><strong>Começar esta ilha?</strong> Você precisa terminá-la antes de começar outra. Seu progresso fica salvo.</p>
           <div className="trilha-acoes">
-            <Button onClick={aoConfirmar} disabled={ocupado}>{ocupado ? 'Escolhendo…' : 'Confirmar escolha'}</Button>
+            <Button onClick={aoConfirmar} disabled={ocupado}>{ocupado ? 'Começando…' : 'Começar'}</Button>
             <Button variant="ghost" onClick={aoCancelar} disabled={ocupado}>Cancelar</Button>
           </div>
         </div>
@@ -98,7 +91,7 @@ function Ilha({
         <div className="trilha-acoes">
           {item.estado === 'disponivel' && (
             <>
-              <Button onClick={aoPedirConfirmacao} disabled={!podeEscolher}>{item.refazer ? 'Refazer este case' : comecou ? 'Retomar este case' : 'Escolher este case'}</Button>
+              <Button onClick={aoPedirConfirmacao} disabled={!podeEscolher}>{item.refazer ? 'Refazer este case' : comecou ? 'Retomar este case' : 'Começar esta ilha'}</Button>
               {!podeEscolher && motivo && <small className="trilha-motivo">{motivo}</small>}
             </>
           )}
@@ -164,14 +157,6 @@ export function Trilha() {
     {fase === 'erro' && <div className="alert alert-error" role="alert"><p>{mensagem}</p></div>}
 
     {fase === 'ok' && trilha && <>
-      <section className="trilha-semana">
-        <span className="round-icon"><Icon name="calendar" size={24} /></span>
-        <div>
-          <strong>Semana de {faixaDaSemana(trilha.semana.inicioEm, trilha.semana.fimEm)}</strong>
-          <p>Os cases abrem na segunda-feira e fecham na sexta, às 23h59. Se você escolher de quarta a domingo, o prazo vai até a sexta da semana seguinte.</p>
-        </div>
-      </section>
-
       {!trilha.diagnosticoConcluido && (
         <div className="alert alert-warning" role="note">
           <p>{trilha.motivoNaoPodeEscolher} <button className="text-link" onClick={() => go('diagnostic')}>Fazer o diagnóstico</button></p>

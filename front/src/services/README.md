@@ -46,14 +46,11 @@ Mostre `erro.mensagem`: ela já vem em português e pronta para a usuária.
 
 Implementa o modelo de `docs/PRD_Cases_Trilha.md`:
 
-- **Desbloqueio:** sem diagnóstico, nada abre. O primeiro case é de uma das áreas do ranking que tenham case publicado (as 3 primeiras; se o Top 3 não tem case, o ranking segue). Depois do primeiro certificado, todos os publicados abrem. Quem já começou um case mantém o acesso, mesmo arquivado.
-- **Um case por semana**, à escolha dela, e só um em andamento por vez (`escolherCase`).
-- **Prazo:** escolhido de segunda a terça vale a sexta da mesma semana; de quarta a domingo, a sexta da semana seguinte (23h59, Brasília). Passado o prazo o case pausa e o progresso é mantido.
+- **Desbloqueio:** sem diagnóstico, nada abre. Os cases são ilhas em ordem: cada uma abre quando a anterior termina com certificado. Quem já começou um case mantém o acesso, mesmo arquivado.
+- **Quem começa termina:** só um case em andamento por vez (`escolherCase`); enviado e em avaliação conta como não terminado. Não há case por semana nem prazo: o progresso fica salvo até ela concluir.
 - **Checkpoints** abrem em ordem, pagam pontos uma vez (20 no “entenda a área”, 30 nos demais) e travam as respostas ao concluir. Enviar não paga: os checkpoints já pagaram.
 - **Aprovada** = nota publicada ≥ mínimo (6,0, suposição). Só então saem o bônus de nota (até 150, uma vez por case), o certificado (100) e os próximos cases. Sem aprovação, ela refaz em uma nova tentativa: a situação e a defesa recomeçam, e o que já foi pago não se repete.
 - **Certificado:** PDF gerado sem dependências (`mock/pdf.ts`, A4 paisagem, texto selecionável), com o nome do case, o nome dela, a área, a data e o código; e o link de “adicionar ao LinkedIn” com o endereço de validação. No backend real, o PDF é gerado no servidor e o código é imprevisível.
-
-Nos testes e na demonstração, a semana e o prazo usam o relógio simulado (`?agora=`).
 
 ## Controles de desenvolvimento
 
@@ -65,7 +62,7 @@ Pela URL: `/?mock=rede,ia,expirada,rapido#/rota` e `/?agora=2026-11-02T07:00:00-
 | `ia` | a IA fica indisponível (ativa os fallbacks da geração de cases e da correção). O diagnóstico não usa IA |
 | `expirada` | as chamadas que exigem login falham com `SEM_LOGIN` |
 | `rapido` | sem latência simulada |
-| `agora=` | relógio simulado (para ver o case "não liberado", "prazo próximo" e "encerrado") |
+| `agora=` | relógio simulado (para simular datas) |
 
 No console do navegador: `__galapagosMock.definir({ iaIndisponivel: true })`,
 `__galapagosMock.definirAgora('...')`, `__galapagosMock.resetar()` (volta aos dados de demonstração) e

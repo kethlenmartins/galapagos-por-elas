@@ -74,18 +74,20 @@ INSERT INTO tasks (id, case_id, checkpoint_id, title, prompt, fields, support_da
 O material enviado destaca: 100 empresas atendidas; R$ 200 mil de receita mensal recorrente; base de empresas triplicou em seis meses.
 A fundadora escreve: “Buscamos R$ 4 milhões, com valuation de R$ 40 milhões antes do investimento. Queremos acelerar as vendas.”
 O processo avançou até a verificação da tração e das premissas que sustentam o preço pedido.
-Escolha duas caixas de atenção e acompanhe a conversa abaixo.
-
+[[continuar]]
+[[campos: caixa_1, caixa_2]]
+Antes da conversa, escolha duas caixas de atenção para esta oportunidade. Elas só serão comentadas depois da sua decisão.
+[[continuar]]
 Você: “Como os R$ 200 mil se dividem entre assinaturas e outros serviços?”
 Fundadora: “São R$ 80 mil de assinaturas e R$ 120 mil de projetos de implantação realizados no último mês.”
 Você: “As implantações se repetem todo mês?”
 Fundadora: “Não. São serviços cobrados quando o cliente entra ou pede um projeto adicional.”
-
+[[continuar]]
 Você: “E as 100 empresas atendidas?”
 Fundadora: “Quarenta pagam assinatura e sessenta estão em teste gratuito. Há seis meses, tínhamos vinte assinantes.”
 Você: “Qual conversão dos testes vocês utilizaram na projeção?”
 Fundadora: “Consideramos que nove em cada dez vão contratar. Nas turmas de teste que já terminaram, três em cada dez contrataram. Acreditamos que as próximas serão melhores.”
-
+[[continuar]]
 Você: “O que sustenta essa melhora na conversão?”
 Fundadora: “Pretendemos reforçar o acompanhamento dos testes, mas ainda não medimos o resultado dessa mudança.”
 Você: “Se a projeção considerar o histórico observado, vocês discutiriam outro valuation?”
@@ -121,13 +123,15 @@ Fundadora: “Por enquanto, não. O preço de R$ 40 milhões foi definido com ba
   $$Origem: encontro em um evento de empreendedorismo. Produto: software para organizar compras de pequenas indústrias.
 O fundador inicia: “Trabalhei anos nesse setor e conheço o problema de perto. Já temos clientes pagando e reduzimos o trabalho manual das equipes de compras. Com a rodada, quero acelerar as vendas.”
 Produto, mercado, números e condições da rodada já foram avaliados. Esta conversa conclui a análise da relação do fundador com a equipe e os investidores.
-Escolha duas caixas de atenção e acompanhe a conversa abaixo.
-
+[[continuar]]
+[[campos: caixa_1, caixa_2]]
+Antes da conversa, escolha duas caixas de atenção para esta oportunidade. Elas só serão comentadas depois da sua decisão.
+[[continuar]]
 Você: “Conte sobre uma meta importante que vocês não atingiram.”
 Fundador: “Ficamos abaixo da meta comercial. A equipe não entregou. Também perdemos um cliente importante.”
 Você: “O que vocês aprenderam com a saída dele?”
 Fundador: “Não conversei com o cliente depois disso. Estou trocando o responsável comercial e mantendo a estratégia.”
-
+[[continuar]]
 Você: “Como essa perda apareceu no relatório enviado aos investidores?”
 Fundador: “Ainda não apareceu. O cliente continua na lista de ativos. Quero resolver antes de levantar preocupação.”
 Você: “Podemos corrigir o relatório e verificar os motivos da saída?”
@@ -163,21 +167,23 @@ Fundador: “Prefiro não alterar o material durante a rodada. Depois do aporte,
   $$Origem: indicação de uma empreendedora da sua rede. Produto: software que automatiza documentação e rastreabilidade para fabricantes de alimentos.
 A mensagem recebida diz: “Conheci a equipe e achei a solução interessante. Estão abrindo uma rodada. Vale conversar.”
 Equipe, produto, tração, condições da rodada e plano de execução já foram avaliados. Falta concluir a análise de mercado. Para esta oportunidade, o fundo busca um mercado acessível de pelo menos R$ 200 milhões anuais em receita potencial de software.
-Escolha duas caixas de atenção e acompanhe a conversa abaixo.
-
+[[continuar]]
+[[campos: caixa_1, caixa_2]]
+Antes da conversa, escolha duas caixas de atenção para esta oportunidade. Elas só serão comentadas depois da sua decisão.
+[[continuar]]
 Você: “Quem consegue usar o produto atual?”
 Fundadora: “Identificamos vinte mil fabricantes compatíveis com o produto e com os canais comerciais disponíveis. O levantamento considera empresas com o porte e a estrutura necessários para contratar.”
 Você: “Quanto pagariam?”
 Fundadora: “R$ 12 mil por ano, em média. Esse valor foi testado em clientes pagantes. O levantamento e as premissas estão nos documentos que enviamos.”
-
+[[continuar]]
 Você: “Por que esse problema ficou mais importante agora?”
 Fundadora: “Grandes compradores aumentaram as exigências de documentação dos fornecedores. Os fabricantes precisam organizar mais informações e rastrear insumos e lotes.”
 Você: “Como resolvem isso hoje?”
 Fundadora: “Com planilhas, arquivos, trabalho manual e alguns softwares mais amplos. Nos clientes atuais, verificamos redução do esforço e disposição para pagar pela solução.”
-
+[[continuar]]
 Você: “Há poucos concorrentes especializados. Isso torna a venda fácil?”
 Fundadora: “Não. Disputamos orçamento com outras prioridades e precisamos convencer o cliente a mudar sua rotina. A concorrência também inclui continuar fazendo como ele faz hoje.”
-
+[[continuar]]
 Apoio ao cálculo: mercado acessível anual = clientes atendíveis × gasto anual por cliente.$$,
   $$[
     {"id":"caixa_1","tipo":"opcao","rotulo":"Primeiro ponto que você priorizaria nesta análise","obrigatorio":true,"opcoes":["Distribuição das participações entre os sócios.","Qualidade técnica do código.","Quantidade de clientes que o produto consegue atender e quanto pagariam.","Experiência dos fundadores.","Direitos previstos no contrato de investimento.","Motivos para comprar agora e alternativas utilizadas pelos clientes."]},

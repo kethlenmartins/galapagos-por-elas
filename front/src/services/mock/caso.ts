@@ -18,7 +18,6 @@ import type {
 import { AREAS } from './dados/areas.ts'
 import { CONFIG, REGRAS_DE_PONTOS } from './dados/config.ts'
 import { corrigirEntrega } from './correcao.ts'
-import { diaDaSemanaBRT, inicioDaSemana, prazoDoCase, sextaDaSemana } from './datas.ts'
 import { conceder } from './pontos.ts'
 import { executarLogada, falha, novoId, ok, type ContextoLogado } from './store.ts'
 import type { EntregaRegistro, EstadoMock } from './tipos.ts'
@@ -26,8 +25,7 @@ import {
   ETAPAS_QUE_REINICIAM,
   casesPublicados,
   casesVisiveisPara as casesVisiveis,
-  caseEmAndamento,
-  escolhaDaSemana,
+  caseNaoTerminado,
   proximaIlha,
   posicaoNoFit,
   progressoDe,
@@ -107,7 +105,6 @@ function montarCase(caso: CaseAdmin, ctx: ContextoLogado): CaseTrilha {
     contexto: escolhido ? caso.contexto : '',
     entenda: escolhido ? caso.entenda : null,
     estado: situacao.estado,
-    prazoEm: situacao.progresso?.prazoEm ?? null,
     tentativa: situacao.tentativa,
     pontosPossiveis: caso.checkpoints.reduce((s, c) => s + c.pontos, 0) + CONFIG.bonusResultadoMaximo + REGRAS_DE_PONTOS.certificado.pontos,
     checkpoints,
@@ -119,7 +116,7 @@ function montarCase(caso: CaseAdmin, ctx: ContextoLogado): CaseTrilha {
 /** Mensagem de erro de quem tenta mexer em um case que não está em andamento. */
 function naoEstaEmAndamento(situacao: SituacaoDoCase) {
   if (situacao.estado === 'em_avaliacao' || situacao.estado === 'concluido') return falha('VALIDACAO', 'A entrega já foi enviada.')
-  if (situacao.progresso) return falha('VALIDACAO', 'O prazo deste case terminou. Escolha o case de novo para continuar de onde parou.')
+  if (situacao.progresso) return falha('VALIDACAO', 'Escolha o case primeiro.')
   return falha('VALIDACAO', 'Escolha o case primeiro.')
 }
 
@@ -169,7 +166,6 @@ export const caseService: CaseService = {
             noTop3: posicao !== null && posicao <= 3,
             sugerido: caso.id === sugeridoId,
             motivoBloqueio: sit.motivoBloqueio,
-            prazoEm: sit.progresso?.prazoEm ?? null,
             progresso: { concluidos: feitos, total },
             certificadoId: estado.certificados.find(c => c.usuarioId === usuario.id && c.caseId === caso.id)?.id ?? null,
             refazer: sit.refazer,
@@ -177,22 +173,15 @@ export const caseService: CaseService = {
         })
         .sort((a, b) => a.ordem - b.ordem)
 
-      const escolhida = escolhaDaSemana(estado, usuario.id, agora)
-      const ativo = caseEmAndamento(estado, usuario.id, agora)
+      const ativo = caseNaoTerminado(estado, usuario.id, agora)
       let motivo: string | null = null
       if (!resultado) motivo = 'Faça o diagnóstico para descobrir por onde começar.'
       else if (ativo) motivo = `Termine o case em andamento: ${ativo.titulo}.`
-      else if (escolhida) motivo = 'Você já escolheu o case desta semana. O próximo abre na segunda-feira.'
       else if (!cases.some(c => c.estado === 'disponivel')) motivo = 'Nenhum case disponível para você agora.'
 
-      // No sábado e no domingo a semana de trabalho já acabou: mostramos a que começa na segunda.
-      const fimDeSemana = [0, 6].includes(diaDaSemanaBRT(agora))
-      const inicio = fimDeSemana ? new Date(inicioDaSemana(agora).getTime() + 7 * 24 * 3_600_000) : inicioDaSemana(agora)
       return ok({
         diagnosticoConcluido: !!resultado,
         primeiroCaseConcluido: primeiroConcluido,
-        semana: { inicioEm: inicio.toISOString(), fimEm: sextaDaSemana(inicio).toISOString() },
-        escolhaDaSemana: escolhida?.caseId ?? null,
         proximoCaseId: proxima?.id ?? null,
         podeEscolher: motivo === null,
         motivoNaoPodeEscolher: motivo,
@@ -212,16 +201,13 @@ export const caseService: CaseService = {
       if (sit.estado === 'concluido') return falha('VALIDACAO', 'Você já concluiu este case.')
       if (sit.estado === 'em_andamento') return ok(montarCase(caso, ctx))
 
-      const outro = caseEmAndamento(estado, usuario.id, agora)
+      const outro = caseNaoTerminado(estado, usuario.id, agora)
       if (outro) return falha('VALIDACAO', `Termine o case em andamento antes de escolher outro: ${outro.titulo}.`)
-      if (escolhaDaSemana(estado, usuario.id, agora, caso.id)) {
-        return falha('VALIDACAO', 'Você já escolheu o case desta semana. O próximo abre na segunda-feira.')
-      }
 
       // Nova tentativa depois de uma avaliação sem aprovação.
       if (sit.refazer) reiniciarTentativa(estado, usuario.id, caso)
       const existente = progressoDe(estado, usuario.id, caso.id)
-      const registro = { usuarioId: usuario.id, caseId: caso.id, escolhidoEm: agora.toISOString(), prazoEm: prazoDoCase(agora).toISOString(), tentativa: sit.tentativa, enviadaEm: null }
+      const registro = { usuarioId: usuario.id, caseId: caso.id, escolhidoEm: agora.toISOString(), tentativa: sit.tentativa, enviadaEm: null }
       if (existente) Object.assign(existente, registro)
       else estado.progressos.push(registro)
       return ok(montarCase(caso, ctx))

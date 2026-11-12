@@ -3,8 +3,6 @@
 .trilha-page, .case-page { width: min(100%, 880px); display: grid; gap: var(--space-5); margin: auto; }
 
 /* --- Trilha --- */
-.trilha-semana { display: grid; grid-template-columns: auto 1fr; gap: var(--space-4); align-items: center; padding: var(--space-5); border-radius: var(--radius-md); background: var(--white); box-shadow: var(--shadow-sm); }
-.trilha-semana p { color: var(--ink-600); font-size: 14px; }
 .trilha-dica { color: var(--ink-600); font-size: 14px; }
 .trilha-resumo-topo { display: grid; gap: var(--space-2); padding: var(--space-4) var(--space-5); border-radius: var(--radius-md); background: var(--white); box-shadow: var(--shadow-sm); }
 .trilha-resumo-topo p { color: var(--ink-600); font-size: 13px; }
@@ -39,7 +37,6 @@
 .trilha-card h2 { font-size: 22px; }
 .trilha-resumo { color: var(--ink-600); }
 .trilha-aviso { display: flex; align-items: center; gap: var(--space-2); color: var(--ink-600); font-size: 13px; }
-.trilha-prazo { color: var(--warning); font-weight: 700; }
 .trilha-progresso { display: grid; gap: var(--space-1); }
 .trilha-progresso span { color: var(--ink-600); font-size: 12px; }
 .trilha-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
@@ -50,7 +47,6 @@
 /* --- Case --- */
 .case-resumo { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); color: var(--ink-600); font-size: 13px; }
 .case-resumo span { display: inline-flex; align-items: center; gap: var(--space-1); }
-.case-resumo .prazo-proximo { color: var(--warning); font-weight: 700; }
 .case-progresso { display: grid; gap: var(--space-1); }
 .case-progresso span { color: var(--ink-600); font-size: 12px; }
 
@@ -150,7 +146,6 @@
   .ilha-direita { justify-content: flex-start; }
   .ilha-direita .ilha-forma { left: var(--space-5); right: auto; }
   .ilha:not(:last-child)::after { left: 40px; }
-  .trilha-semana { grid-template-columns: 1fr; }
   .case-painel { padding: var(--space-5) var(--space-4); }
   .case-etapa { grid-template-columns: 28px 1fr; }
   .case-etapa-pts { grid-column: 2; }
@@ -160,3 +155,9 @@
 }
 
 .alert-success { background: var(--success-bg); color: var(--success); }
+
+.case-segmentos { display: grid; gap: var(--space-3); }
+.case-segmento { display: grid; gap: var(--space-2); outline: none; }
+.case-fala { max-width: 85%; padding: var(--space-3) var(--space-4); border-radius: 16px 16px 16px 4px; background: var(--ink-100, #eef2fb); display: grid; gap: 2px; }
+.case-fala strong { font-size: 13px; }
+.case-fala-voce { justify-self: end; border-radius: 16px 16px 4px 16px; background: #fde7f0; }

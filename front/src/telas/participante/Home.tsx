@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { prazoRestante } from '../../app/formatos'
 import { definirCaseAtual, go } from '../../app/rotas'
 import { sessaoExpirou, useSessao } from '../../app/sessao'
 import { PageTitle, Progress, Tag } from '../../componentes/Basicos'
@@ -53,7 +52,7 @@ export function Home() {
 
   return <AppShell route="home">{titulo}<div className="home-grid"><div className="home-main"><LevelCard/>
     {principal ? <section className="dashboard-card weekly-case">
-      <div className="card-top"><Tag>{principal.estado === 'em_avaliacao' ? 'EM AVALIAÇÃO' : 'CASE EM ANDAMENTO'}</Tag>{principal.prazoEm && principal.estado === 'em_andamento' && <span className="deadline"><Icon name="clock" size={17}/> {prazoRestante(principal.prazoEm)}</span>}</div>
+      <div className="card-top"><Tag>{principal.estado === 'em_avaliacao' ? 'EM AVALIAÇÃO' : 'CASE EM ANDAMENTO'}</Tag></div>
       <h2>{principal.titulo}</h2><p>{principal.resumo}</p>
       <div className="case-meta"><span><Icon name="chart"/> {principal.area}</span></div>
       <div className="case-stat"><span>Seu progresso</span><strong>{principal.progresso.concluidos} de {principal.progresso.total} checkpoints</strong></div>
@@ -62,7 +61,7 @@ export function Home() {
     </section> : <section className="dashboard-card weekly-case">
       <div className="card-top"><Tag>TRILHA DE CASES</Tag></div>
       <h2>{trilha.diagnosticoConcluido ? 'Siga para a próxima ilha' : 'Comece pelo diagnóstico'}</h2>
-      <p>{trilha.diagnosticoConcluido ? (trilha.podeEscolher ? 'Os cases são ilhas em ordem: conclua uma para abrir a próxima. Um case por semana, de segunda a sexta.' : trilha.motivoNaoPodeEscolher) : 'O diagnóstico mostra as áreas com mais afinidade com você e libera a sua trilha de ilhas.'}</p>
+      <p>{trilha.diagnosticoConcluido ? (trilha.podeEscolher ? 'Conclua uma ilha para abrir a próxima.' : trilha.motivoNaoPodeEscolher) : 'O diagnóstico mostra as áreas com mais afinidade com você e libera a sua trilha de ilhas.'}</p>
       <Button onClick={() => go(trilha.diagnosticoConcluido ? 'trail' : 'diagnostic')} icon="arrow">{trilha.diagnosticoConcluido ? 'Ver a trilha' : 'Fazer o diagnóstico'}</Button>
     </section>}
     {top3.length > 0 && <section className="dashboard-section"><div className="section-title-row"><div><span className="eyebrow">SEU PERFIL</span><h2>Áreas recomendadas</h2></div><button className="text-link" onClick={() => go('match')}>Ver resultado</button></div><div className="area-cards">{top3.map(a => <article key={a.areaId}><strong>{a.pontuacao}%</strong><h3>{a.area}</h3><span>{a.posicao === 1 ? 'Maior afinidade' : `${a.posicao}ª afinidade`}</span></article>)}</div></section>}

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import './trilha.css'
-import { dataEHora, horaCurta, prazoProximo } from '../../app/formatos'
+import { horaCurta } from '../../app/formatos'
 import { definirCaseAtual, go, irParaConteudo, obterCaseAtual } from '../../app/rotas'
 import { sessaoExpirou } from '../../app/sessao'
 import { Toast } from '../../componentes/Aviso'
@@ -80,7 +80,28 @@ function CampoDaTarefa({ campo, valor, erro, bloqueado, aoMudar }: {
   </div>
 }
 
-function TarefaDoCase({ tarefa, tituloDoCheckpoint, respostas, erros, salvoEm, bloqueado, aoMudar }: {
+type Segmento = { linhas: string[]; campos: string[] | null }
+
+/** Separa o enunciado em "telas": `[[continuar]]` divide; `[[campos: a, b]]` na 1ª linha libera esses campos. */
+function dividirEnunciado(enunciado: string): Segmento[] {
+  return enunciado.split(/\n[ \t]*\[\[continuar\]\][ \t]*\n/).map(bloco => {
+    const linhas = bloco.split('\n')
+    const m = linhas[0]?.trim().match(/^\[\[campos:\s*(.*?)\s*\]\]$/)
+    return m ? { linhas: linhas.slice(1), campos: m[1].split(',').map(c => c.trim()).filter(Boolean) } : { linhas, campos: null }
+  })
+}
+
+const FALA = /^([^\s:“"]{1,24}(?: [^\s:“"]{1,24}){0,2}):\s*([“"].*[”"])\s*$/
+
+function TextoDoSegmento({ linhas }: { linhas: string[] }) {
+  return <>{linhas.filter(l => l.trim()).map((linha, i) => {
+    const fala = linha.match(FALA)
+    if (!fala) return <p key={i}>{linha}</p>
+    return <div key={i} className={`case-fala ${fala[1] === 'Você' ? 'case-fala-voce' : ''}`}><strong>{fala[1]}</strong><span>{fala[2]}</span></div>
+  })}</>
+}
+
+function TarefaDoCase({ tarefa, tituloDoCheckpoint, respostas, erros, salvoEm, bloqueado, aoMudar, aoRevelar }: {
   tarefa: Tarefa
   tituloDoCheckpoint: string
   respostas: RespostasDaTarefa
@@ -88,12 +109,34 @@ function TarefaDoCase({ tarefa, tituloDoCheckpoint, respostas, erros, salvoEm, b
   salvoEm: string | undefined
   bloqueado: boolean
   aoMudar: (campoId: string, valor: RespostaCampo) => void
+  aoRevelar: (tarefaId: string, completo: boolean) => void
 }) {
   const dados = tarefa.dadosApoio
+  const segmentos = dividirEnunciado(tarefa.enunciado)
+  const ultimo = segmentos.length - 1
+  // Com rascunho salvo ou somente leitura, mostra tudo de uma vez.
+  const [passo, setPasso] = useState(() => (tarefa.somenteLeitura || Object.keys(respostas).length > 0 ? ultimo : 0))
+  const novoTrecho = useRef<HTMLDivElement>(null)
+  const completo = passo >= ultimo
+  useEffect(() => { aoRevelar(tarefa.id, completo) }, [tarefa.id, completo, aoRevelar])
+  const avancar = () => { setPasso(p => p + 1); window.setTimeout(() => novoTrecho.current?.focus(), 0) }
+
+  const liberados = new Set(segmentos.slice(0, passo + 1).flatMap(sg => sg.campos ?? []))
+  const comMarcador = new Set(segmentos.flatMap(sg => sg.campos ?? []))
+  const visivel = (campo: CampoResposta) => {
+    if (comMarcador.has(campo.id) ? !liberados.has(campo.id) : !completo) return false
+    if (!campo.visivelSe) return true
+    const { campos, comecaCom } = campo.visivelSe
+    return campos.some(id => String(respostas[id] ?? '').startsWith(comecaCom))
+  }
+
   return <article className="case-tarefa">
     {tarefa.titulo !== tituloDoCheckpoint && <h3>{tarefa.titulo}</h3>}
-    <p>{tarefa.enunciado}</p>
-    {dados && <div className="dados-apoio">
+    <div aria-live="polite" className="case-segmentos">
+      {segmentos.slice(0, passo + 1).map((sg, i) => <div key={i} ref={i === passo ? novoTrecho : undefined} tabIndex={i === passo && i > 0 ? -1 : undefined} className="case-segmento"><TextoDoSegmento linhas={sg.linhas}/></div>)}
+    </div>
+    {!completo && <div className="case-acoes"><Button variant="ghost" onClick={avancar}>Continuar</Button></div>}
+    {dados && completo && <div className="dados-apoio">
       <strong>{dados.titulo}</strong>
       <div className="dados-rolagem"><table>
         <thead><tr><th scope="col">Indicador</th>{dados.colunas.map(c => <th key={c} scope="col">{c}</th>)}</tr></thead>
@@ -101,7 +144,7 @@ function TarefaDoCase({ tarefa, tituloDoCheckpoint, respostas, erros, salvoEm, b
       </table></div>
     </div>}
     <div className="form-stack">
-      {tarefa.campos.map(campo => <CampoDaTarefa key={campo.id} campo={campo} valor={respostas[campo.id]} erro={erros[`${tarefa.id}.${campo.id}`]} bloqueado={bloqueado} aoMudar={v => aoMudar(campo.id, v)}/>)}
+      {tarefa.campos.filter(visivel).map(campo => <CampoDaTarefa key={campo.id} campo={campo} valor={respostas[campo.id]} erro={erros[`${tarefa.id}.${campo.id}`]} bloqueado={bloqueado} aoMudar={v => aoMudar(campo.id, v)}/>)}
     </div>
     {!bloqueado && salvoEm && <small className="case-salvo"><Icon name="check" size={14}/> Rascunho salvo às {horaCurta(salvoEm)}</small>}
   </article>
@@ -205,6 +248,8 @@ export function CasePage() {
   const [respostas, setRespostas] = useState<Respostas>({})
   const [salvoEm, setSalvoEm] = useState<Record<string, string>>({})
   const [erros, setErros] = useState<Record<string, string>>({})
+  const [reveladas, setReveladas] = useState<Record<string, boolean>>({})
+  const registrarRevelada = useCallback((tarefaId: string, completo: boolean) => setReveladas(r => (r[tarefaId] === completo ? r : { ...r, [tarefaId]: completo })), [])
   const [ocupado, setOcupado] = useState(false)
   const [erroGeral, setErroGeral] = useState('')
   const [aviso, setAviso] = useState<string | null>(null)
@@ -358,12 +403,9 @@ export function CasePage() {
 
       <div className="case-resumo">
         {caso.personagem && <span><Icon name="user" size={16}/> {caso.personagem.nome}, {caso.personagem.papel}</span>}
-        {caso.prazoEm && caso.estado === 'em_andamento' && <span className={prazoProximo(caso.prazoEm) ? 'prazo-proximo' : ''}><Icon name="clock" size={16}/> Prazo: {dataEHora(caso.prazoEm)}</span>}
         {caso.tentativa > 1 && <Tag tone="gray">TENTATIVA {caso.tentativa}</Tag>}
         <span><Icon name="spark" size={16}/> Até {caso.pontosPossiveis} pontos</span>
       </div>
-
-      {caso.estado === 'disponivel' && <div className="alert alert-warning" role="note"><p>O prazo deste case terminou, mas o seu progresso foi mantido. <button className="text-link" onClick={() => { definirCaseAtual(null); go('trail') }}>Escolha o case de novo na trilha</button> para continuar de onde parou.</p></div>}
 
       <div className="case-progresso"><Progress value={total ? (feitos / total) * 100 : 0} pink/><span>{feitos} de {total} checkpoints</span></div>
 
@@ -390,8 +432,8 @@ export function CasePage() {
       {ativo && ativo.tarefaIds.length > 0 && <section className="case-painel">
         <span className="eyebrow">{ROTULO_ETAPA[ativo.etapa].toUpperCase()}</span>
         <h2>{ativo.titulo}</h2>
-        {ativo.tarefaIds.map(id => tarefas[id] && <TarefaDoCase key={id} tarefa={tarefas[id]} tituloDoCheckpoint={ativo.titulo} respostas={respostas[id] ?? {}} erros={erros} salvoEm={salvoEm[id]} bloqueado={ocupado} aoMudar={(campo, valor) => mudarCampo(id, campo, valor)}/>)}
-        <div className="case-acoes"><Button onClick={() => concluir(ativo)} disabled={ocupado}>{ocupado ? 'Concluindo…' : `Concluir este checkpoint (+${ativo.pontos} pts)`}</Button></div>
+        {ativo.tarefaIds.map(id => tarefas[id] && <TarefaDoCase key={id} tarefa={tarefas[id]} tituloDoCheckpoint={ativo.titulo} respostas={respostas[id] ?? {}} erros={erros} salvoEm={salvoEm[id]} bloqueado={ocupado} aoMudar={(campo, valor) => mudarCampo(id, campo, valor)} aoRevelar={registrarRevelada}/>)}
+        {ativo.tarefaIds.every(id => !tarefas[id] || reveladas[id]) && <div className="case-acoes"><Button onClick={() => concluir(ativo)} disabled={ocupado}>{ocupado ? 'Concluindo…' : `Concluir este checkpoint (+${ativo.pontos} pts)`}</Button></div>}
         <small>Depois de concluir, as respostas deste checkpoint ficam travadas.</small>
       </section>}
 

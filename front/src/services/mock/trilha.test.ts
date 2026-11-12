@@ -1,24 +1,17 @@
 /**
- * Testes da trilha de cases (PRD_Cases_Trilha.md): desbloqueio, escolha semanal, prazo, checkpoints,
- * progresso, avaliação, certificado em PDF e publicação no admin. O relógio é fixo, para as regras de
- * semana e prazo não dependerem do dia em que os testes rodam.
+ * Testes da trilha de cases: ilhas em ordem, começar e terminar, checkpoints, progresso, avaliação,
+ * certificado em PDF e publicação no admin. O relógio é fixo, para os testes não dependerem do dia.
  */
 import assert from 'node:assert/strict'
 import { beforeEach, test } from 'node:test'
 import type { BriefingCase, CodigoErro, RespostaOpcao, Resultado } from '../contratos.ts'
 import { PERGUNTAS } from '../fit/perguntas.ts'
-import { chaveDaSemana, diaDaSemanaBRT, inicioDaSemana, prazoDoCase } from './datas.ts'
 import { mockDebug, servicosMock as s } from './index.ts'
 import { definirDebug, resetarEstado } from './store.ts'
 
 /** Quarta-feira, 11/11/2026, 10h em Brasília. */
 const QUARTA = '2026-11-11T13:00:00.000Z'
 const SEGUNDA_9 = '2026-11-09T13:00:00.000Z'
-const SABADO_14 = '2026-11-14T13:00:00.000Z'
-const SEGUNDA_16 = '2026-11-16T13:00:00.000Z'
-/** Sextas-feiras 23h59 (Brasília), em UTC. */
-const SEXTA_13 = '2026-11-14T02:59:00.000Z'
-const SEXTA_20 = '2026-11-21T02:59:00.000Z'
 
 beforeEach(() => {
   definirDebug({ rede: false, iaIndisponivel: false, sessaoExpirada: false, latenciaMs: 0, agora: QUARTA })
@@ -99,101 +92,19 @@ async function marinaConclui() {
   return certificado
 }
 
-// --- semana e prazo ----------------------------------------------------------
-
-test('semana e prazo: segunda e terça valem a sexta da mesma semana; quarta a domingo, a sexta da seguinte', () => {
-  const casos: [string, string, string][] = [
-    ['2026-11-09T13:00:00.000Z', SEXTA_13, 'segunda'],
-    ['2026-11-10T13:00:00.000Z', SEXTA_13, 'terça'],
-    ['2026-11-11T13:00:00.000Z', SEXTA_20, 'quarta'],
-    ['2026-11-13T13:00:00.000Z', SEXTA_20, 'sexta'],
-    ['2026-11-14T13:00:00.000Z', SEXTA_20, 'sábado'],
-    ['2026-11-15T13:00:00.000Z', SEXTA_20, 'domingo'],
-    ['2026-11-16T13:00:00.000Z', SEXTA_20, 'segunda da outra semana'],
-    // Limites do dia no horário de Brasília: 23h30 de terça ainda é terça; 0h10 de quarta já é quarta.
-    ['2026-11-11T02:30:00.000Z', SEXTA_13, 'terça 23h30'],
-    ['2026-11-11T03:10:00.000Z', SEXTA_20, 'quarta 0h10'],
-  ]
-  for (const [escolha, prazo, nome] of casos) {
-    assert.equal(prazoDoCase(new Date(escolha)).toISOString(), prazo, nome)
-    assert.equal(diaDaSemanaBRT(prazo), 5, `${nome}: o prazo cai numa sexta`)
-  }
-})
-
-test('semana: a chave vai de segunda a domingo (Brasília)', () => {
-  assert.equal(inicioDaSemana(new Date('2026-11-15T15:00:00.000Z')).toISOString(), '2026-11-09T03:00:00.000Z')
-  assert.equal(chaveDaSemana(new Date(SEGUNDA_9)), chaveDaSemana(new Date('2026-11-15T23:00:00.000Z')))
-  assert.notEqual(chaveDaSemana(new Date(SEGUNDA_9)), chaveDaSemana(new Date(SEGUNDA_16)))
-  assert.equal(diaDaSemanaBRT(QUARTA), 3, 'o relógio dos testes é uma quarta-feira')
-})
-
-test('a semana da trilha vai de segunda a sexta; no fim de semana, mostra a que começa na segunda', async () => {
-  dados(await s.sessao.cadastrar({ nome: 'Semana', email: 'semana@email.com', senha: 'Senha123', aceitouTermos: true }))
-  const semanaEm = async (quando: string) => {
-    mockDebug.definirAgora(quando)
-    return dados(await s.caso.obterTrilha()).semana
-  }
-  assert.deepEqual(await semanaEm(QUARTA), { inicioEm: '2026-11-09T03:00:00.000Z', fimEm: SEXTA_13 })
-  assert.deepEqual(await semanaEm(SEGUNDA_9), { inicioEm: '2026-11-09T03:00:00.000Z', fimEm: SEXTA_13 })
-  assert.deepEqual(await semanaEm(SABADO_14), { inicioEm: '2026-11-16T03:00:00.000Z', fimEm: SEXTA_20 })
-  assert.deepEqual(await semanaEm('2026-11-15T13:00:00.000Z'), { inicioEm: '2026-11-16T03:00:00.000Z', fimEm: SEXTA_20 }, 'domingo')
-})
-
-// --- desbloqueio ---------------------------------------------------------------
-
-test('sem diagnóstico nenhum case abre', async () => {
-  dados(await s.sessao.cadastrar({ nome: 'Sem Diagnóstico', email: 'sd@email.com', senha: 'Senha123', aceitouTermos: true }))
-  const trilha = dados(await s.caso.obterTrilha())
-  assert.equal(trilha.diagnosticoConcluido, false)
-  assert.deepEqual(trilha.cases.map(c => c.caseId).sort(), ['case-1', 'case-2'], 'só os publicados aparecem')
-  assert.ok(trilha.cases.every(c => c.estado === 'bloqueado' && /diagnóstico/i.test(c.motivoBloqueio ?? '')))
-  assert.equal(trilha.podeEscolher, false)
-  assert.match(trilha.motivoNaoPodeEscolher ?? '', /diagnóstico/i)
-  assert.equal(codigo(await s.caso.escolherCase('case-1')), 'VALIDACAO')
-  assert.equal(codigo(await s.caso.obterCase('case-1')), 'VALIDACAO')
-})
-
-test('ilhas em ordem: só a primeira abre; a seguinte espera o certificado da anterior', async () => {
-  await novaComDiagnostico('A')
-  const trilha = dados(await s.caso.obterTrilha())
-  assert.deepEqual(trilha.cases.map(c => [c.caseId, c.ordem]), [['case-1', 1], ['case-2', 2]], 'ordenados pela ordem das ilhas, não pelo fit')
-  const [c1, c2] = trilha.cases
-  assert.equal(c1.estado, 'disponivel')
-  assert.equal(c1.sugerido, true, '"comece por aqui" é a próxima ilha')
-  assert.equal(c1.posicaoNoFit, 2, 'o fit continua como informação')
-  assert.equal(c2.estado, 'bloqueado')
-  assert.equal(c2.sugerido, false)
-  assert.match(c2.motivoBloqueio ?? '', /Conclua a ilha 1 \(Avaliando uma empresa para investir\) primeiro/)
-  assert.equal(trilha.proximoCaseId, 'case-1')
-  assert.equal(trilha.podeEscolher, true)
-  assert.equal(trilha.primeiroCaseConcluido, false)
-  assert.equal(codigo(await s.caso.escolherCase('case-2')), 'VALIDACAO')
-  assert.equal(codigo(await s.caso.obterCase('case-2')), 'VALIDACAO')
-})
-
-test('ilhas em ordem: o diagnóstico não muda a ordem, e a Top 3 não abre ilhas fora da vez', async () => {
-  await novaComDiagnostico('B') // Top 3: venture-capital, fintechs, wealth-management (nenhuma tem case)
-  const trilha = dados(await s.caso.obterTrilha())
-  assert.deepEqual(trilha.cases.map(c => c.estado), ['disponivel', 'bloqueado'])
-  assert.ok(trilha.cases.every(c => !c.noTop3))
-  assert.equal(trilha.proximoCaseId, 'case-1')
-})
-
 // --- escolher o case --------------------------------------------------------------
 
-test('escolher o case: o conteúdo só aparece depois, com prazo na sexta, e escolher de novo não muda nada', async () => {
+test('escolher o case: o conteúdo só aparece depois, e escolher de novo não muda nada', async () => {
   await novaComDiagnostico('A')
   const antes = dados(await s.caso.obterCase('case-1'))
   assert.equal(antes.estado, 'disponivel')
   assert.equal(antes.contexto, '')
   assert.equal(antes.entenda, null)
   assert.deepEqual(antes.checkpoints, [])
-  assert.equal(antes.prazoEm, null)
   assert.equal(codigo(await s.caso.obterTarefa('case-1-t-1')), 'VALIDACAO', 'escolha o case primeiro')
 
   const escolhido = dados(await s.caso.escolherCase('case-1'))
   assert.equal(escolhido.estado, 'em_andamento')
-  assert.equal(escolhido.prazoEm, SEXTA_20, 'escolhido na quarta: sexta da semana seguinte')
   assert.equal(escolhido.tentativa, 1)
   assert.ok(escolhido.contexto.length > 0)
   assert.equal(escolhido.entenda?.cards.length, 3)
@@ -202,32 +113,37 @@ test('escolher o case: o conteúdo só aparece depois, com prazo na sexta, e esc
   assert.ok(escolhido.checkpoints.every(c => c.status === 'a_fazer'))
   assert.equal(escolhido.pontosPossiveis, 20 + 10 + 30 * 3 + 150 + 100)
 
-  assert.equal(dados(await s.caso.escolherCase('case-1')).prazoEm, SEXTA_20, 'idempotente')
+  assert.equal(dados(await s.caso.escolherCase('case-1')).estado, 'em_andamento', 'idempotente')
   const trilha = dados(await s.caso.obterTrilha())
-  assert.equal(trilha.escolhaDaSemana, 'case-1')
   assert.equal(trilha.podeEscolher, false)
   assert.match(trilha.motivoNaoPodeEscolher ?? '', /em andamento/)
   assert.equal(codigo(await s.caso.escolherCase('case-2')), 'VALIDACAO', 'um case por vez')
 })
 
-test('um case por semana: depois do prazo ele fica pausado, mas outro só abre na semana seguinte', async () => {
+test('quem começa termina: o case iniciado não expira, mesmo semanas depois', async () => {
   mockDebug.definirAgora(SEGUNDA_9)
   await novaComDiagnostico('A')
-  assert.equal(dados(await s.caso.escolherCase('case-1')).prazoEm, SEXTA_13, 'segunda: sexta da mesma semana')
+  dados(await s.caso.escolherCase('case-1'))
+  dados(await s.caso.concluirCheckpoint('case-1-cp-1'))
+  await concluirConteudosDoCase1()
+  dados(await s.caso.concluirCheckpoint('case-1-cp-2'))
+  dados(await s.caso.salvarRascunho('case-1-t-1', { margem: '12,4' }))
+  dados(await s.caso.concluirCheckpoint('case-1-cp-3'))
+  dados(await s.caso.salvarRascunho('case-1-t-2', { alavancagem: '2,1' }))
 
-  mockDebug.definirAgora(SABADO_14) // o prazo passou, mas a semana ainda é a mesma
+  mockDebug.definirAgora('2026-12-14T13:00:00.000Z') // cinco semanas depois
   const trilha = dados(await s.caso.obterTrilha())
-  assert.equal(trilha.cases.find(c => c.caseId === 'case-1')!.estado, 'disponivel', 'sem enviar até a sexta, o case pausa')
+  const c1 = trilha.cases.find(c => c.caseId === 'case-1')!
+  assert.equal(c1.estado, 'em_andamento')
+  assert.deepEqual(c1.progresso, { concluidos: 3, total: 5 })
   assert.equal(trilha.podeEscolher, false)
-  assert.match(trilha.motivoNaoPodeEscolher ?? '', /já escolheu o case desta semana/)
-  assert.equal(codigo(await s.caso.escolherCase('case-2')), 'VALIDACAO')
-
-  mockDebug.definirAgora(SEGUNDA_16)
-  assert.equal(dados(await s.caso.obterTrilha()).podeEscolher, true)
-  assert.equal(dados(await s.caso.escolherCase('case-1')).estado, 'em_andamento', 'retoma o mesmo case')
+  assert.equal(codigo(await s.caso.escolherCase('case-2')), 'VALIDACAO', 'ainda não terminou o case 1')
+  const retomado = dados(await s.caso.obterCase('case-1'))
+  assert.equal(retomado.estado, 'em_andamento')
+  assert.deepEqual(dados(await s.caso.obterTarefa('case-1-t-2')).rascunho, { alavancagem: '2,1' })
+  dados(await s.caso.salvarRascunho('case-1-t-2', { alavancagem: '2,2' }))
+  assert.equal(dados(await s.caso.concluirCheckpoint('case-1-cp-4')).eventos.length, 1)
 })
-
-// --- checkpoints ---------------------------------------------------------------------
 
 test('checkpoints: abrem em ordem, pagam pontos uma vez e travam as respostas ao concluir', async () => {
   await novaComDiagnostico('A')
@@ -272,8 +188,7 @@ test('checkpoints: abrem em ordem, pagam pontos uma vez e travam as respostas ao
   assert.equal(codigo(await s.caso.enviarCase('case-1')), 'VALIDACAO', 'faltam checkpoints')
 })
 
-test('progresso: quem não termina no prazo mantém tudo e retoma na semana seguinte, sem pontos repetidos', async () => {
-  mockDebug.definirAgora(SEGUNDA_9)
+test('progresso: o que já foi feito fica salvo e os pontos não se repetem', async () => {
   await novaComDiagnostico('A')
   dados(await s.caso.escolherCase('case-1'))
   dados(await s.caso.concluirCheckpoint('case-1-cp-1'))
@@ -283,18 +198,8 @@ test('progresso: quem não termina no prazo mantém tudo e retoma na semana segu
   dados(await s.caso.concluirCheckpoint('case-1-cp-3'))
   dados(await s.caso.salvarRascunho('case-1-t-2', { alavancagem: '2,1' })) // rascunho do próximo, sem concluir
 
-  mockDebug.definirAgora(SABADO_14)
-  assert.equal(codigo(await s.caso.salvarRascunho('case-1-t-2', { alavancagem: '2,2' })), 'VALIDACAO')
-  assert.match((await s.caso.concluirCheckpoint('case-1-cp-4')).erro!.mensagem, /prazo/i)
-  assert.equal(codigo(await s.caso.enviarCase('case-1')), 'VALIDACAO')
-  const pausado = dados(await s.caso.obterTrilha()).cases.find(c => c.caseId === 'case-1')!
-  assert.equal(pausado.estado, 'disponivel')
-  assert.deepEqual(pausado.progresso, { concluidos: 3, total: 5 }, 'o progresso fica à mostra')
-
-  mockDebug.definirAgora(SEGUNDA_16)
   const retomado = dados(await s.caso.escolherCase('case-1'))
   assert.equal(retomado.estado, 'em_andamento')
-  assert.equal(retomado.prazoEm, SEXTA_20)
   assert.deepEqual(retomado.checkpoints.map(c => c.status), ['concluido', 'concluido', 'concluido', 'em_andamento', 'a_fazer'])
   assert.deepEqual(dados(await s.caso.obterTarefa('case-1-t-2')).rascunho, { alavancagem: '2,1' }, 'o rascunho foi mantido')
   assert.equal(dados(await s.caso.concluirCheckpoint('case-1-cp-3')).eventos.length, 0)
@@ -346,12 +251,17 @@ test('ciclo completo: envio, avaliação, aprovação e certificado abrem os pr�
   assert.equal(trilha.cases.find(c => c.caseId === 'case-2')!.estado, 'disponivel', 'a ilha 2 abriu')
   assert.equal(trilha.proximoCaseId, 'case-2')
   assert.equal(trilha.cases.find(c => c.caseId === 'case-2')!.sugerido, true)
-  assert.equal(trilha.podeEscolher, false, 'ela já escolheu o case desta semana')
-  assert.match(trilha.motivoNaoPodeEscolher ?? '', /semana/)
-  assert.equal(codigo(await s.caso.escolherCase('case-2')), 'VALIDACAO')
+  assert.equal(trilha.podeEscolher, true, 'sem prazo nem semana: a ilha seguinte abre no mesmo dia')
+  assert.equal(dados(await s.caso.escolherCase('case-2')).estado, 'em_andamento')
+})
 
-  mockDebug.definirAgora(SEGUNDA_16)
-  assert.equal(dados(await s.caso.escolherCase('case-2')).prazoEm, SEXTA_20, 'na segunda seguinte, ela escolhe o próximo')
+test('enviado e ainda em avaliação conta como não terminado: nada novo começa', async () => {
+  await marinaEnvia()
+  const trilha = dados(await s.caso.obterTrilha())
+  assert.equal(trilha.cases.find(c => c.caseId === 'case-1')!.estado, 'em_avaliacao')
+  assert.equal(trilha.podeEscolher, false)
+  assert.match(trilha.motivoNaoPodeEscolher ?? '', /Termine o case em andamento/)
+  assert.equal(codigo(await s.caso.escolherCase('case-2')), 'VALIDACAO')
 })
 
 test('ilhas em ordem: um case novo entra no fim da trilha e espera as ilhas anteriores', async () => {
@@ -384,7 +294,6 @@ test('sem aprovação não há certificado nem bônus, e ela pode refazer em uma
   assert.equal(caso.refazer, true)
   assert.equal(dados(await s.caso.obterCase('case-1')).tentativa, 2)
 
-  mockDebug.definirAgora(SEGUNDA_16)
   const nova = dados(await s.caso.escolherCase('case-1'))
   assert.equal(nova.estado, 'em_andamento')
   assert.equal(nova.tentativa, 2)

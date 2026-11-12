@@ -228,7 +228,7 @@ function EditorDoCase({ inicial }: { inicial: CaseAdmin }) {
               <Button onClick={() => transicao('aprovar')} disabled={ocupado || caso.status === 'revisado' || !confirmou}>Aprovar case</Button>
               <Button onClick={() => transicao('publicar')} disabled={ocupado || caso.status !== 'revisado' || sujo}>Publicar</Button>
             </div>
-            <p className="hint">Ao publicar, o case entra na trilha: aparece para quem já o destravou e pode ser escolhido na semana, de segunda a sexta. Editar um case revisado exige uma nova aprovação.</p>
+            <p className="hint">Ao publicar, o case entra na trilha: aparece para quem já o destravou e segue a ordem das ilhas. Editar um case revisado exige uma nova aprovação.</p>
           </>}
           {caso.status === 'publicado' && <><p>Este case está na trilha. Ao arquivar, ele sai da oferta; quem já começou mantém o progresso e o certificado.</p><div><Button variant="danger" onClick={() => transicao('arquivar')} disabled={ocupado}>Arquivar case</Button></div></>}
           {caso.status === 'arquivado' && <p>Case arquivado. Não aparece mais para novas escolhas.</p>}

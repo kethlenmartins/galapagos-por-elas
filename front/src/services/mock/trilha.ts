@@ -4,7 +4,6 @@
  */
 import type { CaseAdmin, EstadoCaseTrilha, ResultadoDiagnostico } from '../contratos.ts'
 import { CONFIG } from './dados/config.ts'
-import { chaveDaSemana } from './datas.ts'
 import type { EntregaRegistro, EstadoMock, ProgressoRegistro } from './tipos.ts'
 
 export const casesPublicados = (estado: EstadoMock): CaseAdmin[] => estado.cases.filter(c => c.status === 'publicado')
@@ -85,11 +84,12 @@ export function situacaoDoCase(estado: EstadoMock, usuarioId: string, caso: Case
     if (pendente) return { ...base, estado: 'bloqueado', motivoBloqueio: `Conclua a ilha ${pendente.ordem} (${pendente.titulo}) primeiro.` }
   }
 
-  const noPrazo = !!progresso && progresso.tentativa === tentativa && !progresso.enviadaEm && agora.getTime() <= new Date(progresso.prazoEm).getTime()
-  return { ...base, estado: noPrazo ? 'em_andamento' : 'disponivel', motivoBloqueio: null }
+  // Quem começou termina: sem prazo, o case iniciado e não enviado fica em andamento.
+  const iniciado = !!progresso && progresso.tentativa === tentativa && !progresso.enviadaEm
+  return { ...base, estado: iniciado ? 'em_andamento' : 'disponivel', motivoBloqueio: null }
 }
 
-/** O case em andamento da usuária, se houver (dentro do prazo e ainda não enviado). */
+/** O case em andamento da usuária, se houver (iniciado e ainda não enviado). */
 export function caseEmAndamento(estado: EstadoMock, usuarioId: string, agora: Date): CaseAdmin | null {
   for (const caso of casesVisiveisPara(estado, usuarioId)) {
     if (situacaoDoCase(estado, usuarioId, caso, agora).estado === 'em_andamento') return caso
@@ -97,12 +97,13 @@ export function caseEmAndamento(estado: EstadoMock, usuarioId: string, agora: Da
   return null
 }
 
-/** Um case por semana: a escolha feita nesta semana, em um case diferente de `exceto`. */
-export function escolhaDaSemana(estado: EstadoMock, usuarioId: string, agora: Date, exceto?: string): ProgressoRegistro | undefined {
-  const chave = chaveDaSemana(agora)
-  return estado.progressos.find(
-    p => p.usuarioId === usuarioId && p.caseId !== exceto && chaveDaSemana(new Date(p.escolhidoEm)) === chave,
-  )
+/** O case que ela começou e ainda não terminou: em andamento ou enviado e esperando a avaliação. */
+export function caseNaoTerminado(estado: EstadoMock, usuarioId: string, agora: Date): CaseAdmin | null {
+  for (const caso of casesVisiveisPara(estado, usuarioId)) {
+    const e = situacaoDoCase(estado, usuarioId, caso, agora).estado
+    if (e === 'em_andamento' || e === 'em_avaliacao') return caso
+  }
+  return null
 }
 
 /** Checkpoints de uma etapa da qual a tentativa nova recomeça: situação e defesa. */

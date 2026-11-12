@@ -16,7 +16,7 @@ type Aviso = { tom: 'success' | 'error'; texto: string }
 
 const PREFERENCIAS: { id: keyof PreferenciasEmail; titulo: string; texto: string }[] = [
   { id: 'novosCases', titulo: 'Novos cases', texto: 'Avise quando um case for publicado.' },
-  { id: 'lembretesPrazo', titulo: 'Lembretes de prazo', texto: 'Receba um aviso antes do case encerrar.' },
+  { id: 'lembretesPrazo', titulo: 'Lembretes', texto: 'Receba um aviso quando houver novidades no seu case.' },
   { id: 'novosConteudos', titulo: 'Novos conteúdos', texto: 'Novidades para apoiar sua jornada.' },
 ]
 

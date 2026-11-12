@@ -78,7 +78,6 @@ export type ProgressoRegistro = {
   caseId: string
   /** Quando ela escolheu (ou reescolheu) o case. */
   escolhidoEm: DataISO
-  prazoEm: DataISO
   tentativa: number
   /** Preenchido quando a tentativa atual foi enviada. */
   enviadaEm: DataISO | null

@@ -16,7 +16,7 @@ import { CONFIG, REGRAS_DE_PONTOS, type IdRegra } from './config.ts'
 import { CONTEUDOS_INICIAIS } from './conteudos.ts'
 
 /** Muda sempre que o formato do estado muda: descarta o que estava salvo no navegador. */
-export const VERSAO_ESTADO = 4
+export const VERSAO_ESTADO = 5
 
 const SENHA_DEMO = 'Senha123'
 
@@ -169,10 +169,10 @@ export function criarEstadoInicial(agora: Date): EstadoMock {
     conteudosConcluidos: { 'usr-marina': ['cont-1', 'cont-2', 'cont-3'] },
     progressos: [
       // Marina escolheu o case há 2 dias e tem 2 dias e 14 horas até o prazo (demonstração; o prazo real é sempre uma sexta, 23h59).
-      { usuarioId: 'usr-marina', caseId: caseAtual.id, escolhidoEm: antesDe(agora, 2 * DIA), prazoEm: depoisDe(agora, 2 * DIA + 14 * HORA), tentativa: 1, enviadaEm: null },
-      { usuarioId: 'usr-luiza', caseId: caseAtual.id, escolhidoEm: antesDe(agora, 4 * DIA), prazoEm: depoisDe(agora, 1 * DIA), tentativa: 1, enviadaEm: antesDe(agora, 3 * HORA) },
-      { usuarioId: 'usr-beatriz', caseId: caseAtual.id, escolhidoEm: antesDe(agora, 4 * DIA), prazoEm: depoisDe(agora, 1 * DIA), tentativa: 1, enviadaEm: antesDe(agora, 5 * HORA) },
-      { usuarioId: 'usr-camila', caseId: caseAtual.id, escolhidoEm: antesDe(agora, 4 * DIA), prazoEm: depoisDe(agora, 1 * DIA), tentativa: 1, enviadaEm: antesDe(agora, 20 * HORA) },
+      { usuarioId: 'usr-marina', caseId: caseAtual.id, escolhidoEm: antesDe(agora, 2 * DIA), tentativa: 1, enviadaEm: null },
+      { usuarioId: 'usr-luiza', caseId: caseAtual.id, escolhidoEm: antesDe(agora, 4 * DIA), tentativa: 1, enviadaEm: antesDe(agora, 3 * HORA) },
+      { usuarioId: 'usr-beatriz', caseId: caseAtual.id, escolhidoEm: antesDe(agora, 4 * DIA), tentativa: 1, enviadaEm: antesDe(agora, 5 * HORA) },
+      { usuarioId: 'usr-camila', caseId: caseAtual.id, escolhidoEm: antesDe(agora, 4 * DIA), tentativa: 1, enviadaEm: antesDe(agora, 20 * HORA) },
     ],
     entregas: [
       entregaDeDemonstracao('entrega-seed-1', 'usr-luiza', caseAtual, antesDe(agora, 3 * HORA), {

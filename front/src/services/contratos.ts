@@ -292,8 +292,8 @@ export interface DiagnosticoService {
 
 // ---------------------------------------------------------------------------
 // Cases como trilha (visão da participante)
-// Modelo em `docs/PRD_Cases_Trilha.md`: um case por semana, à escolha dela; o primeiro é
-// de uma área do Top 3 do diagnóstico; os demais abrem quando ela é aprovada e recebe o certificado.
+// Os cases são ilhas em ordem: cada uma abre quando a anterior termina com certificado. Quem começa
+// um case precisa terminá-lo antes de começar outro; não há prazo nem limite por semana.
 // ---------------------------------------------------------------------------
 
 /** Etapas de um case, em ordem. Cada etapa tem um ou mais checkpoints. */
@@ -303,9 +303,9 @@ export type EtapaCase = 'entenda' | 'conteudos' | 'treino' | 'situacao' | 'defes
 export type EstadoCaseTrilha =
   /** Ainda não pode: sem diagnóstico, ou fora das opções do primeiro case. */
   | 'bloqueado'
-  /** Pode escolher. Inclui o case que ela já começou e não terminou no prazo (o progresso é mantido). */
+  /** Pode escolher. Também é o estado de quem foi reprovada e pode refazer. */
   | 'disponivel'
-  /** Escolhido e dentro do prazo. */
+  /** Começado e ainda não enviado (não há prazo). */
   | 'em_andamento'
   /** Enviado, aguardando a avaliação e a publicação do resultado. */
   | 'em_avaliacao'
@@ -348,8 +348,6 @@ export type CaseTrilha = {
   /** A explicação da área. `null` antes de ela escolher o case. */
   entenda: ConteudoEntenda | null
   estado: EstadoCaseTrilha
-  /** Prazo da tentativa atual (sexta, 23h59 no horário de Brasília). `null` antes de escolher. */
-  prazoEm: DataISO | null
   /** 1 na primeira vez; sobe a cada nova tentativa depois de uma avaliação sem aprovação. */
   tentativa: number
   /** Soma dos checkpoints, do bônus máximo de nota e do certificado. */
@@ -376,7 +374,6 @@ export type ItemTrilha = {
   sugerido: boolean
   /** Por que está bloqueado, em português. */
   motivoBloqueio: string | null
-  prazoEm: DataISO | null
   progresso: { concluidos: number; total: number }
   certificadoId: string | null
   /** `true` quando a última tentativa não foi aprovada e ela pode refazer. */
@@ -387,11 +384,7 @@ export type TrilhaDaUsuaria = {
   diagnosticoConcluido: boolean
   /** `true` depois do primeiro certificado: todas as áreas com case ficam abertas. */
   primeiroCaseConcluido: boolean
-  /** Segunda-feira 00h00 e sexta-feira 23h59 da semana de trabalho (Brasília). No sábado e no domingo, a semana que começa na segunda. */
-  semana: { inicioEm: DataISO; fimEm: DataISO }
-  /** O case que ela já escolheu nesta semana, se houver. */
-  escolhaDaSemana: string | null
-  /** `false` se já escolheu um case nesta semana ou tem outro em andamento. */
+  /** `false` se ela já tem um case em andamento ou em avaliação: quem começa um case termina antes de começar outro. */
   podeEscolher: boolean
   motivoNaoPodeEscolher: string | null
   /** A próxima ilha a fazer (a primeira não concluída), ou `null` quando todas estão concluídas. */
@@ -420,6 +413,8 @@ export type CampoResposta = {
   opcoes?: string[]
   /** Só `texto`. */
   limiteCaracteres?: number
+  /** O campo só aparece quando alguma das respostas dos `campos` começa com `comecaCom` (ex.: "A."). */
+  visivelSe?: { campos: string[]; comecaCom: string }
 }
 
 /** Texto, número ou nome do arquivo anexado. */
@@ -438,7 +433,7 @@ export type Tarefa = {
   /** Último rascunho salvo, se houver. */
   rascunho: RespostasDaTarefa | null
   rascunhoSalvoEm: DataISO | null
-  /** `true` depois do envio, do prazo ou de o checkpoint ser concluído. */
+  /** `true` depois do envio ou de o checkpoint ser concluído. */
   somenteLeitura: boolean
 }
 
@@ -483,23 +478,21 @@ export type PedidoRevisaoParticipante = {
 
 export interface CaseService {
   /**
-   * A trilha da usuária: todos os cases publicados com o estado de cada um, a semana atual e se ela
-   * ainda pode escolher um case. Não altera nada.
+   * A trilha da usuária: todos os cases publicados com o estado de cada um, e se ela
+   * ainda pode começar um case. Não altera nada.
    */
   obterTrilha(): Promise<Resultado<TrilhaDaUsuaria>>
   /**
-   * Escolhe o case da semana. Um case por semana, e só um em andamento por vez.
-   * Define o prazo: quem escolhe de segunda a terça tem até a sexta da mesma semana; de quarta a domingo,
-   * até a sexta da semana seguinte. Reescolher um case começado mantém o progresso. Depois de uma tentativa
-   * sem aprovação, começa uma nova tentativa (checkpoints da situação e da defesa voltam a fazer; os pontos
-   * já pagos não se repetem).
+   * Começa a ilha (ou retoma a que já começou). Só um case em andamento por vez, sem prazo: o progresso
+   * fica salvo até ela terminar. Depois de uma tentativa sem aprovação, começa uma nova tentativa
+   * (checkpoints da situação e da defesa voltam a fazer; os pontos já pagos não se repetem).
    */
   escolherCase(caseId: string): Promise<Resultado<CaseTrilha>>
   /** Só leitura. Antes de escolher, traz só o resumo. `VALIDACAO` se o case estiver bloqueado. */
   obterCase(caseId: string): Promise<Resultado<CaseTrilha>>
   /** Nunca inclui o gabarito. `VALIDACAO` se o checkpoint da tarefa ainda não abriu. */
   obterTarefa(tarefaId: string): Promise<Resultado<Tarefa>>
-  /** Respeita `limiteCaracteres`. Não funciona depois do envio, do prazo ou de concluir o checkpoint. */
+  /** Respeita `limiteCaracteres`. Não funciona depois do envio ou de concluir o checkpoint. */
   salvarRascunho(tarefaId: string, respostas: RespostasDaTarefa): Promise<Resultado<{ salvoEm: DataISO }>>
   /**
    * Conclui um checkpoint, em ordem: o anterior precisa estar concluído. Exige os campos obrigatórios
@@ -509,7 +502,7 @@ export interface CaseService {
   concluirCheckpoint(checkpointId: string): Promise<Resultado<{ eventos: EventoPontos[] }>>
   /** Antes do envio, reabre este checkpoint e os posteriores. As respostas salvas são mantidas para edição e pontos não se repetem. */
   reabrirCheckpoint(checkpointId: string): Promise<Resultado<true>>
-  /** Exige todos os checkpoints concluídos e o prazo aberto. Dispara a correção. Não concede pontos: os checkpoints já pagaram. */
+  /** Exige todos os checkpoints concluídos. Dispara a correção. Não concede pontos: os checkpoints já pagaram. */
   enviarCase(caseId: string): Promise<Resultado<{ entregaId: string }>>
   obterResultadoCase(caseId: string): Promise<Resultado<ResultadoCase>>
   /** Só depois de o resultado ser publicado. Motivo entre 10 e 500 caracteres. */
@@ -576,7 +569,7 @@ export interface CertificadoService {
 // Admin: cases (com IA)
 // ---------------------------------------------------------------------------
 
-/** `publicado` fica disponível toda semana para quem destravou o case. `arquivado` sai da oferta. */
+/** `publicado` fica disponível para quem destravou o case. `arquivado` sai da oferta. */
 export type StatusCaseAdmin = 'rascunho_ia' | 'rascunho' | 'revisado' | 'publicado' | 'arquivado'
 
 export type Dificuldade = 'iniciante' | 'intermediario' | 'avancado'
@@ -690,7 +683,7 @@ export interface AdminCasesService {
   conferirGabarito(caseId: string): Promise<Resultado<ConferenciaGabarito>>
   /** Exige `gabaritoConfirmado` e que o gabarito confira. Status vira `revisado`. */
   aprovarCase(caseId: string, opcoes: { gabaritoConfirmado: boolean }): Promise<Resultado<CaseAdmin>>
-  /** Só case `revisado`. O case passa a abrir toda semana para quem já o destravou. */
+  /** Só case `revisado`. O case entra na trilha para quem já o destravou. */
   publicarCase(caseId: string): Promise<Resultado<CaseAdmin>>
   /** Tira o case da oferta. Quem já começou mantém o progresso. */
   arquivarCase(caseId: string): Promise<Resultado<CaseAdmin>>

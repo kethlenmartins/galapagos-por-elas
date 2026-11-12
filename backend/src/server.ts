@@ -12,7 +12,6 @@ import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProg
 import { configuracaoPublica, gerarResultado } from '../../front/src/services/fit/motor.ts'
 import { AREAS_FIT } from '../../front/src/services/fit/matriz.ts'
 import { montarPdfCertificado, slug } from '../../front/src/services/mock/pdf.ts'
-import { diaDaSemanaBRT, inicioDaSemana, sextaDaSemana } from '../../front/src/services/mock/datas.ts'
 
 const app = Fastify({ logger: true, trustProxy: true })
 const secure = process.env.COOKIE_SECURE !== 'false'
@@ -283,19 +282,16 @@ app.get('/api/trail', async (req, reply) => {
   const proxima = ilhas.find(i => i.estado !== 'concluido')
   const ativa = ilhas.find(i => i.estado === 'em_andamento' || i.estado === 'em_avaliacao')
   const motivo = !diagnosticoConcluido ? 'Conclua o diagnóstico primeiro.' : ativa ? `Continue o case em andamento: ${ativa.caso.title}.` : !ilhas.some(i => i.estado === 'disponivel') ? 'Nenhum case disponível para você agora.' : null
-  const agora = new Date(); const fimDeSemana = [0, 6].includes(diaDaSemanaBRT(agora))
-  const inicio = inicioDaSemana(agora); const semanaInicio = fimDeSemana ? new Date(inicio.getTime() + 7 * 86_400_000) : inicio
   return {
     dados: {
       diagnosticoConcluido, primeiroCaseConcluido: ilhas.some(i => i.estado === 'concluido'),
-      semana: { inicioEm: semanaInicio.toISOString(), fimEm: sextaDaSemana(semanaInicio).toISOString() },
-      escolhaDaSemana: ativa?.caso.id ?? null, podeEscolher: !motivo, motivoNaoPodeEscolher: motivo,
+      podeEscolher: !motivo, motivoNaoPodeEscolher: motivo,
       proximoCaseId: proxima?.caso.id ?? null,
       cases: ilhas.map((i, indice) => {
         const total = todosCps.filter(c => c.caseId === i.caso.id).length
         const feitos = i.estado === 'concluido' || i.estado === 'em_avaliacao' ? total : i.enrollment && i.estado === 'em_andamento' ? progresso.filter(p => p.enrollmentId === i.enrollment!.id && p.completedAt).length : 0
         const posicao = ranking.find(a => a.areaId === i.caso.areaId)?.posicao ?? null
-        return { caseId: i.caso.id, titulo: i.caso.title, areaId: i.caso.areaId, area: i.caso.areaId, resumo: i.caso.summary, ordem: indice + 1, estado: i.estado, posicaoNoFit: posicao, noTop3: posicao !== null && posicao <= 3, sugerido: i.caso.id === proxima?.caso.id && i.estado === 'disponivel', motivoBloqueio: i.motivoBloqueio, prazoEm: i.enrollment?.deadline?.toISOString() ?? null, progresso: { concluidos: feitos, total }, certificadoId: null, refazer: i.refazer }
+        return { caseId: i.caso.id, titulo: i.caso.title, areaId: i.caso.areaId, area: i.caso.areaId, resumo: i.caso.summary, ordem: indice + 1, estado: i.estado, posicaoNoFit: posicao, noTop3: posicao !== null && posicao <= 3, sugerido: i.caso.id === proxima?.caso.id && i.estado === 'disponivel', motivoBloqueio: i.motivoBloqueio, progresso: { concluidos: feitos, total }, certificadoId: null, refazer: i.refazer }
       }),
     },
     erro: null,
@@ -335,7 +331,7 @@ app.get('/api/cases/:caseId', async (req, reply) => {
   const { ilhas } = await situacaoDasIlhas(user.id)
   const ilha = ilhas.find(i => i.caso.id === caseId)
   const conteudoIds = (await db.select().from(contents)).filter(c => c.caseIds.includes(caseId)).map(c => c.id)
-  if (!enrollment) return { dados: { id: caseRow.id, titulo: caseRow.title, areaId: caseRow.areaId, area: caseRow.areaId, resumo: caseRow.summary, missao: caseRow.mission, personagem: null, contexto: '', entenda: null, estado: ilha?.estado ?? 'disponivel', prazoEm: null, tentativa: 1, pontosPossiveis: 0, checkpoints: [], conteudoIds: [], proximaTarefaId: null }, erro: null }
+  if (!enrollment) return { dados: { id: caseRow.id, titulo: caseRow.title, areaId: caseRow.areaId, area: caseRow.areaId, resumo: caseRow.summary, missao: caseRow.mission, personagem: null, contexto: '', entenda: null, estado: ilha?.estado ?? 'disponivel', tentativa: 1, pontosPossiveis: 0, checkpoints: [], conteudoIds: [], proximaTarefaId: null }, erro: null }
   const progress = await db.select().from(checkpointProgress).where(eq(checkpointProgress.enrollmentId, enrollment.id))
   const checkpointsOut = cps.map(c => ({ id: c.id, ordem: c.order, etapa: c.stage, titulo: c.title, descricao: c.description, pontos: c.points, tarefaIds: c.taskIds, status: progress.find(p => p.checkpointId === c.id)?.completedAt ? 'concluido' : 'a_fazer' }))
   const tasksRows = await db.select().from(tasks).where(eq(tasks.caseId, caseId))
@@ -344,7 +340,7 @@ app.get('/api/cases/:caseId', async (req, reply) => {
   // tiver o formato editorial completo; um objeto vazio não pode quebrar a tela.
   const content = caseRow.content as { resumo?: unknown; links?: unknown; cards?: unknown; comoSeEntra?: unknown }
   const entenda = typeof content.resumo === 'string' && Array.isArray(content.links) && Array.isArray(content.cards) && content.comoSeEntra && typeof content.comoSeEntra === 'object' ? content : null
-  return { dados: { id: caseRow.id, titulo: caseRow.title, areaId: caseRow.areaId, area: caseRow.areaId, resumo: caseRow.summary, missao: caseRow.mission, personagem: null, contexto: caseRow.context, entenda, estado: ilha?.estado === 'disponivel' ? 'em_andamento' : (ilha?.estado ?? 'em_andamento'), prazoEm: enrollment.deadline?.toISOString() ?? null, tentativa: enrollment.attempt, pontosPossiveis: cps.reduce((sum, c) => sum + c.points, 0), checkpoints: checkpointsOut, conteudoIds, proximaTarefaId: nextTask }, erro: null }
+  return { dados: { id: caseRow.id, titulo: caseRow.title, areaId: caseRow.areaId, area: caseRow.areaId, resumo: caseRow.summary, missao: caseRow.mission, personagem: null, contexto: caseRow.context, entenda, estado: ilha?.estado === 'disponivel' ? 'em_andamento' : (ilha?.estado ?? 'em_andamento'), tentativa: enrollment.attempt, pontosPossiveis: cps.reduce((sum, c) => sum + c.points, 0), checkpoints: checkpointsOut, conteudoIds, proximaTarefaId: nextTask }, erro: null }
 })
 
 app.get('/api/tasks/:taskId', async (req, reply) => {
