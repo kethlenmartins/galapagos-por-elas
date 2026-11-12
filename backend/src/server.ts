@@ -741,7 +741,9 @@ app.post('/api/checkpoints/:checkpointId/ai-review', async (req, reply) => {
 /** A equipe confere se a IA responde (modelo e chave certos) sem precisar ler os logs do servidor. */
 app.get('/api/admin/ia/status', async (req, reply) => {
   if (!(await usuarioEquipe(req, reply))) return
-  return { dados: await diagnosticarIA(), erro: null }
+  // ?modelo=... testa outro modelo com a mesma chave, sem trocar a variável do servidor.
+  const { modelo } = req.query as { modelo?: string }
+  return { dados: await diagnosticarIA(fetch, modelo && /^[\w./:-]{1,80}$/.test(modelo) ? modelo : undefined), erro: null }
 })
 
 app.post('/api/cases/:caseId/start', async (req, reply) => {

@@ -87,3 +87,19 @@ test('o diagnóstico da IA diz o que deu errado, sem expor a chave', async () =>
   delete process.env.GROQ_MODEL
   assert.equal((await diagnosticarIA()).configurada, false)
 })
+
+test('modelos de raciocínio (gpt-oss) recebem mais espaço de tokens e esforço baixo', async () => {
+  const { chamarIA } = await import('./entrevista-ia.ts')
+  const { z } = await import('zod')
+  process.env.GROQ_API_KEY = 'k'
+  const corpos: Record<string, unknown>[] = []
+  const espia = (async (_u: string, init: { body: string }) => { corpos.push(JSON.parse(init.body)); return { ok: true, status: 200, json: async () => ({ choices: [{ message: { content: '{"a":1}' } }] }) } }) as unknown as typeof fetch
+  process.env.GROQ_MODEL = 'openai/gpt-oss-120b'
+  await chamarIA('s', {}, z.object({ a: z.number() }), espia)
+  process.env.GROQ_MODEL = 'qwen/qwen3.8-27b'
+  await chamarIA('s', {}, z.object({ a: z.number() }), espia)
+  assert.equal(corpos[0].reasoning_effort, 'low')
+  assert.ok((corpos[0].max_tokens as number) >= 3000)
+  assert.equal(corpos[1].reasoning_effort, undefined, 'outros modelos não recebem o parâmetro')
+  assert.equal(corpos[1].max_tokens, 900)
+})

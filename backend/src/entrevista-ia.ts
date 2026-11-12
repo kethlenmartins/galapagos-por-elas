@@ -51,6 +51,14 @@ export function promptDoSistema(areaNome: string, c: ConfigSimulacao): string {
 
 type Fetch = typeof fetch
 
+/**
+ * Parâmetros que dependem do modelo. Os modelos de raciocínio (openai/gpt-oss-*) gastam parte do limite de
+ * tokens "pensando": sem folga a resposta chega vazia, então recebem mais espaço e esforço baixo.
+ */
+function parametrosDoModelo(modelo: string, maxTokens: number): Record<string, unknown> {
+  return /^openai\/gpt-oss/.test(modelo) ? { max_tokens: Math.max(maxTokens, 3000), reasoning_effort: 'low' } : { max_tokens: maxTokens }
+}
+
 /** O texto de erro que o provedor devolve (ex.: "model not found"), curto e sem a chave. */
 function erroDoProvedor(payload: unknown): string {
   const msg = (payload as { error?: { message?: unknown } } | null)?.error?.message
@@ -66,7 +74,7 @@ export async function chamarIA<T>(system: string, usuario: unknown, schema: z.Zo
       const response = await fetchFn(GROQ_URL, {
         method: 'POST',
         headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
-        body: JSON.stringify({ model, temperature: 0.6, max_tokens: 900, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: system }, { role: 'user', content: JSON.stringify(usuario) }] }),
+        body: JSON.stringify({ model, temperature: 0.6, ...parametrosDoModelo(model, 900), response_format: { type: 'json_object' }, messages: [{ role: 'system', content: system }, { role: 'user', content: JSON.stringify(usuario) }] }),
         signal: AbortSignal.timeout(20_000),
       })
       const payload = (await response.json().catch(() => null)) as { choices?: Array<{ message?: { content?: string | null } }> } | null
@@ -150,14 +158,14 @@ async function modelosDaChave(fetchFn: Fetch): Promise<string[]> {
 }
 
 /** Teste rápido da configuração da IA (usado pela equipe): chama o provedor com um pedido mínimo e diz o que deu errado. */
-export async function diagnosticarIA(fetchFn: Fetch = fetch) {
-  const modelo = process.env.GROQ_MODEL ?? null
+export async function diagnosticarIA(fetchFn: Fetch = fetch, modeloDeTeste?: string) {
+  const modelo = modeloDeTeste || (process.env.GROQ_MODEL ?? null)
   if (!process.env.GROQ_API_KEY || !modelo) return { configurada: false, modelo, ok: false, httpStatus: null as number | null, erro: 'Faltam GROQ_API_KEY e/ou GROQ_MODEL no servidor.', modelosDaChave: [] as string[] }
   try {
     const response = await fetchFn(GROQ_URL, {
       method: 'POST',
       headers: { authorization: `Bearer ${process.env.GROQ_API_KEY}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ model: modelo, temperature: 0, max_tokens: 20, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: 'Responda somente com um objeto JSON: {"ok": true}' }, { role: 'user', content: 'teste' }] }),
+      body: JSON.stringify({ model: modelo, temperature: 0, ...parametrosDoModelo(modelo, 200), response_format: { type: 'json_object' }, messages: [{ role: 'system', content: 'Responda somente com um objeto JSON: {"ok": true}' }, { role: 'user', content: 'teste' }] }),
       signal: AbortSignal.timeout(20_000),
     })
     const payload = (await response.json().catch(() => null)) as { choices?: Array<{ message?: { content?: string | null } }> } | null
