@@ -126,6 +126,7 @@ export function Ilha() {
               <h3>Treine para entrevistas de {area.nome}</h3>
               <p className="trilha-resumo">Perguntas de entrevista por nível de dificuldade, com feedback em cada resposta e modo cronometrado.</p>
               {!basicoConcluido && <p className="trilha-aviso"><Icon name="lock" size={16} /> Abre depois que você concluir o case básico.</p>}
+              {treino && treino.desempenho.respondidas > 0 && <p className="trilha-resumo">Você já respondeu {treino.desempenho.respondidas} {treino.desempenho.respondidas === 1 ? 'pergunta' : 'perguntas'} e acertou {Math.round((treino.desempenho.acertos / treino.desempenho.respondidas) * 100)}%.</p>}
               {basicoConcluido && total === 0 && <p className="trilha-aviso"><Icon name="spark" size={16} /> As perguntas desta área ainda não foram publicadas.</p>}
               {liberado && <div className="trilha-acoes"><Button onClick={() => go('training')} icon="arrow">Começar o treino</Button></div>}
             </article>
@@ -139,6 +140,7 @@ export function Ilha() {
           <h3>Simule uma entrevista de {area.nome}</h3>
           <p className="trilha-resumo">Uma entrevistadora faz as perguntas, uma de cada vez. Você escolhe a vaga, o rigor e a dificuldade, e recebe um feedback no fim.</p>
           {!basicoConcluido && <p className="trilha-aviso"><Icon name="lock" size={16} /> Abre depois que você concluir o case básico.</p>}
+          {simulacao && simulacao.historico.length > 0 && <p className="trilha-resumo">Última simulação: {new Date(simulacao.historico[0].concluidaEm).toLocaleDateString('pt-BR')}{simulacao.historico[0].notaMedia !== null ? `, nota média ${simulacao.historico[0].notaMedia}/10` : ''}. Você fez {simulacao.historico.length}{simulacao.historico.length === 5 ? '+' : ''} {simulacao.historico.length === 1 ? 'simulação' : 'simulações'} nesta ilha.</p>}
           {basicoConcluido && simulacao && !simulacao.disponivel && <p className="trilha-aviso"><Icon name="spark" size={16} /> Indisponível no momento.</p>}
           {basicoConcluido && simulacao?.disponivel && <div className="trilha-acoes"><Button onClick={() => go('simulation')} icon="arrow">Começar a simulação</Button></div>}
         </article>

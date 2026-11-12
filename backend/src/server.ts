@@ -8,7 +8,7 @@ import { eq, and, isNull, desc, sql, inArray } from 'drizzle-orm'
 import argon2 from 'argon2'
 import { z } from 'zod'
 import { db } from './db/client.js'
-import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProgress, deliveries, assessments, pointEvents, contents, contentCompletions, certificates, reviewRequests, aiLogs, interviewQuestions, interviewSessions } from './db/schema.js'
+import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProgress, deliveries, assessments, pointEvents, contents, contentCompletions, certificates, reviewRequests, aiLogs, interviewQuestions, interviewSessions, trainingAnswers } from './db/schema.js'
 import { configuracaoPublica, gerarResultado } from '../../front/src/services/fit/motor.ts'
 import { AREAS } from '../../front/src/services/mock/dados/areas.ts'
 import { GROQ_URL, feedbackFinal, iaDisponivel, proximaPergunta, type TurnoSalvo } from './entrevista-ia.js'
@@ -313,6 +313,13 @@ async function treinoLiberado(userId: string, areaId: string): Promise<{ liberad
   return cert ? { liberado: true, motivoBloqueio: null } : { liberado: false, motivoBloqueio: 'Abre depois que você concluir o case básico desta ilha.' }
 }
 const NIVEIS_TREINO = ['facil', 'medio', 'dificil'] as const
+/** Quantas perguntas da área ela já respondeu no treino (todas as tentativas) e quantas acertou. */
+async function desempenhoNoTreino(userId: string, areaId: string) {
+  const [linha] = await db.select({ respondidas: sql<number>`count(*)::int`, acertos: sql<number>`count(*) filter (where ${trainingAnswers.correct})::int` })
+    .from(trainingAnswers).innerJoin(interviewQuestions, eq(interviewQuestions.id, trainingAnswers.questionId))
+    .where(and(eq(trainingAnswers.userId, userId), eq(interviewQuestions.areaId, areaId)))
+  return { respondidas: linha?.respondidas ?? 0, acertos: linha?.acertos ?? 0 }
+}
 
 app.get('/api/training/:areaId', async (req, reply) => {
   const user = await usuarioAtual(req)
@@ -320,7 +327,7 @@ app.get('/api/training/:areaId', async (req, reply) => {
   const { areaId } = req.params as { areaId: string }
   const rows = await db.select({ level: interviewQuestions.level, topic: interviewQuestions.topic }).from(interviewQuestions).where(eq(interviewQuestions.areaId, areaId))
   const perguntasPorNivel = Object.fromEntries(NIVEIS_TREINO.map(n => [n, rows.filter(r => r.level === n).length]))
-  return { dados: { areaId, ...(await treinoLiberado(user.id, areaId)), perguntasPorNivel, temas: [...new Set(rows.flatMap(r => (r.topic ? [r.topic] : [])))] }, erro: null }
+  return { dados: { areaId, ...(await treinoLiberado(user.id, areaId)), perguntasPorNivel, desempenho: await desempenhoNoTreino(user.id, areaId), temas: [...new Set(rows.flatMap(r => (r.topic ? [r.topic] : [])))] }, erro: null }
 })
 
 app.get('/api/training/:areaId/questions', async (req, reply) => {
@@ -347,7 +354,9 @@ app.post('/api/training/questions/:id/answer', async (req, reply) => {
   const [q] = await db.select().from(interviewQuestions).where(eq(interviewQuestions.id, id)).limit(1)
   if (!q) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Pergunta não encontrada.' } })
   if (!(await treinoLiberado(user.id, q.areaId)).liberado) return reply.code(403).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'O treino ainda não está liberado.' } })
-  return { dados: { correta: corpo.data.letra !== null && q.answer === corpo.data.letra, letraCerta: q.answer, feedback: q.feedback }, erro: null }
+  const correta = corpo.data.letra !== null && q.answer === corpo.data.letra
+  await db.insert(trainingAnswers).values({ userId: user.id, questionId: q.id, correct: correta })
+  return { dados: { correta, letraCerta: q.answer, feedback: q.feedback }, erro: null }
 })
 
 const SIMULACOES_POR_DIA = 5
@@ -360,11 +369,20 @@ const ConfigSimulacaoSchema = z.object({
 })
 const simulacoesDeHoje = async (userId: string) => (await db.select({ id: interviewSessions.id }).from(interviewSessions).where(and(eq(interviewSessions.userId, userId), sql`${interviewSessions.createdAt} > now() - interval '24 hours'`))).length
 
+async function historicoDaSimulacao(userId: string, areaId: string) {
+  const rows = await db.select().from(interviewSessions).where(and(eq(interviewSessions.userId, userId), eq(interviewSessions.areaId, areaId), eq(interviewSessions.status, 'concluida'))).orderBy(desc(interviewSessions.finishedAt)).limit(5)
+  return rows.map(r => {
+    const config = r.config as { rigor: string; dificuldade: string; perguntas: number }
+    const notas = ((r.feedback as { criterios?: Array<{ nota: number }> } | null)?.criterios ?? []).map(c => c.nota)
+    return { id: r.id, concluidaEm: (r.finishedAt ?? r.createdAt).toISOString(), rigor: config.rigor, dificuldade: config.dificuldade, perguntas: config.perguntas, notaMedia: notas.length ? Math.round((notas.reduce((a, b) => a + b, 0) / notas.length) * 10) / 10 : null }
+  })
+}
+
 app.get('/api/interview/:areaId', async (req, reply) => {
   const user = await usuarioAtual(req)
   if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
   const { areaId } = req.params as { areaId: string }
-  return { dados: { areaId, ...(await treinoLiberado(user.id, areaId)), disponivel: iaDisponivel(), demonstracao: false, restantesHoje: Math.max(0, SIMULACOES_POR_DIA - (await simulacoesDeHoje(user.id))) }, erro: null }
+  return { dados: { areaId, ...(await treinoLiberado(user.id, areaId)), disponivel: iaDisponivel(), demonstracao: false, restantesHoje: Math.max(0, SIMULACOES_POR_DIA - (await simulacoesDeHoje(user.id))), historico: await historicoDaSimulacao(user.id, areaId) }, erro: null }
 })
 
 app.post('/api/interview/sessions', async (req, reply) => {

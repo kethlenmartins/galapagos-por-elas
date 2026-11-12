@@ -14,6 +14,9 @@ export function liberacao(estado: EstadoMock, usuarioId: string, areaId: string)
   return { liberado: true, motivoBloqueio: null }
 }
 
+/** Respostas dadas no treino, por usuária (só na sessão do mock). */
+const respostasDoMock = new Map<string, { areaId: string; correta: boolean }[]>()
+
 const embaralhar = <T>(lista: T[]): T[] => {
   const copia = [...lista]
   for (let i = copia.length - 1; i > 0; i--) {
@@ -30,7 +33,9 @@ export const treinoService: TreinoService = {
         NIVEIS.map(n => [n, PERGUNTAS_ENTREVISTA.filter(p => p.areaId === areaId && p.nivel === n).length]),
       ) as ResumoTreino['perguntasPorNivel']
       const temas = [...new Set(PERGUNTAS_ENTREVISTA.filter(p => p.areaId === areaId && p.tema).map(p => p.tema as string))]
-      return ok({ areaId, ...liberacao(estado, usuario.id, areaId), perguntasPorNivel, temas })
+      const dadas = (respostasDoMock.get(usuario.id) ?? []).filter(r => r.areaId === areaId)
+      const desempenho = { respondidas: dadas.length, acertos: dadas.filter(r => r.correta).length }
+      return ok({ areaId, ...liberacao(estado, usuario.id, areaId), perguntasPorNivel, temas, desempenho })
     }),
 
   sortearPerguntas: ({ areaId, nivel, quantidade, tema }) =>
@@ -44,9 +49,11 @@ export const treinoService: TreinoService = {
     }),
 
   responderPergunta: (perguntaId, letra) =>
-    executarLogada(() => {
+    executarLogada(({ usuario }) => {
       const pergunta = PERGUNTAS_ENTREVISTA.find(p => p.id === perguntaId)
       if (!pergunta) return falha('NAO_ENCONTRADO', 'Pergunta não encontrada.')
-      return ok({ correta: letra !== null && pergunta.resposta === letra, letraCerta: pergunta.resposta, feedback: pergunta.feedback })
+      const correta = letra !== null && pergunta.resposta === letra
+      respostasDoMock.set(usuario.id, [...(respostasDoMock.get(usuario.id) ?? []), { areaId: pergunta.areaId, correta }])
+      return ok({ correta, letraCerta: pergunta.resposta, feedback: pergunta.feedback })
     }),
 }

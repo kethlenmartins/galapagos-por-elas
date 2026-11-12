@@ -1,5 +1,5 @@
 /** Simulação de entrevista de demonstração: perguntas e feedback roteirizados, sem IA. O backend real usa a IA. */
-import type { ConfigSimulacao, SimulacaoService } from '../contratos.ts'
+import type { ConfigSimulacao, ItemHistoricoSimulacao, SimulacaoService } from '../contratos.ts'
 import { AREAS } from './dados/areas.ts'
 import { executarLogada, falha, novoId, ok } from './store.ts'
 import { liberacao } from './treino.ts'
@@ -18,6 +18,8 @@ const PERGUNTAS = (area: string) => [
 const nomeDaArea = (areaId: string) => AREAS.find(a => a.id === areaId)?.nome ?? areaId
 
 type Sessao = { config: ConfigSimulacao; respostas: (string | null)[] }
+/** Simulações concluídas, por usuária (só na sessão do mock). */
+const historicos = new Map<string, (ItemHistoricoSimulacao & { areaId: string })[]>()
 const sessoes = new Map<string, Sessao>()
 const LIMITE_POR_DIA = 5
 const usadas = new Map<string, number>()
@@ -25,7 +27,7 @@ const usadas = new Map<string, number>()
 export const simulacaoService: SimulacaoService = {
   obterResumoDaSimulacao: areaId =>
     executarLogada(({ estado, usuario }) =>
-      ok({ areaId, ...liberacao(estado, usuario.id, areaId), disponivel: true, demonstracao: true, restantesHoje: Math.max(0, LIMITE_POR_DIA - (usadas.get(usuario.id) ?? 0)) }),
+      ok({ areaId, ...liberacao(estado, usuario.id, areaId), disponivel: true, demonstracao: true, restantesHoje: Math.max(0, LIMITE_POR_DIA - (usadas.get(usuario.id) ?? 0)), historico: (historicos.get(usuario.id) ?? []).filter(h => h.areaId === areaId).slice(0, 5).map(({ areaId: _a, ...item }) => item) }),
     ),
 
   iniciarSimulacao: config =>
@@ -40,7 +42,7 @@ export const simulacaoService: SimulacaoService = {
     }),
 
   responderSimulacao: (sessaoId, resposta) =>
-    executarLogada(() => {
+    executarLogada(({ usuario, agora }) => {
       const sessao = sessoes.get(sessaoId)
       if (!sessao) return falha('NAO_ENCONTRADO', 'Simulação não encontrada.')
       sessao.respostas.push(resposta?.trim() || null)
@@ -51,15 +53,20 @@ export const simulacaoService: SimulacaoService = {
       const media = respondidas.length ? respondidas.reduce((s, r) => s + r.length, 0) / respondidas.length : 0
       const nota = Math.min(10, Math.round((respondidas.length / sessao.respostas.length) * 4 + Math.min(media, 300) / 50))
       sessoes.delete(sessaoId)
+      const criterios = [
+        { nome: 'Respostas completas', nota, comentario: `${respondidas.length} de ${sessao.respostas.length} perguntas respondidas.` },
+        { nome: 'Exemplos concretos', nota: Math.max(0, nota - 1), comentario: 'Use situações reais para sustentar o que diz.' },
+      ]
+      historicos.set(usuario.id, [
+        { id: sessaoId, areaId: sessao.config.areaId, concluidaEm: agora.toISOString(), rigor: sessao.config.rigor, dificuldade: sessao.config.dificuldade, perguntas: sessao.config.perguntas, notaMedia: Math.round((criterios.reduce((t, c) => t + c.nota, 0) / criterios.length) * 10) / 10 },
+        ...(historicos.get(usuario.id) ?? []),
+      ])
       return ok({
         reacao,
         proximo: null,
         feedbackFinal: {
           resumo: 'Este é um feedback de demonstração, sem IA. Com a IA ativa você recebe uma análise real das suas respostas.',
-          criterios: [
-            { nome: 'Respostas completas', nota, comentario: `${respondidas.length} de ${sessao.respostas.length} perguntas respondidas.` },
-            { nome: 'Exemplos concretos', nota: Math.max(0, nota - 1), comentario: 'Use situações reais para sustentar o que diz.' },
-          ],
+          criterios,
           pontosFortes: respondidas.length ? ['Você respondeu às perguntas.'] : [],
           pontosAMelhorar: ['Dê exemplos concretos e números quando puder.'],
           proximosPassos: ['Faça o treino de perguntas da ilha para reforçar a parte técnica.'],

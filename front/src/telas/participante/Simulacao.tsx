@@ -193,6 +193,10 @@ export function Simulacao() {
         <input type="checkbox" checked={vozAtiva} onChange={e => setVozAtiva(e.target.checked)} disabled={indisponivel || !fala.disponivel} />
         <span><strong>Entrevistadora fala as perguntas</strong><small>{fala.disponivel ? 'As perguntas são lidas em voz alta. Você também pode ditar as respostas pelo microfone.' : 'Este navegador não lê em voz alta; as perguntas aparecem só em texto.'}</small></span>
       </label>
+      {resumo.historico.length > 0 && <section className="ilha-apresentacao" aria-label="Simulações anteriores">
+        <h2>Suas últimas simulações</h2>
+        <ul>{resumo.historico.map(h => <li key={h.id}>{new Date(h.concluidaEm).toLocaleDateString('pt-BR')} · {h.perguntas} perguntas · rigor {h.rigor} · {h.dificuldade}{h.notaMedia !== null ? ` · nota média ${h.notaMedia}/10` : ''}</li>)}</ul>
+      </section>}
       {resumo.disponivel && <p className="trilha-dica">Restam {resumo.restantesHoje} simulações hoje. Não compartilhe dados pessoais nas respostas.</p>}
       <div className="trilha-acoes"><Button onClick={comecar} disabled={ocupado || indisponivel}>{ocupado ? 'Chamando a entrevistadora…' : 'Começar entrevista'}</Button></div>
     </>}

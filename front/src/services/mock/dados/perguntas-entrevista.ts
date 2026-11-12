@@ -4063,5 +4063,2705 @@ export const PERGUNTAS_ENTREVISTA: PerguntaEntrevista[] = [
     ],
     "resposta": "A",
     "feedback": "A mudança de mercado pede uma nova avaliação. A empresa pode seguir, ajustar ou adiar, conforme demanda, preço e necessidade de capital."
+  },
+  {
+    "id": "er-facil-01",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "Qual é a principal função de uma analista de equity research?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Garantir que as ações recomendadas vão subir."
+      },
+      {
+        "letra": "B",
+        "texto": "Analisar empresas e publicar recomendações e preços-alvo para investidores."
+      },
+      {
+        "letra": "C",
+        "texto": "Administrar o caixa das empresas analisadas."
+      },
+      {
+        "letra": "D",
+        "texto": "Aprovar a emissão de ações na bolsa."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "A analista estuda o negócio, projeta resultados e estima quanto a ação vale. Sua recomendação orienta investidores, mas nunca garante o resultado."
+  },
+  {
+    "id": "er-facil-02",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "O que a Demonstração do Resultado (DRE) mostra?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "O saldo de caixa em uma data."
+      },
+      {
+        "letra": "B",
+        "texto": "Os bens e as dívidas da empresa."
+      },
+      {
+        "letra": "C",
+        "texto": "A lista de acionistas."
+      },
+      {
+        "letra": "D",
+        "texto": "Como receitas, custos e despesas se transformam em lucro em um período."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "A DRE conta a história de um período, como um trimestre ou um ano. O balanço, por outro lado, é uma foto em uma data."
+  },
+  {
+    "id": "er-facil-03",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "Uma empresa teve receita de R$ 1.000 milhões e custo das mercadorias vendidas de R$ 600 milhões. Qual é a margem bruta?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "60%."
+      },
+      {
+        "letra": "B",
+        "texto": "1,67 vez."
+      },
+      {
+        "letra": "C",
+        "texto": "40%."
+      },
+      {
+        "letra": "D",
+        "texto": "400%."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O lucro bruto é 1.000 − 600 = 400. A margem bruta é 400 ÷ 1.000 = 40%."
+  },
+  {
+    "id": "er-facil-04",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "Uma empresa lucrou R$ 500 milhões e tem 250 milhões de ações. Qual é o lucro por ação (LPA)?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 2,00."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 0,50."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 5,00."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 250,00."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Basta dividir o lucro pelo número de ações: 500 ÷ 250 = R$ 2,00."
+  },
+  {
+    "id": "er-facil-05",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "Por que lucro e caixa podem ser diferentes?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Porque o lucro é sempre maior que o caixa."
+      },
+      {
+        "letra": "B",
+        "texto": "Porque o lucro registra receitas e despesas quando ocorrem, e o caixa mostra quando o dinheiro entra e sai."
+      },
+      {
+        "letra": "C",
+        "texto": "Porque o caixa inclui apenas impostos."
+      },
+      {
+        "letra": "D",
+        "texto": "Porque o lucro não considera custos."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Uma venda a prazo entra no lucro na hora, mas o dinheiro só chega depois. Investimentos em lojas saem do caixa de uma vez e entram no resultado aos poucos, pela depreciação."
+  },
+  {
+    "id": "er-facil-06",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "O que o EBITDA representa?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "O lucro líquido após todos os impostos."
+      },
+      {
+        "letra": "B",
+        "texto": "O caixa disponível para dividendos."
+      },
+      {
+        "letra": "C",
+        "texto": "A receita menos os impostos sobre vendas."
+      },
+      {
+        "letra": "D",
+        "texto": "O resultado operacional antes de juros, impostos, depreciação e amortização."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "O EBITDA é uma medida aproximada da geração operacional. Ele não é caixa: ignora investimentos, capital de giro e impostos."
+  },
+  {
+    "id": "er-medio-07",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "Receita de R$ 2.000 milhões, EBITDA de R$ 400 milhões e depreciação de R$ 100 milhões. Qual é a margem EBIT?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "15%."
+      },
+      {
+        "letra": "B",
+        "texto": "20%."
+      },
+      {
+        "letra": "C",
+        "texto": "25%."
+      },
+      {
+        "letra": "D",
+        "texto": "5%."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "O EBIT é 400 − 100 = 300. A margem EBIT é 300 ÷ 2.000 = 15%."
+  },
+  {
+    "id": "er-medio-08",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "Uma empresa tem dívida bruta de R$ 800 milhões e caixa de R$ 1.000 milhões. Como interpretar?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Ela tem dívida líquida de R$ 1.800 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "Ela está em dificuldade financeira."
+      },
+      {
+        "letra": "C",
+        "texto": "Ela tem caixa líquido de R$ 200 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "A dívida não precisa ser paga."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Caixa maior que dívida significa caixa líquido de 1.000 − 800 = R$ 200 milhões. Isso dá fôlego financeiro, mas a dívida continua tendo vencimentos."
+  },
+  {
+    "id": "er-medio-09",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "Por que analistas de varejo acompanham as vendas nas mesmas lojas?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Porque elas incluem o efeito das novas lojas."
+      },
+      {
+        "letra": "B",
+        "texto": "Para separar o desempenho das lojas existentes do efeito das aberturas."
+      },
+      {
+        "letra": "C",
+        "texto": "Porque substituem o lucro líquido."
+      },
+      {
+        "letra": "D",
+        "texto": "Porque são exigidas no cálculo do imposto."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Uma rede pode crescer só porque abriu lojas. As vendas nas mesmas lojas mostram se as lojas existentes estão vendendo mais ou menos."
+  },
+  {
+    "id": "er-medio-10",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "Uma empresa lucrou R$ 300 milhões e tem patrimônio líquido de R$ 1.500 milhões. Qual é o ROE?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "5%."
+      },
+      {
+        "letra": "B",
+        "texto": "50%."
+      },
+      {
+        "letra": "C",
+        "texto": "15%."
+      },
+      {
+        "letra": "D",
+        "texto": "20%."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "O ROE mede o retorno sobre o capital dos acionistas: 300 ÷ 1.500 = 20%."
+  },
+  {
+    "id": "er-medio-11",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "O lucro de uma empresa subiu porque ela vendeu um imóvel. Como tratar esse ganho na análise?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Como não recorrente, separado do resultado operacional que tende a se repetir."
+      },
+      {
+        "letra": "B",
+        "texto": "Como crescimento permanente do lucro."
+      },
+      {
+        "letra": "C",
+        "texto": "Como receita de vendas."
+      },
+      {
+        "letra": "D",
+        "texto": "Como redução de custos."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Ganhos pontuais não se repetem todo ano. Para projetar e comparar empresas, a analista costuma olhar o lucro sem esses efeitos."
+  },
+  {
+    "id": "er-medio-12",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "As contas a receber cresceram 30%, e as vendas, 5%. O que isso pode indicar?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Que a empresa está gerando mais caixa."
+      },
+      {
+        "letra": "B",
+        "texto": "Que os estoques caíram."
+      },
+      {
+        "letra": "C",
+        "texto": "Que a empresa pode estar vendendo a prazos maiores ou com mais dificuldade de cobrança."
+      },
+      {
+        "letra": "D",
+        "texto": "Nada relevante para a análise."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Recebíveis crescendo muito mais que as vendas prendem caixa e podem sinalizar risco de crédito. Vale entender a causa."
+  },
+  {
+    "id": "er-dificil-13",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "Lucro operacional após impostos de R$ 500 milhões, depreciação de R$ 100 milhões, CAPEX de R$ 250 milhões e aumento do capital de giro de R$ 50 milhões. Qual é o fluxo de caixa livre da firma?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 400 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 300 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 600 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 200 milhões."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Somamos a depreciação, que não é saída de caixa, e subtraímos investimentos e capital de giro: 500 + 100 − 250 − 50 = R$ 300 milhões."
+  },
+  {
+    "id": "er-dificil-14",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "Uma empresa tem ROIC de 15% e custo de capital de 18%. O que concluir?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Ela cria valor, pois tem lucro."
+      },
+      {
+        "letra": "B",
+        "texto": "O ROIC não tem relação com criação de valor."
+      },
+      {
+        "letra": "C",
+        "texto": "Ela deveria investir mais para crescer."
+      },
+      {
+        "letra": "D",
+        "texto": "Mesmo lucrativa, ela tende a destruir valor nos investimentos, pois o retorno fica abaixo do custo do capital."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Lucro não basta: o retorno precisa superar o que os investidores exigem. Crescer com ROIC abaixo do custo de capital pode reduzir valor."
+  },
+  {
+    "id": "er-dificil-15",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "O estoque médio é de R$ 300 milhões, e o custo das mercadorias vendidas no ano é de R$ 1.825 milhões. Quantos dias de estoque a empresa tem?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "60 dias."
+      },
+      {
+        "letra": "B",
+        "texto": "165 dias."
+      },
+      {
+        "letra": "C",
+        "texto": "6 dias."
+      },
+      {
+        "letra": "D",
+        "texto": "30 dias."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "O custo diário é 1.825 ÷ 365 = 5. O estoque cobre 300 ÷ 5 = 60 dias de vendas a custo."
+  },
+  {
+    "id": "er-dificil-16",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "A margem bruta de uma varejista bateu recorde, mas o lucro líquido caiu. Qual explicação é possível?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "A margem bruta recorde garante lucro maior."
+      },
+      {
+        "letra": "B",
+        "texto": "O lucro líquido não depende da margem bruta."
+      },
+      {
+        "letra": "C",
+        "texto": "Despesas operacionais, perdas com crédito ou queda de vendas podem ter consumido o ganho de margem."
+      },
+      {
+        "letra": "D",
+        "texto": "A empresa deve ter errado a contabilidade."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "A margem bruta é só a primeira linha. Despesas de vendas, perdas com crédito e uma receita menor podem reduzir o lucro final. Analise a DRE linha a linha."
+  },
+  {
+    "id": "er-dificil-17",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Contabilidade e análise financeira",
+    "enunciado": "Uma empresa lucra R$ 1.000 milhões e tem 500 milhões de ações. Ela recompra 50 milhões de ações e mantém o lucro. Qual é o novo LPA?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 2,00."
+      },
+      {
+        "letra": "B",
+        "texto": "Cerca de R$ 2,22."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 1,80."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 2,50."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O lucro fica igual, mas é dividido por menos ações: 1.000 ÷ 450 ≈ R$ 2,22. A recompra aumenta o LPA, mas consome caixa."
+  },
+  {
+    "id": "er-facil-18",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Valuation",
+    "enunciado": "Uma ação custa R$ 30, e o LPA é R$ 3. Qual é o P/L?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "3 vezes."
+      },
+      {
+        "letra": "B",
+        "texto": "90 vezes."
+      },
+      {
+        "letra": "C",
+        "texto": "10 vezes."
+      },
+      {
+        "letra": "D",
+        "texto": "0,1 vez."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O P/L mostra quantos anos de lucro o preço representa: 30 ÷ 3 = 10 vezes."
+  },
+  {
+    "id": "er-facil-19",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Valuation",
+    "enunciado": "Uma empresa tem 200 milhões de ações negociadas a R$ 15. Qual é o valor de mercado?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 3 bilhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 215 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 13,3 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 30 bilhões."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "200 milhões × R$ 15 = R$ 3 bilhões. É quanto o mercado paga hoje por todas as ações."
+  },
+  {
+    "id": "er-facil-20",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Valuation",
+    "enunciado": "Qual é a ideia central do fluxo de caixa descontado (DCF)?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "A ação vale o preço de ontem."
+      },
+      {
+        "letra": "B",
+        "texto": "A empresa vale seu patrimônio contábil."
+      },
+      {
+        "letra": "C",
+        "texto": "A empresa vale a média dos concorrentes."
+      },
+      {
+        "letra": "D",
+        "texto": "A empresa vale o caixa que poderá gerar no futuro, trazido a valor presente."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "O DCF projeta fluxos de caixa e os desconta por uma taxa que reflete o risco e o custo de oportunidade."
+  },
+  {
+    "id": "er-facil-21",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Valuation",
+    "enunciado": "Uma ação paga R$ 1,00 de dividendos por ano e custa R$ 20. Qual é o dividend yield?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "20%."
+      },
+      {
+        "letra": "B",
+        "texto": "5%."
+      },
+      {
+        "letra": "C",
+        "texto": "2%."
+      },
+      {
+        "letra": "D",
+        "texto": "0,05%."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "1 ÷ 20 = 5% ao ano em dividendos, sem considerar a variação do preço."
+  },
+  {
+    "id": "er-facil-22",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Valuation",
+    "enunciado": "Por que comparar múltiplos de empresas do mesmo setor?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Porque todas as empresas do setor valem o mesmo."
+      },
+      {
+        "letra": "B",
+        "texto": "Para eliminar a necessidade do DCF."
+      },
+      {
+        "letra": "C",
+        "texto": "Para ter uma referência de como o mercado avalia negócios semelhantes."
+      },
+      {
+        "letra": "D",
+        "texto": "Porque a regulação exige."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Empresas parecidas tendem a ter riscos e perspectivas parecidas. Diferenças de crescimento, margem e risco ainda justificam múltiplos diferentes."
+  },
+  {
+    "id": "er-facil-23",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Valuation",
+    "enunciado": "O que o valor terminal representa em um DCF?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "O valor dos fluxos de caixa após o período de projeção explícita."
+      },
+      {
+        "letra": "B",
+        "texto": "O valor de liquidação dos ativos."
+      },
+      {
+        "letra": "C",
+        "texto": "O preço da ação no último dia de negociação."
+      },
+      {
+        "letra": "D",
+        "texto": "O caixa no fim do primeiro ano."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Como não dá para projetar ano a ano para sempre, o valor terminal resume os fluxos depois do último ano projetado."
+  },
+  {
+    "id": "er-medio-24",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Valuation",
+    "enunciado": "Valor de mercado de R$ 5.000 milhões, dívida de R$ 1.500 milhões e caixa de R$ 500 milhões. Qual é o valor da firma (EV)?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 7.000 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 4.000 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 3.000 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 6.000 milhões."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "EV = valor de mercado + dívida − caixa = 5.000 + 1.500 − 500 = R$ 6.000 milhões."
+  },
+  {
+    "id": "er-medio-25",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Valuation",
+    "enunciado": "EV de R$ 6.000 milhões e EBITDA de R$ 1.000 milhões. Qual é o EV/EBITDA?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "0,17 vez."
+      },
+      {
+        "letra": "B",
+        "texto": "6 vezes."
+      },
+      {
+        "letra": "C",
+        "texto": "5 vezes."
+      },
+      {
+        "letra": "D",
+        "texto": "7 vezes."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "6.000 ÷ 1.000 = 6 vezes. O EV é combinado com o EBITDA porque ambos se referem à empresa toda, antes da divisão entre credores e acionistas."
+  },
+  {
+    "id": "er-medio-26",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Valuation",
+    "enunciado": "O fluxo de caixa do próximo ano é R$ 100 milhões e cresce 5% ao ano para sempre. Com taxa de desconto de 15%, qual é o valor presente?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 667 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 2.000 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 1.000 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 500 milhões."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Pela perpetuidade com crescimento: 100 ÷ (15% − 5%) = R$ 1.000 milhões."
+  },
+  {
+    "id": "er-medio-27",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Valuation",
+    "enunciado": "Qual é o valor presente de R$ 1.180 recebidos em um ano, com taxa de desconto de 18%?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 1.000."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 968."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 1.180."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 1.392."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "1.180 ÷ 1,18 = R$ 1.000. Dinheiro no futuro vale menos que dinheiro hoje."
+  },
+  {
+    "id": "er-medio-28",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Valuation",
+    "enunciado": "Mantidas as demais premissas, o que acontece com o valor de um DCF se a taxa de desconto aumentar?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Aumenta."
+      },
+      {
+        "letra": "B",
+        "texto": "Fica igual."
+      },
+      {
+        "letra": "C",
+        "texto": "Depende apenas do valor terminal."
+      },
+      {
+        "letra": "D",
+        "texto": "Diminui."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Uma taxa maior reduz o valor presente de todos os fluxos, principalmente dos mais distantes."
+  },
+  {
+    "id": "er-medio-29",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Valuation",
+    "enunciado": "Taxa livre de risco de 12%, beta de 1,2 e prêmio de risco de mercado de 5%. Pelo CAPM, qual é o custo do capital próprio?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "17%."
+      },
+      {
+        "letra": "B",
+        "texto": "18%."
+      },
+      {
+        "letra": "C",
+        "texto": "6%."
+      },
+      {
+        "letra": "D",
+        "texto": "13,2%."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "12% + 1,2 × 5% = 18%. O beta indica quanto a ação tende a oscilar em relação ao mercado."
+  },
+  {
+    "id": "er-dificil-30",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Valuation",
+    "enunciado": "Em um DCF, o valor terminal representa 60% do valor da firma. O que fazer?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Eliminar o valor terminal."
+      },
+      {
+        "letra": "B",
+        "texto": "Ignorar, pois é comum."
+      },
+      {
+        "letra": "C",
+        "texto": "Testar a sensibilidade ao crescimento na perpetuidade e à taxa de desconto, pois premissas de longo prazo pesam muito."
+      },
+      {
+        "letra": "D",
+        "texto": "Aumentar o período de projeção para 50 anos."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "É comum o valor terminal pesar bastante, por isso as premissas de longo prazo merecem testes de sensibilidade e justificativa."
+  },
+  {
+    "id": "er-dificil-31",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Valuation",
+    "enunciado": "Uma analista usou crescimento na perpetuidade de 6% e taxa de desconto de 6,5%. Qual é o problema?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Com crescimento tão próximo da taxa, o valor fica extremamente sensível e tende a ficar irrealista."
+      },
+      {
+        "letra": "B",
+        "texto": "Nenhum, desde que o crescimento seja menor que a taxa."
+      },
+      {
+        "letra": "C",
+        "texto": "O crescimento deveria ser maior que a taxa."
+      },
+      {
+        "letra": "D",
+        "texto": "A taxa deveria ser igual ao crescimento."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "O denominador da perpetuidade fica em 0,5 ponto percentual. Pequenas mudanças alteram muito o valor. Além disso, crescimento perpétuo precisa ser sustentável no longo prazo."
+  },
+  {
+    "id": "er-dificil-32",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Valuation",
+    "enunciado": "Uma analista projeta fluxos nominais, com inflação, e desconta a uma taxa real. O que acontece?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "O resultado fica correto."
+      },
+      {
+        "letra": "B",
+        "texto": "O valor tende a ficar subestimado."
+      },
+      {
+        "letra": "C",
+        "texto": "Não faz diferença no longo prazo."
+      },
+      {
+        "letra": "D",
+        "texto": "Há inconsistência: fluxos e taxa precisam ser ambos nominais ou ambos reais."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Descontar fluxos com inflação por uma taxa sem inflação superestima o valor. Mantenha a mesma base nos dois lados."
+  },
+  {
+    "id": "er-dificil-33",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Valuation",
+    "enunciado": "Com suas premissas, o preço atual da ação equivale a uma taxa de desconto implícita de 20,5%, mas você usa 18%. Como interpretar?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "O mercado está errado e a ação certamente vai subir."
+      },
+      {
+        "letra": "B",
+        "texto": "O mercado exige retorno maior ou espera resultados piores que os seus; a ação parece barata segundo suas premissas."
+      },
+      {
+        "letra": "C",
+        "texto": "Você deve usar 20,5% para igualar o preço."
+      },
+      {
+        "letra": "D",
+        "texto": "A taxa implícita não tem significado."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "A taxa implícita traduz o preço em expectativas. A diferença mostra onde sua visão diverge do mercado, e isso precisa ser justificado."
+  },
+  {
+    "id": "er-dificil-34",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Valuation",
+    "enunciado": "Três cenários têm valores de R$ 8, R$ 12 e R$ 15, com pesos de 25%, 50% e 25%. A ação custa R$ 10. Qual é o potencial do preço-alvo ponderado?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "20%."
+      },
+      {
+        "letra": "B",
+        "texto": "11,7%."
+      },
+      {
+        "letra": "C",
+        "texto": "17,5%."
+      },
+      {
+        "letra": "D",
+        "texto": "50%."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Preço-alvo ponderado: 0,25 × 8 + 0,5 × 12 + 0,25 × 15 = R$ 11,75. Potencial: 11,75 ÷ 10 − 1 = 17,5%."
+  },
+  {
+    "id": "er-facil-35",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "O que costuma significar uma recomendação de “manter” (neutra)?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Que a ação vai cair."
+      },
+      {
+        "letra": "B",
+        "texto": "Que o retorno esperado está próximo da referência, sem motivo forte para comprar ou vender."
+      },
+      {
+        "letra": "C",
+        "texto": "Que a empresa está em dificuldade."
+      },
+      {
+        "letra": "D",
+        "texto": "Que a analista não analisou a empresa."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Cada casa define seus critérios, mas “manter” geralmente indica potencial moderado, entre os limites de compra e venda."
+  },
+  {
+    "id": "er-facil-36",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "Uma ação custa R$ 40, e o preço-alvo é R$ 50. Qual é o potencial de valorização?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "20%."
+      },
+      {
+        "letra": "B",
+        "texto": "10%."
+      },
+      {
+        "letra": "C",
+        "texto": "80%."
+      },
+      {
+        "letra": "D",
+        "texto": "25%."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "50 ÷ 40 − 1 = 25%. Cuidado: calcular 10 ÷ 50 daria 20%, mas o potencial é medido sobre o preço atual."
+  },
+  {
+    "id": "er-facil-37",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "O que é um catalisador?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Um tipo de ação preferencial."
+      },
+      {
+        "letra": "B",
+        "texto": "A taxa de desconto do DCF."
+      },
+      {
+        "letra": "C",
+        "texto": "Um evento que pode fazer o mercado reavaliar a ação, como um resultado ou uma mudança regulatória."
+      },
+      {
+        "letra": "D",
+        "texto": "Um múltiplo de valuation."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Uma ação pode ficar “barata” por muito tempo. Catalisadores são eventos que podem destravar a diferença entre preço e valor."
+  },
+  {
+    "id": "er-facil-38",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "O que é o consenso de mercado?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "A média das estimativas dos analistas para indicadores como receita e lucro."
+      },
+      {
+        "letra": "B",
+        "texto": "A opinião da empresa sobre si mesma."
+      },
+      {
+        "letra": "C",
+        "texto": "A cotação média do último mês."
+      },
+      {
+        "letra": "D",
+        "texto": "A decisão da CVM sobre a empresa."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "O consenso resume o que o mercado espera. Resultados são comparados a ele, e surpresas costumam mover o preço."
+  },
+  {
+    "id": "er-facil-39",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "Por que a analista lê o release de resultados e acompanha a teleconferência?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Porque substituem o DCF."
+      },
+      {
+        "letra": "B",
+        "texto": "Para atualizar números, entender as explicações da administração e fazer perguntas sobre as tendências."
+      },
+      {
+        "letra": "C",
+        "texto": "Porque são a única fonte de cotações."
+      },
+      {
+        "letra": "D",
+        "texto": "Para saber o preço-alvo da empresa."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O release traz os números; a teleconferência traz contexto, como explicações sobre vendas, margens e perspectivas."
+  },
+  {
+    "id": "er-facil-40",
+    "areaId": "equity-research",
+    "nivel": "facil",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "Qual é a diferença entre sell-side e buy-side?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Sell-side só vende ações; buy-side só compra."
+      },
+      {
+        "letra": "B",
+        "texto": "Não há diferença."
+      },
+      {
+        "letra": "C",
+        "texto": "Buy-side publica relatórios abertos ao público."
+      },
+      {
+        "letra": "D",
+        "texto": "Sell-side publica análises para clientes de bancos e corretoras; buy-side analisa para decidir os investimentos de gestoras e fundos."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "A analista sell-side atende investidores com relatórios e recomendações. A analista buy-side trabalha dentro da gestora e apoia as decisões da própria carteira."
+  },
+  {
+    "id": "er-medio-41",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "O lucro de uma empresa veio acima do consenso, mas a ação caiu. O que pode explicar?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "O mercado sempre erra."
+      },
+      {
+        "letra": "B",
+        "texto": "Lucro acima do esperado sempre faz a ação subir."
+      },
+      {
+        "letra": "C",
+        "texto": "Perspectivas mais fracas, qualidade do resultado ou expectativas que já estavam no preço."
+      },
+      {
+        "letra": "D",
+        "texto": "A empresa deve ter fraudado o resultado."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O mercado olha para frente. Um lucro bom com projeções piores ou ganhos pontuais pode decepcionar."
+  },
+  {
+    "id": "er-medio-42",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "A regra da casa é: compra acima de +15%; venda abaixo de −10%; manter entre os dois. Preço de R$ 10 e preço-alvo de R$ 10,80. Qual é a recomendação?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Manter, com potencial de 8%."
+      },
+      {
+        "letra": "B",
+        "texto": "Compra, pois o potencial é positivo."
+      },
+      {
+        "letra": "C",
+        "texto": "Venda, pois o potencial é menor que 15%."
+      },
+      {
+        "letra": "D",
+        "texto": "Compra, com potencial de 18%."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "10,80 ÷ 10 − 1 = 8%, entre −10% e +15%."
+  },
+  {
+    "id": "er-medio-43",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "O banco em que a analista trabalha coordenou uma oferta de ações da empresa analisada. Qual é a postura adequada?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Esconder a informação para não influenciar investidores."
+      },
+      {
+        "letra": "B",
+        "texto": "Divulgar o conflito de interesse e manter a independência da análise."
+      },
+      {
+        "letra": "C",
+        "texto": "Recomendar compra para apoiar a oferta."
+      },
+      {
+        "letra": "D",
+        "texto": "Deixar de cobrir qualquer empresa do setor."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Conflitos precisam ser informados no relatório, e a análise deve ser independente. No Brasil, as regras para analistas estão na Resolução CVM 20."
+  },
+  {
+    "id": "er-medio-44",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "Como comparar vendas de uma varejista de moda, que vende mais no fim do ano?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Comparar o 4º trimestre com o 3º trimestre do mesmo ano."
+      },
+      {
+        "letra": "B",
+        "texto": "Usar apenas o último mês."
+      },
+      {
+        "letra": "C",
+        "texto": "Ignorar a sazonalidade."
+      },
+      {
+        "letra": "D",
+        "texto": "Comparar cada trimestre com o mesmo trimestre do ano anterior."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Comparar o 4º trimestre com o 3º mostraria crescimento apenas por causa da época de compras. A comparação anual elimina esse efeito."
+  },
+  {
+    "id": "er-medio-45",
+    "areaId": "equity-research",
+    "nivel": "medio",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "Como juros altos costumam afetar varejistas?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Reduzem o consumo a crédito, aumentam a inadimplência e elevam a taxa de desconto do valuation."
+      },
+      {
+        "letra": "B",
+        "texto": "Aumentam as vendas, pois as pessoas poupam menos."
+      },
+      {
+        "letra": "C",
+        "texto": "Não têm efeito sobre empresas sem dívida."
+      },
+      {
+        "letra": "D",
+        "texto": "Afetam apenas bancos."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Mesmo uma varejista com caixa líquido sente os juros: clientes compram menos parcelado, perdas com crédito sobem e o valor presente dos lucros futuros cai."
+  },
+  {
+    "id": "er-dificil-46",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "Uma empresa retira suas projeções de crescimento citando incerteza. Qual é a melhor reação da analista?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Recomendar venda imediatamente."
+      },
+      {
+        "letra": "B",
+        "texto": "Manter as projeções antigas da empresa."
+      },
+      {
+        "letra": "C",
+        "texto": "Revisar premissas e riscos com base nos fatos, sem concluir automaticamente pela venda."
+      },
+      {
+        "letra": "D",
+        "texto": "Parar de cobrir a empresa."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "A retirada aumenta a incerteza, mas o preço pode já refletir parte disso. A analista precisa rever suas próprias premissas e verificar o potencial."
+  },
+  {
+    "id": "er-dificil-47",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "A financeira de uma varejista registra aumento das perdas com crédito. Qual efeito a analista deve considerar?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Nenhum, pois a financeira é separada do varejo."
+      },
+      {
+        "letra": "B",
+        "texto": "O lucro consolidado pode cair mesmo com vendas estáveis; é preciso acompanhar inadimplência e provisões."
+      },
+      {
+        "letra": "C",
+        "texto": "As vendas vão necessariamente aumentar."
+      },
+      {
+        "letra": "D",
+        "texto": "A margem bruta do varejo vai cair na mesma proporção."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O cartão próprio gera receita financeira, mas também risco de crédito. Perdas maiores reduzem o resultado consolidado."
+  },
+  {
+    "id": "er-dificil-48",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "O governo pode mudar a tributação de compras em plataformas internacionais, afetando a concorrência de uma varejista. Como tratar isso no modelo?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Assumir que a mudança vai acontecer."
+      },
+      {
+        "letra": "B",
+        "texto": "Ignorar, pois é incerto."
+      },
+      {
+        "letra": "C",
+        "texto": "Reduzir o preço-alvo pela metade."
+      },
+      {
+        "letra": "D",
+        "texto": "Construir cenários com e sem a mudança e avaliar a sensibilidade do valor."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Quando um evento incerto pode mudar muito o resultado, cenários ajudam a mostrar o que está em jogo sem apostar tudo em uma hipótese."
+  },
+  {
+    "id": "er-dificil-49",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "Uma ação negocia a um P/L de 6,6 vezes, abaixo de sua média histórica. O que concluir?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Pode ser uma oportunidade ou refletir a expectativa de lucros menores; é preciso entender o motivo."
+      },
+      {
+        "letra": "B",
+        "texto": "A ação está certamente barata."
+      },
+      {
+        "letra": "C",
+        "texto": "A ação está certamente cara."
+      },
+      {
+        "letra": "D",
+        "texto": "O P/L histórico é irrelevante."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Um múltiplo baixo pode indicar desconto ou um lucro que deve cair. Quando a ação parece barata mas os lucros pioram, fala-se em “value trap”."
+  },
+  {
+    "id": "er-dificil-50",
+    "areaId": "equity-research",
+    "nivel": "dificil",
+    "tema": "Mercado, setor e recomendação",
+    "enunciado": "Você recomendava compra; a ação caiu 15% após um resultado fraco. Qual é a melhor postura?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Manter a recomendação para não admitir erro."
+      },
+      {
+        "letra": "B",
+        "texto": "Mudar para venda porque a ação caiu."
+      },
+      {
+        "letra": "C",
+        "texto": "Atualizar premissas e preço-alvo com os novos fatos e recalcular o potencial sobre o novo preço."
+      },
+      {
+        "letra": "D",
+        "texto": "Esperar o próximo resultado sem revisar nada."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "A recomendação depende de valor e preço. Ambos mudaram, então a análise precisa ser refeita sem se ancorar na posição anterior."
+  },
+  {
+    "id": "wm-facil-01",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "Qual é a principal função de uma profissional de Wealth Management?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Garantir que a carteira da cliente nunca perca valor."
+      },
+      {
+        "letra": "B",
+        "texto": "Entender os objetivos da cliente e montar e acompanhar uma estratégia patrimonial."
+      },
+      {
+        "letra": "C",
+        "texto": "Escolher sempre os investimentos de maior retorno."
+      },
+      {
+        "letra": "D",
+        "texto": "Substituir a cliente nas decisões sobre sua vida financeira."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Wealth Management vai além de escolher produtos: começa por entender objetivos, prazos e riscos e acompanha a estratégia ao longo do tempo. Nenhuma profissional consegue garantir resultados."
+  },
+  {
+    "id": "wm-facil-02",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "O que a reserva de emergência deve priorizar?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Retorno elevado, mesmo com oscilação."
+      },
+      {
+        "letra": "B",
+        "texto": "Isenção de imposto acima de tudo."
+      },
+      {
+        "letra": "C",
+        "texto": "Investimentos de longo prazo com carência."
+      },
+      {
+        "letra": "D",
+        "texto": "Liquidez e baixo risco."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "A reserva existe para imprevistos. Ela precisa estar disponível rapidamente e sem risco relevante de perda no momento do resgate."
+  },
+  {
+    "id": "wm-facil-03",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "Qual é o objetivo do processo de suitability?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Verificar se os produtos recomendados são adequados ao perfil, aos objetivos e à situação financeira da cliente."
+      },
+      {
+        "letra": "B",
+        "texto": "Garantir o retorno mínimo dos investimentos."
+      },
+      {
+        "letra": "C",
+        "texto": "Definir a alíquota de imposto da cliente."
+      },
+      {
+        "letra": "D",
+        "texto": "Aprovar o crédito da cliente no banco."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Suitability significa adequação. Antes de recomendar, a instituição precisa conhecer a cliente e verificar se o produto combina com ela."
+  },
+  {
+    "id": "wm-facil-04",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "R$ 10 mil são aplicados a 10% ao ano por dois anos, sem aportes nem resgates. Qual é o valor final?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 11.000."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 12.000."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 12.100."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 12.500."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Juros compostos rendem sobre o saldo acumulado: 10.000 × 1,10 × 1,10 = R$ 12.100. Os R$ 100 extras são os juros sobre os juros do primeiro ano."
+  },
+  {
+    "id": "wm-facil-05",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "O que é o horizonte de investimento de um objetivo?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "O retorno esperado do investimento."
+      },
+      {
+        "letra": "B",
+        "texto": "O prazo até a cliente precisar do dinheiro."
+      },
+      {
+        "letra": "C",
+        "texto": "O número de produtos na carteira."
+      },
+      {
+        "letra": "D",
+        "texto": "A taxa cobrada pela instituição."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O horizonte indica quando o dinheiro será usado. Quanto mais curto ele for, menos espaço há para se recuperar de oscilações."
+  },
+  {
+    "id": "wm-facil-06",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "O que a diversificação faz?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Elimina todos os riscos da carteira."
+      },
+      {
+        "letra": "B",
+        "texto": "Garante retorno acima da inflação."
+      },
+      {
+        "letra": "C",
+        "texto": "Concentra o patrimônio no melhor ativo."
+      },
+      {
+        "letra": "D",
+        "texto": "Reduz o risco específico de cada ativo, sem eliminar todo o risco."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Distribuir recursos entre ativos diferentes diminui o impacto de um problema isolado. Riscos que afetam todo o mercado continuam existindo."
+  },
+  {
+    "id": "wm-medio-07",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "Um investimento rendeu 12% no ano, e a inflação foi de 5%. Qual foi o retorno real aproximado?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "6,7%."
+      },
+      {
+        "letra": "B",
+        "texto": "7,0%."
+      },
+      {
+        "letra": "C",
+        "texto": "17,0%."
+      },
+      {
+        "letra": "D",
+        "texto": "5,0%."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "O retorno real mostra o ganho de poder de compra: 1,12 ÷ 1,05 − 1 ≈ 6,7%. A subtração simples (12% − 5% = 7%) é só uma aproximação."
+  },
+  {
+    "id": "wm-medio-08",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "Uma cliente quer retirar R$ 120 mil por ano, em termos reais, para sempre. Com retorno real de 4% ao ano, qual patrimônio seria necessário?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 1,2 milhão."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 4,8 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 3,0 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 2,4 milhões."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Para retirar só o rendimento real, o patrimônio precisa render R$ 120 mil por ano: 120 ÷ 4% = R$ 3 milhões."
+  },
+  {
+    "id": "wm-medio-09",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "Uma cliente se declara arrojada, mas resgatou tudo na última queda forte do mercado. O que fazer?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Manter o perfil arrojado, pois foi o que ela declarou."
+      },
+      {
+        "letra": "B",
+        "texto": "Classificá-la automaticamente como conservadora para sempre."
+      },
+      {
+        "letra": "C",
+        "texto": "Ignorar o histórico, pois o passado não se repete."
+      },
+      {
+        "letra": "D",
+        "texto": "Investigar a contradição e revisar o perfil com ela."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "O comportamento em momentos difíceis revela muito sobre a tolerância real a risco. Vale conversar, entender o que aconteceu e ajustar o perfil."
+  },
+  {
+    "id": "wm-medio-10",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "Uma cliente gasta R$ 8 mil por mês e quer reserva de seis meses. Qual deve ser o valor da reserva?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 8 mil."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 48 mil."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 96 mil."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 24 mil."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Basta multiplicar o gasto mensal pelo número de meses: 8 × 6 = R$ 48 mil."
+  },
+  {
+    "id": "wm-medio-11",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "Uma assessora recebe remuneração maior ao distribuir um produto específico. Qual é a postura adequada?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Ser transparente sobre sua remuneração e recomendar com base nas necessidades da cliente."
+      },
+      {
+        "letra": "B",
+        "texto": "Recomendar o produto, pois a remuneração não afeta a cliente."
+      },
+      {
+        "letra": "C",
+        "texto": "Não contar nada, para não confundir a cliente."
+      },
+      {
+        "letra": "D",
+        "texto": "Recusar-se a oferecer qualquer produto remunerado."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Conflitos de interesse existem em vários modelos de remuneração. O essencial é ser transparente e colocar o interesse da cliente em primeiro lugar."
+  },
+  {
+    "id": "wm-medio-12",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "Uma cliente tem três objetivos com prazos de 1, 8 e 25 anos. Qual abordagem é adequada?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Uma única carteira arrojada para todos."
+      },
+      {
+        "letra": "B",
+        "texto": "Uma única carteira conservadora para todos."
+      },
+      {
+        "letra": "C",
+        "texto": "Separar recursos por objetivo, com riscos compatíveis com cada prazo."
+      },
+      {
+        "letra": "D",
+        "texto": "Priorizar só o objetivo mais distante."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Cada objetivo tem horizonte e tolerância próprios. Separar os recursos ajuda a proteger o curto prazo e a buscar crescimento no longo."
+  },
+  {
+    "id": "wm-dificil-13",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "Uma cliente tem R$ 6 milhões, espera retorno real de 4% ao ano e quer retirar R$ 300 mil reais por ano. O que tende a acontecer?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "O patrimônio cresce, pois o retorno é positivo."
+      },
+      {
+        "letra": "B",
+        "texto": "Os saques superam o rendimento real de R$ 240 mil, e o patrimônio tende a diminuir ao longo do tempo."
+      },
+      {
+        "letra": "C",
+        "texto": "O patrimônio fica constante."
+      },
+      {
+        "letra": "D",
+        "texto": "É impossível dizer qualquer coisa com esses dados."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O rendimento real é 6 milhões × 4% = R$ 240 mil, menor que os R$ 300 mil retirados. A diferença sai do principal todos os anos."
+  },
+  {
+    "id": "wm-dificil-14",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "Duas clientes têm o mesmo retorno médio em dez anos, mas uma faz saques anuais. Para ela, por que importa se as perdas vêm no início?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Não importa: só a média conta."
+      },
+      {
+        "letra": "B",
+        "texto": "Perdas no início sempre se recuperam rapidamente."
+      },
+      {
+        "letra": "C",
+        "texto": "Saques eliminam o risco de mercado."
+      },
+      {
+        "letra": "D",
+        "texto": "Saques após perdas vendem ativos desvalorizados e reduzem a base que se recuperaria depois."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Esse é o risco de sequência de retornos. Quem saca durante uma queda transforma perdas temporárias em permanentes para a parte resgatada."
+  },
+  {
+    "id": "wm-dificil-15",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "Com inflação de 5% ao ano, quanto R$ 100 mil de hoje valerão em poder de compra daqui a dois anos?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Cerca de R$ 90,7 mil."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 90 mil."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 95 mil."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 110,25 mil."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Dividimos pela inflação acumulada: 100 ÷ 1,05² ≈ R$ 90,7 mil. O valor nominal é o mesmo, mas compra menos."
+  },
+  {
+    "id": "wm-dificil-16",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "Uma família tem 80% do patrimônio em sua empresa. Qual orientação inicial é adequada?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Vender a empresa imediatamente."
+      },
+      {
+        "letra": "B",
+        "texto": "Ignorar a concentração, pois a família conhece o negócio."
+      },
+      {
+        "letra": "C",
+        "texto": "Avaliar concentração, liquidez e um plano de diversificação gradual, considerando tributação e governança."
+      },
+      {
+        "letra": "D",
+        "texto": "Investir o restante também no mesmo setor."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Concentração aumenta o risco, mas a solução depende de liquidez, impostos, controle e desejos da família. Um plano gradual costuma ser mais realista."
+  },
+  {
+    "id": "wm-dificil-17",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Planejamento e perfil da cliente",
+    "enunciado": "Uma cliente tem R$ 800 mil e quer chegar a R$ 1 milhão, em termos reais, sem aportes. Com retorno real de 5% ao ano, em quanto tempo aproximadamente?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Cerca de 3 anos."
+      },
+      {
+        "letra": "B",
+        "texto": "Cerca de 10 anos."
+      },
+      {
+        "letra": "C",
+        "texto": "Cerca de 4 anos."
+      },
+      {
+        "letra": "D",
+        "texto": "Cerca de 5 anos."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Teste ano a ano: 800 × 1,05⁴ ≈ 972 e 800 × 1,05⁵ ≈ 1.021. A meta é alcançada no quinto ano."
+  },
+  {
+    "id": "wm-facil-18",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Investimentos e alocação",
+    "enunciado": "O que é o Tesouro Selic?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Um título público pós-fixado atrelado à Selic, com baixa oscilação."
+      },
+      {
+        "letra": "B",
+        "texto": "Uma ação de empresa estatal."
+      },
+      {
+        "letra": "C",
+        "texto": "Um título prefixado de longo prazo."
+      },
+      {
+        "letra": "D",
+        "texto": "Um fundo imobiliário do governo."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "O Tesouro Selic acompanha a taxa básica de juros e costuma oscilar pouco. Por isso é muito usado para reserva e liquidez."
+  },
+  {
+    "id": "wm-facil-19",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Investimentos e alocação",
+    "enunciado": "O que é um CDB?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Uma participação no capital do banco."
+      },
+      {
+        "letra": "B",
+        "texto": "Um título público emitido pelo Tesouro."
+      },
+      {
+        "letra": "C",
+        "texto": "Um fundo de ações."
+      },
+      {
+        "letra": "D",
+        "texto": "Um título emitido por banco, com cobertura do FGC dentro dos limites."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Ao comprar um CDB, você empresta dinheiro ao banco. O FGC cobre esse tipo de aplicação dentro dos limites por pessoa e por instituição."
+  },
+  {
+    "id": "wm-facil-20",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Investimentos e alocação",
+    "enunciado": "Qual é uma diferença entre ações e renda fixa?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Ações têm rentabilidade definida no contrato."
+      },
+      {
+        "letra": "B",
+        "texto": "Renda fixa nunca oscila."
+      },
+      {
+        "letra": "C",
+        "texto": "Ações representam participação na empresa, sem retorno pré-definido."
+      },
+      {
+        "letra": "D",
+        "texto": "Renda fixa dá direito a voto na empresa."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O acionista participa dos resultados e dos riscos do negócio. Na renda fixa, as condições de remuneração são combinadas na emissão."
+  },
+  {
+    "id": "wm-facil-21",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Investimentos e alocação",
+    "enunciado": "O que é um ETF?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Um título de dívida bancária."
+      },
+      {
+        "letra": "B",
+        "texto": "Um fundo negociado em bolsa que normalmente replica um índice."
+      },
+      {
+        "letra": "C",
+        "texto": "Um seguro de vida."
+      },
+      {
+        "letra": "D",
+        "texto": "Uma conta poupança em dólar."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O ETF permite comprar uma cesta de ativos com uma única cota negociada em bolsa, geralmente com custo baixo."
+  },
+  {
+    "id": "wm-facil-22",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Investimentos e alocação",
+    "enunciado": "O que é liquidez?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "A facilidade de transformar um investimento em dinheiro sem perda relevante de valor."
+      },
+      {
+        "letra": "B",
+        "texto": "O retorno de um investimento."
+      },
+      {
+        "letra": "C",
+        "texto": "A garantia contra perdas."
+      },
+      {
+        "letra": "D",
+        "texto": "O imposto pago no resgate."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Um ativo líquido pode ser vendido rapidamente por um preço justo. Liquidez é essencial para objetivos de curto prazo."
+  },
+  {
+    "id": "wm-facil-23",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Investimentos e alocação",
+    "enunciado": "O que é um fundo imobiliário (FII)?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Um financiamento para comprar imóveis."
+      },
+      {
+        "letra": "B",
+        "texto": "Um título público."
+      },
+      {
+        "letra": "C",
+        "texto": "Uma poupança vinculada a imóveis."
+      },
+      {
+        "letra": "D",
+        "texto": "Um fundo que investe em ativos imobiliários, com cotas negociadas em bolsa."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Os FIIs reúnem recursos de vários investidores para investir em imóveis ou títulos ligados a eles. As cotas podem oscilar na bolsa."
+  },
+  {
+    "id": "wm-medio-24",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Investimentos e alocação",
+    "enunciado": "As taxas de juros sobem. O que tende a acontecer com o preço de um título prefixado já emitido?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Sobe."
+      },
+      {
+        "letra": "B",
+        "texto": "Cai, o que afeta quem vender antes do vencimento."
+      },
+      {
+        "letra": "C",
+        "texto": "Fica igual até o vencimento."
+      },
+      {
+        "letra": "D",
+        "texto": "É convertido em pós-fixado."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Os pagamentos do título são fixos e passam a ser descontados a uma taxa maior. O preço cai. Quem leva até o vencimento recebe o combinado."
+  },
+  {
+    "id": "wm-medio-25",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Investimentos e alocação",
+    "enunciado": "Uma carteira tem 60% em um ativo com retorno esperado de 10% e 40% em outro com 5%. Qual é o retorno esperado da carteira?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "7,5%."
+      },
+      {
+        "letra": "B",
+        "texto": "15,0%."
+      },
+      {
+        "letra": "C",
+        "texto": "8,0%."
+      },
+      {
+        "letra": "D",
+        "texto": "6,0%."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "É a média ponderada pelos pesos: 60% × 10% + 40% × 5% = 6% + 2% = 8%."
+  },
+  {
+    "id": "wm-medio-26",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Investimentos e alocação",
+    "enunciado": "Em uma carteira de R$ 1 milhão, qual é a diferença anual entre pagar 2% e 0,5% de taxa?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 15 mil."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 20 mil."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 5 mil."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 1,5 mil."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "1.000.000 × (2% − 0,5%) = R$ 15 mil por ano. Ao longo de muitos anos, essa diferença também deixa de render juros."
+  },
+  {
+    "id": "wm-medio-27",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Investimentos e alocação",
+    "enunciado": "Para uma pessoa física, com prazo acima de 720 dias, o que rende mais: CDB a 100% do CDI ou LCI isenta a 90% do CDI?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "O CDB, porque 100% é maior que 90%."
+      },
+      {
+        "letra": "B",
+        "texto": "São equivalentes."
+      },
+      {
+        "letra": "C",
+        "texto": "Depende apenas do banco emissor."
+      },
+      {
+        "letra": "D",
+        "texto": "A LCI, pois o CDB líquido de IR de 15% equivale a 85% do CDI."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Compare sempre o retorno líquido: 100% × (1 − 15%) = 85% do CDI, abaixo dos 90% da LCI. Prazo e liquidez também precisam ser comparados."
+  },
+  {
+    "id": "wm-medio-28",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Investimentos e alocação",
+    "enunciado": "Por que combinar ativos com baixa correlação?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Para garantir que todos subam juntos."
+      },
+      {
+        "letra": "B",
+        "texto": "Para reduzir a oscilação total da carteira."
+      },
+      {
+        "letra": "C",
+        "texto": "Para eliminar a necessidade de rebalancear."
+      },
+      {
+        "letra": "D",
+        "texto": "Para aumentar o imposto pago."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Se os ativos não caem ao mesmo tempo, as perdas de um podem ser compensadas por outros. A carteira oscila menos que seus componentes isolados."
+  },
+  {
+    "id": "wm-medio-29",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Investimentos e alocação",
+    "enunciado": "O que é rebalancear uma carteira?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Trocar todos os ativos todo mês."
+      },
+      {
+        "letra": "B",
+        "texto": "Concentrar recursos no ativo que mais subiu."
+      },
+      {
+        "letra": "C",
+        "texto": "Ajustar os pesos de volta à alocação-alvo, reduzindo o que subiu demais e reforçando o que ficou abaixo."
+      },
+      {
+        "letra": "D",
+        "texto": "Resgatar tudo após uma queda."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Com o tempo, os pesos se afastam do planejado. Rebalancear mantém o risco escolhido e impõe disciplina de compra e venda."
+  },
+  {
+    "id": "wm-dificil-30",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Investimentos e alocação",
+    "enunciado": "Uma cliente tem R$ 250 mil em CDB do banco A e R$ 150 mil em CDB do banco B, do mesmo conglomerado. Quanto o FGC cobriria em caso de liquidação do grupo?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 250 mil."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 400 mil."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 150 mil."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 500 mil."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "O limite de R$ 250 mil vale por CPF e por conglomerado financeiro. Bancos do mesmo grupo compartilham esse limite, e há ainda um teto de R$ 1 milhão a cada quatro anos."
+  },
+  {
+    "id": "wm-dificil-31",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Investimentos e alocação",
+    "enunciado": "Um título de crédito privado oferece taxa muito acima de títulos semelhantes. O que concluir?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "É uma oportunidade sem risco."
+      },
+      {
+        "letra": "B",
+        "texto": "O mercado está errado."
+      },
+      {
+        "letra": "C",
+        "texto": "A taxa elevada garante pagamento."
+      },
+      {
+        "letra": "D",
+        "texto": "A taxa maior provavelmente reflete risco maior; é preciso analisar emissor, garantias e liquidez."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Remuneração alta costuma compensar risco alto. Antes de investir, vale entender por que o emissor precisa pagar tanto."
+  },
+  {
+    "id": "wm-dificil-32",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Investimentos e alocação",
+    "enunciado": "A carteira X rendeu 8% com volatilidade de 10%; a Y rendeu 9% com volatilidade de 15%. A taxa livre de risco é 4%. Qual teve melhor retorno ajustado ao risco?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Y, porque rendeu mais."
+      },
+      {
+        "letra": "B",
+        "texto": "X, com índice de Sharpe de 0,40 contra 0,33 de Y."
+      },
+      {
+        "letra": "C",
+        "texto": "Empate."
+      },
+      {
+        "letra": "D",
+        "texto": "Y, porque a volatilidade não importa."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O índice de Sharpe divide o retorno acima da taxa livre de risco pela volatilidade: X = (8 − 4) ÷ 10 = 0,40 e Y = (9 − 4) ÷ 15 ≈ 0,33."
+  },
+  {
+    "id": "wm-dificil-33",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Investimentos e alocação",
+    "enunciado": "Uma cliente pretende morar em Portugal e terá despesas em euro. Como ver a exposição a moeda estrangeira?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Sempre um risco a evitar."
+      },
+      {
+        "letra": "B",
+        "texto": "Irrelevante para o planejamento."
+      },
+      {
+        "letra": "C",
+        "texto": "Pode funcionar como proteção, pois as despesas futuras estarão em euro."
+      },
+      {
+        "letra": "D",
+        "texto": "Proibida para pessoas físicas."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O risco depende da moeda dos compromissos. Se os gastos serão em euro, ter ativos nessa moeda reduz o descasamento."
+  },
+  {
+    "id": "wm-dificil-34",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Investimentos e alocação",
+    "enunciado": "Um COE promete capital protegido no vencimento. O que é correto afirmar?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "A proteção vale no vencimento, depende da capacidade do emissor de pagar, não tem cobertura do FGC e o retorno pode ser zero."
+      },
+      {
+        "letra": "B",
+        "texto": "O capital está protegido em qualquer data de resgate."
+      },
+      {
+        "letra": "C",
+        "texto": "O FGC garante o COE."
+      },
+      {
+        "letra": "D",
+        "texto": "O retorno mínimo é sempre igual ao CDI."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "“Capital protegido” não é o mesmo que risco zero. Há risco de crédito do emissor, baixa liquidez antes do vencimento e possibilidade de não ganhar nada."
+  },
+  {
+    "id": "wm-facil-35",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "Na tabela regressiva de IR da renda fixa, qual é a menor alíquota?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "22,5%, até 180 dias."
+      },
+      {
+        "letra": "B",
+        "texto": "15%, acima de 720 dias."
+      },
+      {
+        "letra": "C",
+        "texto": "10%, acima de cinco anos."
+      },
+      {
+        "letra": "D",
+        "texto": "0%, acima de dez anos."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "A alíquota cai com o prazo: 22,5%, 20%, 17,5% e, acima de 720 dias, 15%."
+  },
+  {
+    "id": "wm-facil-36",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "Qual investimento é isento de IR sobre os rendimentos para pessoa física?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "CDB."
+      },
+      {
+        "letra": "B",
+        "texto": "Tesouro IPCA+."
+      },
+      {
+        "letra": "C",
+        "texto": "Debênture comum."
+      },
+      {
+        "letra": "D",
+        "texto": "LCA."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "LCI e LCA mantêm isenção para pessoa física. CDB, títulos públicos e debêntures comuns seguem a tabela regressiva."
+  },
+  {
+    "id": "wm-facil-37",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "O que é o come-cotas?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "A antecipação semestral do IR em fundos abertos, feita pela redução da quantidade de cotas."
+      },
+      {
+        "letra": "B",
+        "texto": "Uma taxa de administração extra."
+      },
+      {
+        "letra": "C",
+        "texto": "Uma multa por resgate antecipado."
+      },
+      {
+        "letra": "D",
+        "texto": "Um imposto sobre ações."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Em maio e novembro, parte do IR devido em muitos fundos é recolhida antecipadamente. A cliente vê menos cotas, não um boleto."
+  },
+  {
+    "id": "wm-facil-38",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "Para quem o PGBL costuma ser mais indicado?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Para quem é isento de IR."
+      },
+      {
+        "letra": "B",
+        "texto": "Para quem faz a declaração simplificada."
+      },
+      {
+        "letra": "C",
+        "texto": "Para quem faz a declaração completa e quer deduzir contribuições até 12% da renda tributável."
+      },
+      {
+        "letra": "D",
+        "texto": "Para quem quer resgatar em seis meses."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O benefício do PGBL é a dedução na declaração completa. Em troca, o IR no resgate incide sobre o valor total, não só sobre os rendimentos."
+  },
+  {
+    "id": "wm-facil-39",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "O que é o inventário?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Um seguro de vida."
+      },
+      {
+        "letra": "B",
+        "texto": "O processo de levantamento e partilha dos bens após o falecimento."
+      },
+      {
+        "letra": "C",
+        "texto": "Um contrato de doação."
+      },
+      {
+        "letra": "D",
+        "texto": "Uma declaração anual de bens."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "O inventário identifica bens e dívidas e organiza a partilha entre herdeiros. Pode levar tempo e gerar custos."
+  },
+  {
+    "id": "wm-facil-40",
+    "areaId": "wealth-management",
+    "nivel": "facil",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "Para que serve um testamento?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Para evitar qualquer imposto na herança."
+      },
+      {
+        "letra": "B",
+        "texto": "Para deserdar livremente qualquer herdeiro."
+      },
+      {
+        "letra": "C",
+        "texto": "Para substituir o inventário em todos os casos."
+      },
+      {
+        "letra": "D",
+        "texto": "Para dispor sobre a parte disponível dos bens, respeitando a parte reservada aos herdeiros necessários."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Havendo herdeiros necessários, metade do patrimônio é reservada a eles. O testamento organiza a outra metade e outras vontades."
+  },
+  {
+    "id": "wm-medio-41",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "Um CDB foi resgatado após 400 dias com rendimento bruto de R$ 10 mil. Qual é o rendimento líquido?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 8.500."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 7.750."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 8.250."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 8.000."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Entre 361 e 720 dias, a alíquota é 17,5%: 10.000 × (1 − 17,5%) = R$ 8.250."
+  },
+  {
+    "id": "wm-medio-42",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "Em 2026, uma empresa paga R$ 80 mil de dividendos a uma mesma sócia pessoa física em um único mês. Qual é a retenção na fonte?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 8 mil."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 3 mil."
+      },
+      {
+        "letra": "C",
+        "texto": "Zero."
+      },
+      {
+        "letra": "D",
+        "texto": "R$ 12 mil."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Acima de R$ 50 mil no mês, pagos pela mesma empresa à mesma pessoa, há retenção de 10% sobre o total: 80 × 10% = R$ 8 mil."
+  },
+  {
+    "id": "wm-medio-43",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "Uma investidora vendeu R$ 15 mil em ações no mês, em operações comuns, com lucro de R$ 3 mil. Ela paga IR?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Sim, 15% sobre R$ 15 mil."
+      },
+      {
+        "letra": "B",
+        "texto": "Não, pois as vendas no mês ficaram abaixo de R$ 20 mil."
+      },
+      {
+        "letra": "C",
+        "texto": "Sim, 15% sobre R$ 3 mil."
+      },
+      {
+        "letra": "D",
+        "texto": "Sim, 20% sobre o lucro."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "Em operações comuns com ações, vendas totais de até R$ 20 mil no mês são isentas. Day trade não tem essa isenção."
+  },
+  {
+    "id": "wm-medio-44",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "Qual é a diferença de tributação no resgate entre VGBL e PGBL?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Ambos são tributados apenas nos rendimentos."
+      },
+      {
+        "letra": "B",
+        "texto": "O VGBL é sempre isento."
+      },
+      {
+        "letra": "C",
+        "texto": "O PGBL é tributado só nos rendimentos."
+      },
+      {
+        "letra": "D",
+        "texto": "No VGBL, o IR incide sobre os rendimentos; no PGBL, sobre o valor total resgatado."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Como as contribuições do PGBL foram deduzidas antes, o IR incide sobre tudo no resgate. No VGBL, só o ganho é tributado."
+  },
+  {
+    "id": "wm-medio-45",
+    "areaId": "wealth-management",
+    "nivel": "medio",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "Uma cliente pergunta se deve criar uma holding patrimonial. Qual resposta é adequada?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Sempre, pois holding elimina impostos."
+      },
+      {
+        "letra": "B",
+        "texto": "Nunca, pois é ilegal."
+      },
+      {
+        "letra": "C",
+        "texto": "Pode ajudar na gestão e na sucessão, mas tem custos e efeitos tributários que precisam ser avaliados caso a caso."
+      },
+      {
+        "letra": "D",
+        "texto": "Só se ela tiver mais de dez imóveis."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "Holdings podem organizar a sucessão e a governança, mas não são automaticamente vantajosas. Contabilidade, impostos e manutenção precisam entrar na conta."
+  },
+  {
+    "id": "wm-dificil-46",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "Uma cliente tem R$ 10 milhões e herdeiros necessários. Qual é o valor máximo que ela pode destinar por testamento a quem quiser?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "R$ 5 milhões."
+      },
+      {
+        "letra": "B",
+        "texto": "R$ 10 milhões."
+      },
+      {
+        "letra": "C",
+        "texto": "R$ 2,5 milhões."
+      },
+      {
+        "letra": "D",
+        "texto": "Nenhum valor."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "Metade do patrimônio é a legítima, reservada aos herdeiros necessários. A outra metade, R$ 5 milhões, é a parte disponível."
+  },
+  {
+    "id": "wm-dificil-47",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "Uma cliente de renda alta vai contribuir para previdência e resgatar daqui a 15 anos. Qual regime de tributação tende a ser mais vantajoso?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Progressivo, porque permite compensações."
+      },
+      {
+        "letra": "B",
+        "texto": "Regressivo, cuja alíquota cai até 10% após dez anos."
+      },
+      {
+        "letra": "C",
+        "texto": "Tanto faz, as alíquotas são iguais."
+      },
+      {
+        "letra": "D",
+        "texto": "Progressivo, porque a alíquota máxima é 10%."
+      }
+    ],
+    "resposta": "B",
+    "feedback": "No regime regressivo, a alíquota cai com o tempo de cada contribuição, chegando a 10% após dez anos. Para prazos longos e renda alta, tende a ser melhor."
+  },
+  {
+    "id": "wm-dificil-48",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "Uma cliente recebe R$ 900 mil por ano em dividendos, pagos em parcelas mensais acima de R$ 50 mil. Pelas regras de 2026, o que é correto?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Os dividendos continuam integralmente isentos."
+      },
+      {
+        "letra": "B",
+        "texto": "A retenção mensal de 10% é sempre o imposto definitivo."
+      },
+      {
+        "letra": "C",
+        "texto": "Só há imposto se ela vender as ações."
+      },
+      {
+        "letra": "D",
+        "texto": "Ela pode estar sujeita à tributação mínima anual, e as retenções mensais contam como antecipação."
+      }
+    ],
+    "resposta": "D",
+    "feedback": "Desde 2026, rendas anuais acima de R$ 600 mil podem ficar sujeitas a uma tributação mínima. A retenção de 10% é antecipada e acertada na declaração."
+  },
+  {
+    "id": "wm-dificil-49",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "O que caracteriza uma doação de imóvel com reserva de usufruto?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "A doadora perde imediatamente o direito de morar no imóvel."
+      },
+      {
+        "letra": "B",
+        "texto": "Não há incidência de imposto em nenhuma hipótese."
+      },
+      {
+        "letra": "C",
+        "texto": "Os herdeiros recebem a nua-propriedade, e a doadora mantém o direito de usar o imóvel ou receber sua renda."
+      },
+      {
+        "letra": "D",
+        "texto": "A doação pode ser desfeita livremente pela doadora."
+      }
+    ],
+    "resposta": "C",
+    "feedback": "O usufruto separa propriedade e uso. Os herdeiros já são donos, mas a doadora continua morando ou recebendo aluguéis enquanto o usufruto durar."
+  },
+  {
+    "id": "wm-dificil-50",
+    "areaId": "wealth-management",
+    "nivel": "dificil",
+    "tema": "Tributação, previdência e sucessão",
+    "enunciado": "Uma cliente quer mover R$ 3 milhões para LCAs de um único banco para não pagar IR. Qual é a melhor orientação inicial?",
+    "opcoes": [
+      {
+        "letra": "A",
+        "texto": "Comparar retorno líquido, risco do emissor, limite do FGC, prazo e liquidez antes de decidir."
+      },
+      {
+        "letra": "B",
+        "texto": "Seguir, pois isenção sempre compensa."
+      },
+      {
+        "letra": "C",
+        "texto": "Proibir, pois LCAs são arriscadas."
+      },
+      {
+        "letra": "D",
+        "texto": "Dividir igualmente entre LCA e poupança."
+      }
+    ],
+    "resposta": "A",
+    "feedback": "A isenção é só uma parte da decisão. R$ 3 milhões em um banco ultrapassam muito o limite do FGC, e prazos de carência podem conflitar com a liquidez necessária."
   }
 ]

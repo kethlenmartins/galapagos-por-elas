@@ -3,13 +3,15 @@
  * - front/src/services/mock/dados/perguntas-entrevista.ts (mock)
  * - backend/drizzle/0009_treino_temas.sql (coluna de tema + upsert das perguntas; a 0008 criou a tabela e já foi aplicada)
  * Uso: node backend/scripts/gerar-perguntas-entrevista.mjs
+ *   Sem argumentos: reescreve o mock e a 0009 (já aplicada; não rode isso para áreas novas).
+ *   Para áreas novas, gere só a migração delas: --migracao 0018_perguntas_er_wm.sql --siglas er,wm
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
-const AREAS = { vc: 'venture-capital', pe: 'private-equity', ib: 'investment-banking' }
+const AREAS = { vc: 'venture-capital', pe: 'private-equity', ib: 'investment-banking', er: 'equity-research', wm: 'wealth-management' }
 const NIVEIS = { 'fácil': 'facil', 'médio': 'medio', 'difícil': 'dificil' }
 
 function ler(sigla) {
@@ -43,7 +45,11 @@ function ler(sigla) {
   return perguntas.map((p, i) => ({ id: `${sigla}-${p.nivel}-${String(i + 1).padStart(2, '0')}`, areaId: AREAS[sigla], posicao: i + 1, ...p }))
 }
 
+const arg = nome => { const i = process.argv.indexOf(`--${nome}`); return i >= 0 ? process.argv[i + 1] : null }
 const todas = Object.keys(AREAS).flatMap(ler)
+const arquivoSql = arg('migracao') ?? '0009_treino_temas.sql'
+const siglasSql = (arg('siglas') ?? Object.keys(AREAS).join(',')).split(',')
+const paraSql = todas.filter(p => siglasSql.some(s => AREAS[s] === p.areaId))
 const aspas = s => `'${s.replaceAll("'", "''")}'`
 
 const ts = `/** Gerado por backend/scripts/gerar-perguntas-entrevista.mjs a partir de docs/cases/*-perguntas.md. Não edite à mão. */
@@ -66,12 +72,11 @@ export const PERGUNTAS_ENTREVISTA: PerguntaEntrevista[] = ${JSON.stringify(todas
 writeFileSync(join(raiz, 'front/src/services/mock/dados/perguntas-entrevista.ts'), ts)
 
 const sql = `-- Gerado por backend/scripts/gerar-perguntas-entrevista.mjs a partir de docs/cases/*-perguntas.md.
-ALTER TABLE interview_questions ADD COLUMN IF NOT EXISTS topic text;
-INSERT INTO interview_questions (id, area_id, level, topic, position, prompt, options, answer, feedback) VALUES
-${todas.map(p => `(${aspas(p.id)}, ${aspas(p.areaId)}, ${aspas(p.nivel)}, ${p.tema ? aspas(p.tema) : 'NULL'}, ${p.posicao}, ${aspas(p.enunciado)}, ${aspas(JSON.stringify(p.opcoes))}::jsonb, ${aspas(p.resposta)}, ${aspas(p.feedback)})`).join(',\n')}
+${arquivoSql.startsWith('0009') ? 'ALTER TABLE interview_questions ADD COLUMN IF NOT EXISTS topic text;\n' : ''}INSERT INTO interview_questions (id, area_id, level, topic, position, prompt, options, answer, feedback) VALUES
+${paraSql.map(p => `(${aspas(p.id)}, ${aspas(p.areaId)}, ${aspas(p.nivel)}, ${p.tema ? aspas(p.tema) : 'NULL'}, ${p.posicao}, ${aspas(p.enunciado)}, ${aspas(JSON.stringify(p.opcoes))}::jsonb, ${aspas(p.resposta)}, ${aspas(p.feedback)})`).join(',\n')}
 ON CONFLICT (id) DO UPDATE SET area_id = EXCLUDED.area_id, level = EXCLUDED.level, topic = EXCLUDED.topic, position = EXCLUDED.position,
   prompt = EXCLUDED.prompt, options = EXCLUDED.options, answer = EXCLUDED.answer, feedback = EXCLUDED.feedback;
 `
-writeFileSync(join(raiz, 'backend/drizzle/0009_treino_temas.sql'), sql)
+writeFileSync(join(raiz, 'backend/drizzle/' + arquivoSql), sql)
 const porArea = Object.entries(AREAS).map(([s, a]) => `${a}: ${todas.filter(p => p.areaId === a).length}`).join(', ')
 console.log(`${todas.length} perguntas (${porArea})`)

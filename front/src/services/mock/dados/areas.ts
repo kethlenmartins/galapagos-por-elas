@@ -16,16 +16,16 @@ const TEXTOS: Record<string, { oQueFaz: string; descricao: string }> = {
     descricao: 'Monta e acompanha carteiras de investimento a partir da análise de empresas, setores e cenários.',
   },
   'wealth-management': {
-    oQueFaz: 'Cuida do patrimônio de clientes, com atendimento próximo e planejamento financeiro.',
-    descricao: 'Entende os objetivos de cada cliente e recomenda como investir, proteger e transmitir o patrimônio.',
+    oQueFaz: 'Assessora pessoas e famílias na gestão do patrimônio: investimentos, planejamento financeiro, proteção, tributação e sucessão, sempre a partir dos objetivos da cliente.',
+    descricao: 'Wealth Management organiza o patrimônio de uma pessoa ou família a partir do que ela quer alcançar, e não a partir de produtos. A atuação pode acontecer em private banking, assessoria de investimentos, consultoria de investimentos, gestão de patrimônio e family office ou planejamento financeiro. O trabalho com a cliente passa por descoberta, perfil (suitability), proposta de plano e alocação e acompanhamento. As vagas pedem Excel, comunicação, conhecimento de produtos, ética e escuta.',
   },
   'equity-research': {
-    oQueFaz: 'Estuda empresas e setores e escreve análises que orientam decisões de investimento.',
-    descricao: 'Constrói modelos financeiros, projeta resultados e explica o que os números significam.',
+    oQueFaz: 'Analisa empresas listadas em bolsa, projeta seus resultados e estima quanto suas ações valem, para recomendar a investidores se devem comprar, manter ou vender.',
+    descricao: 'A analista de Equity Research estuda o negócio de uma empresa, projeta receita, margens e caixa e estima o valor da ação por métodos como fluxo de caixa descontado e múltiplos. Ela constrói cenários, calcula o potencial do preço-alvo sobre o preço atual e escreve uma tese com riscos e catalisadores. Pode atuar no sell-side (bancos e corretoras), no buy-side (gestoras de fundos) ou em casas de research independente. A recomendação orienta investidores, mas nunca garante o resultado.',
   },
   'sales-trading': {
-    oQueFaz: 'Compra e vende ativos no mercado e atende clientes que querem negociar, em tempo real.',
-    descricao: 'Acompanha preços, executa ordens e conversa com clientes durante o pregão, em ritmo rápido.',
+    oQueFaz: 'Compra e vende ativos financeiros, como juros, câmbio, ações, crédito privado, derivativos e commodities, para clientes e para o próprio banco, na mesa de operações de bancos e corretoras.',
+    descricao: 'Sales & Trading é a mesa de operações de bancos e corretoras. Sales atende clientes institucionais, como gestoras, fundos de pensão, seguradoras e empresas, leva ideias de investimento e de proteção e traz a operação para a mesa. Trading dá o preço, executa as operações e administra o risco das posições do banco, dentro de limites; muitas vezes faz market making, oferecendo preço de compra e de venda ao mesmo tempo e ganhando na diferença.',
   },
   quant: {
     oQueFaz: 'Usa matemática, estatística e programação para entender mercados e criar estratégias.',
@@ -48,16 +48,16 @@ const TEXTOS: Record<string, { oQueFaz: string; descricao: string }> = {
     descricao: 'Analisa negócios a fundo, negocia as compras e trabalha com as empresas para melhorar seus resultados.',
   },
   'corporate-finance': {
-    oQueFaz: 'Cuida das finanças dentro de uma empresa: orçamento, caixa, investimentos e financiamento.',
-    descricao: 'Planeja o futuro financeiro da empresa e apoia as decisões da diretoria com análises.',
+    oQueFaz: 'Cuida das decisões financeiras dentro de uma empresa: em que investir, como pagar e como gerir o dinheiro do dia a dia.',
+    descricao: 'Corporate Finance (finanças corporativas) é a área financeira dentro das empresas, como uma indústria, uma varejista ou uma empresa de tecnologia. Diferente do Investment Banking, que assessora empresas de fora, aqui a profissional vive as consequências das decisões. As principais equipes são FP&A, Tesouraria, Controladoria, Relações com Investidores e M&A corporativo. No dia a dia, há fechamento do mês, posição de caixa, análises de variação e, em ciclos, forecast, orçamento e business cases de novos investimentos.',
   },
   macroeconomia: {
-    oQueFaz: 'Estuda a economia como um todo, como juros, inflação e crescimento, e o que isso muda nos mercados.',
-    descricao: 'Acompanha dados e políticas econômicas, projeta cenários e explica seus efeitos para investidores.',
+    oQueFaz: 'Quem trabalha com macroeconomia lê os dados da economia do país (juros, inflação, emprego e dólar) e projeta o que deve acontecer, para orientar onde investir.',
+    descricao: 'Macroeconomia é olhar a economia do país inteiro: juros, inflação, emprego, dólar. Economistas em departamentos econômicos de bancos, gestoras, consultorias e áreas de estratégia de empresas leem esses dados e projetam o que deve acontecer. Os gestores usam essas projeções para decidir onde investir: se a economista prevê juros subindo, a gestora pode ajustar a carteira antes.',
   },
   operacoes: {
-    oQueFaz: 'Garante que as operações financeiras aconteçam corretamente, no prazo e com controle.',
-    descricao: 'Cuida de processos, liquidação, conciliações e sistemas que mantêm o dia a dia funcionando.',
+    oQueFaz: 'Registra, confere, liquida, guarda e controla as operações do mercado financeiro, para que as decisões de compra, venda e resgate aconteçam de verdade e sem erro.',
+    descricao: 'Depois que a gestora decide comprar, o trader fecha o negócio ou o cliente pede um resgate, é Operações que registra, confere, liquida (troca o ativo pelo dinheiro), guarda e controla. Ela fica nos bancos, corretoras, gestoras, administradoras e custodiantes de fundos e na própria B3, em equipes como back office, middle office, custódia, controladoria de fundos, cadastro e prevenção à lavagem de dinheiro e tesouraria operacional. Sem ela, nenhuma decisão sai do papel, e um erro pequeno pode virar um prejuízo grande.',
   },
 }
 

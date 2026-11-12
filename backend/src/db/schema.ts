@@ -55,3 +55,6 @@ export const interviewQuestions = pgTable('interview_questions', {
 export const interviewSessions = pgTable('interview_sessions', {
   id: uuid('id').defaultRandom().primaryKey(), userId: uuid('user_id').notNull(), areaId: text('area_id').notNull(), config: jsonb('config').$type<Record<string, unknown>>().notNull(), turns: jsonb('turns').$type<Array<{ pergunta: string; resposta: string | null; reacao?: string }>>().notNull().default([]), status: text('status').notNull().default('em_andamento'), feedback: jsonb('feedback').$type<Record<string, unknown> | null>(), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(), finishedAt: timestamp('finished_at', { withTimezone: true }),
 })
+export const trainingAnswers = pgTable('training_answers', {
+  id: uuid('id').defaultRandom().primaryKey(), userId: uuid('user_id').notNull(), questionId: text('question_id').notNull(), correct: boolean('correct').notNull(), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})

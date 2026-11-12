@@ -65,6 +65,10 @@ try {
   await request('/checkpoints/piloto-cp-1/complete', { method: 'POST' })
   const trilha = await request('/trail')
   assert.equal(trilha.proximoCaseId, 'piloto-corporate-finance')
+  const basicos = ['ib-simplificado', 'vc-simplificado', 'pe-simplificado', 'er-simplificado', 'wm-simplificado', 'st-simplificado', 'op-simplificado', 'mc-simplificado']
+  for (const id of basicos) assert.equal(trilha.cases.find(c => c.caseId === id)?.estado, 'disponivel', `${id}: o case básico de cada ilha está aberto`)
+  for (const id of ['ib-complexo', 'er-complexo', 'wm-complexo', 'cf-complexo', 'st-complexo', 'op-complexo']) assert.equal(trilha.cases.find(c => c.caseId === id)?.estado, 'bloqueado', `${id}: o avançado espera o básico da área`)
+  assert.equal(trilha.cases.find(c => c.caseId === 'cf-simplificado')?.estado, 'bloqueado', 'no CI o piloto é o case básico de Corporate Finance, então o cf-simplificado vem depois')
   const piloto = trilha.cases.find(c => c.caseId === 'piloto-corporate-finance')
   assert.equal(piloto.nivel, 'basico')
   assert.equal(piloto.ordem, 1)
@@ -115,7 +119,13 @@ try {
   assert.equal(certa.correta, false, 'sem resposta (tempo esgotado) conta como erro')
   const acerto = await request(`/training/questions/${perguntas[0].id}/answer`, { method: 'POST', body: { letra: certa.letraCerta } })
   assert.equal(acerto.correta, true)
+  assert.deepEqual((await request('/training/venture-capital')).desempenho, { respondidas: 2, acertos: 1 }, 'o treino guarda o desempenho')
   assert.ok(acerto.feedback.length > 10)
+  for (const area of ['equity-research', 'wealth-management']) {
+    const r = await request(`/training/${area}`)
+    assert.equal(r.perguntasPorNivel.facil + r.perguntasPorNivel.medio + r.perguntasPorNivel.dificil, 50, `${area}: 50 perguntas`)
+    assert.ok(r.temas.length >= 3)
+  }
   const ib = await request('/training/investment-banking')
   assert.deepEqual([...ib.temas].sort(), ['DCM', 'ECM', 'M&A'])
   assert.equal(ib.perguntasPorNivel.facil + ib.perguntasPorNivel.medio + ib.perguntasPorNivel.dificil, 50)
@@ -143,6 +153,9 @@ try {
     assert.equal((await postar(`/interview/sessions/${simulacao.sessaoId}/answer`, { resposta: 'mais uma' })).status, 400, 'a simulação já terminou')
     const gravada = await pool.query('SELECT status, jsonb_array_length(turns) AS turnos FROM interview_sessions WHERE id=$1', [simulacao.sessaoId])
     assert.deepEqual(gravada.rows[0], { status: 'concluida', turnos: 3 })
+    const historico = (await request('/interview/venture-capital')).historico
+    assert.equal(historico.length, 1)
+    assert.equal(historico[0].notaMedia, 7)
   }
   const misto = await request('/training/venture-capital/questions?nivel=misto&quantidade=50')
   assert.equal(misto.length, 50)

@@ -78,6 +78,62 @@
       "when": 1794662100000,
       "tag": "0010_simulacao_entrevista",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794748500000,
+      "tag": "0011_er_cases",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794834900000,
+      "tag": "0012_wm_cases",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794921300000,
+      "tag": "0013_cf_cases",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1795007700000,
+      "tag": "0014_st_cases",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1795094100000,
+      "tag": "0015_op_cases",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1795180500000,
+      "tag": "0016_historico_treino",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1795266900000,
+      "tag": "0017_macro_case",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1795353300000,
+      "tag": "0018_perguntas_er_wm",
+      "breakpoints": true
     }
   ]
 }

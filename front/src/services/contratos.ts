@@ -815,6 +815,8 @@ export type ResumoTreino = {
   perguntasPorNivel: Record<NivelPergunta, number>
   /** Subtemas da área (ex.: M&A, DCM, ECM). Vazio quando a área não se divide. */
   temas: string[]
+  /** O que ela já respondeu no treino desta área (todas as tentativas). */
+  desempenho: { respondidas: number; acertos: number }
 }
 
 /** Uma pergunta de múltipla escolha, sem o gabarito (ele só vem em `RespostaTreino`). */
@@ -868,6 +870,18 @@ export type ResumoSimulacao = {
   /** `true` no mock: perguntas e feedback roteirizados, sem IA. */
   demonstracao: boolean
   restantesHoje: number
+  /** As últimas simulações concluídas nesta área, da mais recente para a mais antiga. */
+  historico: ItemHistoricoSimulacao[]
+}
+
+export type ItemHistoricoSimulacao = {
+  id: string
+  concluidaEm: DataISO
+  rigor: RigorSimulacao
+  dificuldade: DificuldadeSimulacao
+  perguntas: number
+  /** Média das notas do feedback (0 a 10), ou `null` se não houver. */
+  notaMedia: number | null
 }
 
 export type TurnoSimulacao = { sessaoId: string; numero: number; total: number; pergunta: string }

@@ -438,7 +438,11 @@ test('treino de entrevista: só abre com o certificado do case básico, sorteia 
   assert.equal(codigo(await s.treino.sortearPerguntas({ areaId: 'equity-research', nivel: 'misto', quantidade: 5 })), 'VALIDACAO')
   await marinaConclui()
   assert.equal(dados(await s.treino.obterResumoDoTreino('equity-research')).liberado, true)
-  assert.equal(codigo(await s.treino.sortearPerguntas({ areaId: 'equity-research', nivel: 'misto', quantidade: 5 })), 'NAO_ENCONTRADO', 'sem perguntas publicadas para a área')
+  const sorteadas = dados(await s.treino.sortearPerguntas({ areaId: 'equity-research', nivel: 'medio', quantidade: 5 }))
+  assert.equal(sorteadas.length, 5)
+  assert.ok(sorteadas.every(q => q.nivel === 'medio' && q.opcoes.length === 4 && !('resposta' in q) && !('feedback' in q)), 'o gabarito não vem junto da pergunta')
+  const tema = dados(await s.treino.obterResumoDoTreino('equity-research')).temas[0]
+  assert.ok(dados(await s.treino.sortearPerguntas({ areaId: 'equity-research', nivel: 'misto', quantidade: 50, tema })).every(q => q.tema === tema))
 
   const vc = dados(await s.treino.obterResumoDoTreino('venture-capital'))
   assert.equal(vc.perguntasPorNivel.facil + vc.perguntasPorNivel.medio + vc.perguntasPorNivel.dificil, 50)
@@ -451,6 +455,7 @@ test('treino de entrevista: só abre com o certificado do case básico, sorteia 
   assert.equal(errada.correta, false)
   assert.equal(errada.letraCerta, p.resposta)
   assert.ok(errada.feedback.length > 10)
+  assert.deepEqual(dados(await s.treino.obterResumoDoTreino('venture-capital')).desempenho, { respondidas: 2, acertos: 1 })
   assert.ok(PERGUNTAS_ENTREVISTA.every(q => q.opcoes.length === 4 && 'ABCD'.includes(q.resposta)))
 })
 
@@ -474,4 +479,8 @@ test('simulação de entrevista (demonstração): abre com o case básico, condu
   assert.equal(r3.proximo, null)
   assert.ok(r3.feedbackFinal && r3.feedbackFinal.criterios.length > 0)
   assert.equal(codigo(await s.simulacao.responderSimulacao(turno.sessaoId, 'mais')), 'NAO_ENCONTRADO', 'a simulação terminou')
+  const historico = dados(await s.simulacao.obterResumoDaSimulacao('equity-research')).historico
+  assert.equal(historico.length, 1)
+  assert.equal(historico[0].perguntas, 3)
+  assert.ok(historico[0].notaMedia !== null)
 })
