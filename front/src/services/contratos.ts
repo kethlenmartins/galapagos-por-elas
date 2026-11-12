@@ -297,7 +297,8 @@ export interface DiagnosticoService {
 // ---------------------------------------------------------------------------
 
 /** Etapas de um case, em ordem. Cada etapa tem um ou mais checkpoints. */
-export type EtapaCase = 'entenda' | 'treino' | 'situacao' | 'defesa'
+/** `conteudos`: os conteúdos do case são uma etapa obrigatória, entre entender a área e o treino. */
+export type EtapaCase = 'entenda' | 'conteudos' | 'treino' | 'situacao' | 'defesa'
 
 export type EstadoCaseTrilha =
   /** Ainda não pode: sem diagnóstico, ou fora das opções do primeiro case. */
@@ -365,6 +366,8 @@ export type ItemTrilha = {
   areaId: string
   area: string
   resumo: string
+  /** Número da ilha (1, 2, 3…): a ordem em que os cases são feitos. Uma ilha só abre quando a anterior é concluída. */
+  ordem: number
   estado: EstadoCaseTrilha
   /** Posição da área no diagnóstico mais recente. `null` sem diagnóstico. */
   posicaoNoFit: number | null
@@ -391,7 +394,9 @@ export type TrilhaDaUsuaria = {
   /** `false` se já escolheu um case nesta semana ou tem outro em andamento. */
   podeEscolher: boolean
   motivoNaoPodeEscolher: string | null
-  /** Ordenados pela posição da área no diagnóstico; sem diagnóstico, pelo título. */
+  /** A próxima ilha a fazer (a primeira não concluída), ou `null` quando todas estão concluídas. */
+  proximoCaseId: string | null
+  /** Ordenados pela ordem das ilhas (`ordem`). */
   cases: ItemTrilha[]
 }
 
@@ -644,6 +649,8 @@ export type CaseAdmin = {
   dadosApoio: TabelaDados | null
   gabarito: ItemGabarito[]
   conteudoIds: string[]
+  /** Número da ilha na trilha. Menor vem primeiro. */
+  ordem: number
   gabaritoConfirmado: boolean
   revisadoEm: DataISO | null
   atualizadoEm: DataISO

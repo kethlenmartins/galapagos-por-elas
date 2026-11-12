@@ -12,6 +12,7 @@ import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProg
 import { configuracaoPublica, gerarResultado } from '../../front/src/services/fit/motor.ts'
 import { AREAS_FIT } from '../../front/src/services/fit/matriz.ts'
 import { montarPdfCertificado, slug } from '../../front/src/services/mock/pdf.ts'
+import { diaDaSemanaBRT, inicioDaSemana, sextaDaSemana } from '../../front/src/services/mock/datas.ts'
 
 const app = Fastify({ logger: true, trustProxy: true })
 const secure = process.env.COOKIE_SECURE !== 'false'
@@ -235,9 +236,70 @@ app.get('/api/assessment/result/:id?', async (req, reply) => {
   return { dados: assessment.result, erro: null }
 })
 
+type EstadoIlha = 'bloqueado' | 'disponivel' | 'em_andamento' | 'em_avaliacao' | 'concluido'
+type SituacaoIlha = { caso: typeof cases.$inferSelect; estado: EstadoIlha; motivoBloqueio: string | null; refazer: boolean; enrollment: typeof enrollments.$inferSelect | undefined }
+
+/**
+ * Os cases são ilhas em ordem (`island_order`): uma ilha só abre quando todas as anteriores têm certificado.
+ * Quem já começou uma ilha mantém o acesso a ela.
+ */
+async function situacaoDasIlhas(userId: string): Promise<{ diagnosticoConcluido: boolean; ilhas: SituacaoIlha[] }> {
+  const rows = (await db.select().from(cases).where(eq(cases.status, 'publicado'))).sort((a, b) => a.islandOrder - b.islandOrder || a.id.localeCompare(b.id))
+  const [assessment] = await db.select().from(assessments).where(and(eq(assessments.userId, userId), eq(assessments.status, 'concluido'))).limit(1)
+  const certs = await db.select().from(certificates).where(eq(certificates.userId, userId))
+  const matriculas = await db.select().from(enrollments).where(eq(enrollments.userId, userId)).orderBy(desc(enrollments.attempt))
+  const entregas = matriculas.length ? await db.select().from(deliveries).where(inArray(deliveries.enrollmentId, matriculas.map(m => m.id))) : []
+  const diagnosticoConcluido = !!assessment
+  const ilhas: SituacaoIlha[] = []
+  for (const caso of rows) {
+    const enrollment = matriculas.find(m => m.caseId === caso.id)
+    const entrega = enrollment ? entregas.find(e => e.enrollmentId === enrollment.id) : undefined
+    const base = { caso, enrollment, refazer: false, motivoBloqueio: null }
+    if (certs.some(c => c.caseId === caso.id)) { ilhas.push({ ...base, estado: 'concluido' }); continue }
+    if (enrollment?.status === 'em_andamento') { ilhas.push({ ...base, estado: 'em_andamento' }); continue }
+    if (enrollment && entrega?.publishedAt) { ilhas.push({ ...base, estado: 'disponivel', refazer: true }); continue }
+    if (enrollment) { ilhas.push({ ...base, estado: 'em_avaliacao' }); continue }
+    const anterior = ilhas.find(i => i.estado !== 'concluido')
+    if (!diagnosticoConcluido) ilhas.push({ ...base, estado: 'bloqueado', motivoBloqueio: 'Conclua o diagnóstico primeiro.' })
+    else if (anterior) ilhas.push({ ...base, estado: 'bloqueado', motivoBloqueio: `Conclua a ilha ${ilhas.indexOf(anterior) + 1} (${anterior.caso.title}) primeiro.` })
+    else ilhas.push({ ...base, estado: 'disponivel' })
+  }
+  return { diagnosticoConcluido, ilhas }
+}
+
 app.get('/api/cases', async (_req, reply) => {
-  const rows = await db.select().from(cases).where(eq(cases.status, 'publicado'))
-  return reply.send({ dados: rows.map(c => ({ id: c.id, titulo: c.title, areaId: c.areaId, area: c.areaId, resumo: c.summary, missao: c.mission })), erro: null })
+  const rows = (await db.select().from(cases).where(eq(cases.status, 'publicado'))).sort((a, b) => a.islandOrder - b.islandOrder || a.id.localeCompare(b.id))
+  return reply.send({ dados: rows.map(c => ({ id: c.id, titulo: c.title, areaId: c.areaId, area: c.areaId, resumo: c.summary, missao: c.mission, ordem: c.islandOrder })), erro: null })
+})
+
+app.get('/api/trail', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  const { diagnosticoConcluido, ilhas } = await situacaoDasIlhas(user.id)
+  const [assessment] = await db.select().from(assessments).where(and(eq(assessments.userId, user.id), eq(assessments.status, 'concluido'))).orderBy(desc(assessments.createdAt)).limit(1)
+  const ranking = ((assessment?.result as { areas?: Array<{ areaId: string; posicao: number }> } | null)?.areas) ?? []
+  const todosCps = await db.select().from(checkpoints)
+  const progresso = await db.select().from(checkpointProgress)
+  const proxima = ilhas.find(i => i.estado !== 'concluido')
+  const ativa = ilhas.find(i => i.estado === 'em_andamento' || i.estado === 'em_avaliacao')
+  const motivo = !diagnosticoConcluido ? 'Conclua o diagnóstico primeiro.' : ativa ? `Continue o case em andamento: ${ativa.caso.title}.` : !ilhas.some(i => i.estado === 'disponivel') ? 'Nenhum case disponível para você agora.' : null
+  const agora = new Date(); const fimDeSemana = [0, 6].includes(diaDaSemanaBRT(agora))
+  const inicio = inicioDaSemana(agora); const semanaInicio = fimDeSemana ? new Date(inicio.getTime() + 7 * 86_400_000) : inicio
+  return {
+    dados: {
+      diagnosticoConcluido, primeiroCaseConcluido: ilhas.some(i => i.estado === 'concluido'),
+      semana: { inicioEm: semanaInicio.toISOString(), fimEm: sextaDaSemana(semanaInicio).toISOString() },
+      escolhaDaSemana: ativa?.caso.id ?? null, podeEscolher: !motivo, motivoNaoPodeEscolher: motivo,
+      proximoCaseId: proxima?.caso.id ?? null,
+      cases: ilhas.map((i, indice) => {
+        const total = todosCps.filter(c => c.caseId === i.caso.id).length
+        const feitos = i.estado === 'concluido' || i.estado === 'em_avaliacao' ? total : i.enrollment && i.estado === 'em_andamento' ? progresso.filter(p => p.enrollmentId === i.enrollment!.id && p.completedAt).length : 0
+        const posicao = ranking.find(a => a.areaId === i.caso.areaId)?.posicao ?? null
+        return { caseId: i.caso.id, titulo: i.caso.title, areaId: i.caso.areaId, area: i.caso.areaId, resumo: i.caso.summary, ordem: indice + 1, estado: i.estado, posicaoNoFit: posicao, noTop3: posicao !== null && posicao <= 3, sugerido: i.caso.id === proxima?.caso.id && i.estado === 'disponivel', motivoBloqueio: i.motivoBloqueio, prazoEm: i.enrollment?.deadline?.toISOString() ?? null, progresso: { concluidos: feitos, total }, certificadoId: null, refazer: i.refazer }
+      }),
+    },
+    erro: null,
+  }
 })
 
 app.post('/api/cases/:caseId/start', async (req, reply) => {
@@ -248,8 +310,16 @@ app.post('/api/cases/:caseId/start', async (req, reply) => {
   const { caseId } = req.params as { caseId: string }
   const [caseRow] = await db.select().from(cases).where(and(eq(cases.id, caseId), eq(cases.status, 'publicado'))).limit(1)
   if (!caseRow) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Case não encontrado.' } })
-  let [enrollment] = await db.select().from(enrollments).where(and(eq(enrollments.userId, user.id), eq(enrollments.caseId, caseId), eq(enrollments.status, 'em_andamento'))).limit(1)
-  if (!enrollment) [enrollment] = await db.insert(enrollments).values({ userId: user.id, caseId }).returning()
+  const { ilhas } = await situacaoDasIlhas(user.id)
+  const ilha = ilhas.find(i => i.caso.id === caseId)
+  if (ilha?.estado === 'bloqueado') return reply.code(403).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: ilha.motivoBloqueio ?? 'Esta ilha ainda não está liberada.' } })
+  if (ilha?.estado === 'concluido') return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Você já concluiu este case.' } })
+  if (ilha?.estado === 'em_avaliacao') return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Este case está em avaliação.' } })
+  const outra = ilhas.find(i => i.estado === 'em_andamento' && i.caso.id !== caseId)
+  if (outra) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: `Termine o case em andamento antes de escolher outro: ${outra.caso.title}.` } })
+  let enrollment = ilha?.estado === 'em_andamento' ? ilha.enrollment : undefined
+  // Nova tentativa depois de uma avaliação sem aprovação.
+  if (!enrollment) [enrollment] = await db.insert(enrollments).values({ userId: user.id, caseId, attempt: (ilha?.enrollment?.attempt ?? 0) + 1 }).returning()
   const rows = await db.select().from(checkpoints).where(eq(checkpoints.caseId, caseId)).orderBy(checkpoints.order)
   return { dados: { enrollmentId: enrollment.id, case: caseRow, checkpoints: rows.map((c, i) => ({ ...c, status: i === 0 ? 'a_fazer' : 'a_fazer' })) }, erro: null }
 })
@@ -260,19 +330,21 @@ app.get('/api/cases/:caseId', async (req, reply) => {
   const { caseId } = req.params as { caseId: string }
   const [caseRow] = await db.select().from(cases).where(and(eq(cases.id, caseId), eq(cases.status, 'publicado'))).limit(1)
   if (!caseRow) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Case não encontrado.' } })
-  const [enrollment] = await db.select().from(enrollments).where(and(eq(enrollments.userId, user.id), eq(enrollments.caseId, caseId))).limit(1)
+  const [enrollment] = await db.select().from(enrollments).where(and(eq(enrollments.userId, user.id), eq(enrollments.caseId, caseId))).orderBy(desc(enrollments.attempt)).limit(1)
   const cps = await db.select().from(checkpoints).where(eq(checkpoints.caseId, caseId)).orderBy(checkpoints.order)
-  if (!enrollment) return { dados: { id: caseRow.id, titulo: caseRow.title, areaId: caseRow.areaId, area: caseRow.areaId, resumo: caseRow.summary, missao: caseRow.mission, personagem: null, contexto: '', entenda: null, estado: 'disponivel', prazoEm: null, tentativa: 1, pontosPossiveis: 0, checkpoints: [], conteudoIds: [], proximaTarefaId: null }, erro: null }
+  const { ilhas } = await situacaoDasIlhas(user.id)
+  const ilha = ilhas.find(i => i.caso.id === caseId)
+  const conteudoIds = (await db.select().from(contents)).filter(c => c.caseIds.includes(caseId)).map(c => c.id)
+  if (!enrollment) return { dados: { id: caseRow.id, titulo: caseRow.title, areaId: caseRow.areaId, area: caseRow.areaId, resumo: caseRow.summary, missao: caseRow.mission, personagem: null, contexto: '', entenda: null, estado: ilha?.estado ?? 'disponivel', prazoEm: null, tentativa: 1, pontosPossiveis: 0, checkpoints: [], conteudoIds: [], proximaTarefaId: null }, erro: null }
   const progress = await db.select().from(checkpointProgress).where(eq(checkpointProgress.enrollmentId, enrollment.id))
   const checkpointsOut = cps.map(c => ({ id: c.id, ordem: c.order, etapa: c.stage, titulo: c.title, descricao: c.description, pontos: c.points, tarefaIds: c.taskIds, status: progress.find(p => p.checkpointId === c.id)?.completedAt ? 'concluido' : 'a_fazer' }))
-  const allDone = checkpointsOut.every(c => c.status === 'concluido')
   const tasksRows = await db.select().from(tasks).where(eq(tasks.caseId, caseId))
   const nextTask = tasksRows.find(t => !progress.find(p => p.checkpointId === t.checkpointId)?.completedAt)?.id ?? null
   // `content` ainda é um JSON técnico do case. Só deve virar `entenda` quando
   // tiver o formato editorial completo; um objeto vazio não pode quebrar a tela.
   const content = caseRow.content as { resumo?: unknown; links?: unknown; cards?: unknown; comoSeEntra?: unknown }
   const entenda = typeof content.resumo === 'string' && Array.isArray(content.links) && Array.isArray(content.cards) && content.comoSeEntra && typeof content.comoSeEntra === 'object' ? content : null
-  return { dados: { id: caseRow.id, titulo: caseRow.title, areaId: caseRow.areaId, area: caseRow.areaId, resumo: caseRow.summary, missao: caseRow.mission, personagem: null, contexto: caseRow.context, entenda, estado: enrollment.status === 'em_avaliacao' ? 'em_avaliacao' : allDone ? 'em_andamento' : 'em_andamento', prazoEm: enrollment.deadline?.toISOString() ?? null, tentativa: enrollment.attempt, pontosPossiveis: cps.reduce((sum, c) => sum + c.points, 0), checkpoints: checkpointsOut, conteudoIds: [], proximaTarefaId: nextTask }, erro: null }
+  return { dados: { id: caseRow.id, titulo: caseRow.title, areaId: caseRow.areaId, area: caseRow.areaId, resumo: caseRow.summary, missao: caseRow.mission, personagem: null, contexto: caseRow.context, entenda, estado: ilha?.estado === 'disponivel' ? 'em_andamento' : (ilha?.estado ?? 'em_andamento'), prazoEm: enrollment.deadline?.toISOString() ?? null, tentativa: enrollment.attempt, pontosPossiveis: cps.reduce((sum, c) => sum + c.points, 0), checkpoints: checkpointsOut, conteudoIds, proximaTarefaId: nextTask }, erro: null }
 })
 
 app.get('/api/tasks/:taskId', async (req, reply) => {
@@ -316,6 +388,11 @@ app.post('/api/checkpoints/:checkpointId/complete', async (req, reply) => {
   const idx = cps.findIndex(c => c.id === cp.id)
   const [previous] = idx > 0 ? await db.select().from(checkpointProgress).where(and(eq(checkpointProgress.enrollmentId, enrollment.id), eq(checkpointProgress.checkpointId, cps[idx - 1].id))).limit(1) : []
   if (idx > 0 && !previous?.completedAt) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Conclua os checkpoints anteriores primeiro.' } })
+  if (cp.stage === 'conteudos') {
+    const doCase = (await db.select().from(contents)).filter(c => c.caseIds.includes(cp.caseId))
+    const feitos = await db.select().from(contentCompletions).where(eq(contentCompletions.userId, user.id))
+    if (doCase.some(c => !feitos.some(f => f.contentId === c.id))) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Conclua todos os conteúdos do case para avançar.' } })
+  }
   const taskRows = await db.select().from(tasks).where(eq(tasks.checkpointId, cp.id))
   const [existingProgress] = await db.select().from(checkpointProgress).where(and(eq(checkpointProgress.enrollmentId, enrollment.id), eq(checkpointProgress.checkpointId, cp.id))).limit(1)
   for (const task of taskRows) {
@@ -331,7 +408,8 @@ app.post('/api/checkpoints/:checkpointId/complete', async (req, reply) => {
     if (progress) [progress] = await db.update(checkpointProgress).set({ completedAt: new Date() }).where(eq(checkpointProgress.id, progress.id)).returning()
     else [progress] = await db.insert(checkpointProgress).values({ enrollmentId: enrollment.id, checkpointId: cp.id, completedAt: new Date() }).returning()
   }
-  const [event] = await db.insert(pointEvents).values({ userId: user.id, actionKey: `checkpoint:${enrollment.id}:${cp.id}`, action: 'Checkpoint concluído', origin: cp.title, points: cp.points }).onConflictDoNothing().returning()
+  const [jaPago] = await db.select().from(pointEvents).where(and(eq(pointEvents.userId, user.id), sql`${pointEvents.actionKey} like ${`checkpoint:%:${cp.id}`}`)).limit(1)
+  const [event] = jaPago ? [] : await db.insert(pointEvents).values({ userId: user.id, actionKey: `checkpoint:${enrollment.id}:${cp.id}`, action: 'Checkpoint concluído', origin: cp.title, points: cp.points }).onConflictDoNothing().returning()
   return { dados: { eventos: event ? [{ id: event.id, acao: event.action, origem: event.origin, data: event.createdAt.toISOString(), pontos: event.points }] : [] }, erro: null }
 })
 
@@ -370,7 +448,7 @@ app.get('/api/cases/:caseId/result', async (req, reply) => {
   const user = await usuarioAtual(req)
   if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
   const { caseId } = req.params as { caseId: string }
-  const [enrollment] = await db.select().from(enrollments).where(and(eq(enrollments.userId, user.id), eq(enrollments.caseId, caseId))).limit(1)
+  const [enrollment] = await db.select().from(enrollments).where(and(eq(enrollments.userId, user.id), eq(enrollments.caseId, caseId))).orderBy(desc(enrollments.attempt)).limit(1)
   const [delivery] = enrollment ? await db.select().from(deliveries).where(eq(deliveries.enrollmentId, enrollment.id)).limit(1) : []
   if (!delivery) return { dados: { estado: 'sem_entrega' }, erro: null }
   if (!delivery.publishedAt) return { dados: { estado: 'em_avaliacao', entregueEm: delivery.createdAt.toISOString() }, erro: null }

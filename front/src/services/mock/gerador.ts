@@ -5,7 +5,7 @@
  */
 import type { BriefingCase, CaseAdmin, ConteudoEntenda, ItemGabarito, SecaoCase, TabelaDados } from '../contratos.ts'
 import { AREAS } from './dados/areas.ts'
-import { CONTEXTO_AURORA, montarCheckpoints, montarTarefas, tabelaEmpresa, type TipoTarefa } from './dados/case-semana.ts'
+import { CONTEXTO_AURORA, idsParaTarefas, montarCheckpoints, montarTarefas, tabelaEmpresa, type TipoTarefa } from './dados/case-semana.ts'
 import { recalcularItem, valorDaCelula } from './gabarito.ts'
 
 const SEQUENCIA_DE_TAREFAS: TipoTarefa[] = ['margem', 'alavancagem', 'recomendacao', 'analise', 'analise', 'analise']
@@ -43,11 +43,11 @@ function entendaGenerico(areaId: string): ConteudoEntenda {
 
 export function gerarCase(
   briefing: BriefingCase,
-  opcoes: { id: string; agora: Date; status?: 'rascunho_ia' | 'rascunho' },
+  opcoes: { id: string; agora: Date; status?: 'rascunho_ia' | 'rascunho'; ordem?: number },
 ): CaseAdmin {
   const tipos = tiposDeTarefa(briefing.numTarefas)
   const checkpointIds = Array.from({ length: Math.max(1, briefing.numCheckpoints) }, (_, i) => `${opcoes.id}-cp-${i + 1}`)
-  const { tarefas, gabarito } = montarTarefas(opcoes.id, tipos, checkpointIds)
+  const { tarefas, gabarito } = montarTarefas(opcoes.id, tipos, idsParaTarefas(checkpointIds))
   return {
     id: opcoes.id,
     titulo: briefing.tema.trim(),
@@ -65,6 +65,7 @@ export function gerarCase(
     dadosApoio: tabelaEmpresa(),
     gabarito,
     conteudoIds: [],
+    ordem: opcoes.ordem ?? 100,
     gabaritoConfirmado: false,
     revisadoEm: null,
     atualizadoEm: opcoes.agora.toISOString(),
@@ -97,7 +98,7 @@ export function regenerarSecao(caso: CaseAdmin, secao: SecaoCase, variante: numb
   if (secao === 'dados_apoio') novo.dadosApoio = tabelaEmpresa()
   if (secao === 'checkpoints') novo.checkpoints = montarCheckpoints(caso.id, caso.tarefas.map(t => t.titulo), quantidadeDeCheckpoints)
   if (secao === 'tarefas' || secao === 'gabarito') {
-    const ids = novo.checkpoints.map(c => c.id)
+    const ids = idsParaTarefas(novo.checkpoints.map(c => c.id))
     const refeito = montarTarefas(caso.id, tiposDeTarefa(quantidadeDeTarefas), ids.length ? ids : [`${caso.id}-cp-1`])
     if (secao === 'tarefas') novo.tarefas = refeito.tarefas
     // O gabarito é recalculado a partir da tabela de dados, não copiado do modelo.

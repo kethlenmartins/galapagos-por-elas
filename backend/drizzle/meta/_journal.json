@@ -29,6 +29,34 @@
       "when": 1794402500000,
       "tag": "0003_ib_simplificado",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794402600000,
+      "tag": "0004_ilhas_e_conteudos",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794402700000,
+      "tag": "0005_vc_simplificado",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794402800000,
+      "tag": "0006_pe_simplificado",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794402900000,
+      "tag": "0007_ib_complexo",
+      "breakpoints": true
     }
   ]
 }

@@ -1,14 +1,11 @@
 /**
  * Regras da trilha de cases (PRD_Cases_Trilha.md), como funções puras sobre o estado do mock.
- * Quem desbloqueia o quê e em que estado cada case está para uma usuária.
+ * Os cases são ilhas em ordem: uma só abre quando as anteriores têm certificado. Quem desbloqueia o quê e em que estado cada case está para uma usuária.
  */
 import type { CaseAdmin, EstadoCaseTrilha, ResultadoDiagnostico } from '../contratos.ts'
 import { CONFIG } from './dados/config.ts'
 import { chaveDaSemana } from './datas.ts'
 import type { EntregaRegistro, EstadoMock, ProgressoRegistro } from './tipos.ts'
-
-/** Quantas áreas do ranking podem abrir o primeiro case (as do Top 3, quando têm case publicado). */
-export const OPCOES_DO_PRIMEIRO_CASE = 3
 
 export const casesPublicados = (estado: EstadoMock): CaseAdmin[] => estado.cases.filter(c => c.status === 'publicado')
 
@@ -46,25 +43,16 @@ export function resultadoDoDiagnostico(estado: EstadoMock, usuarioId: string): R
 export const posicaoNoFit = (resultado: ResultadoDiagnostico | null, areaId: string): number | null =>
   resultado?.areas.find(a => a.areaId === areaId)?.posicao ?? null
 
-/**
- * Os cases que ela pode escolher no primeiro case: percorre o ranking do diagnóstico e fica com as
- * primeiras áreas que têm case publicado, até 3. Se as do Top 3 não têm case, o ranking segue para
- * as próximas. [SUPOSIÇÃO: regra de fallback ainda em aberto no PRD]
- */
-export function opcoesDoPrimeiroCase(estado: EstadoMock, resultado: ResultadoDiagnostico | null): Set<string> {
-  const ids = new Set<string>()
-  if (!resultado) return ids
-  const publicados = casesPublicados(estado)
-  let areasUsadas = 0
-  for (const area of resultado.areas) {
-    const casesDaArea = publicados.filter(c => c.areaId === area.areaId)
-    if (casesDaArea.length === 0) continue
-    casesDaArea.forEach(c => ids.add(c.id))
-    areasUsadas += 1
-    if (areasUsadas >= OPCOES_DO_PRIMEIRO_CASE) break
-  }
-  return ids
-}
+/** As ilhas (cases publicados) na ordem em que são feitas. */
+export const ilhasEmOrdem = (estado: EstadoMock): CaseAdmin[] => [...casesPublicados(estado)].sort((a, b) => a.ordem - b.ordem)
+
+/** A primeira ilha anterior a este case que ela ainda não concluiu (sem certificado), se houver. */
+export const ilhaAnteriorPendente = (estado: EstadoMock, usuarioId: string, caso: CaseAdmin): CaseAdmin | undefined =>
+  ilhasEmOrdem(estado).find(c => c.ordem < caso.ordem && !temCertificado(estado, usuarioId, c.id))
+
+/** A próxima ilha a fazer: a primeira não concluída. `null` quando todas estão concluídas. */
+export const proximaIlha = (estado: EstadoMock, usuarioId: string): CaseAdmin | null =>
+  ilhasEmOrdem(estado).find(c => !temCertificado(estado, usuarioId, c.id)) ?? null
 
 export type SituacaoDoCase = {
   estado: EstadoCaseTrilha
@@ -93,8 +81,8 @@ export function situacaoDoCase(estado: EstadoMock, usuarioId: string, caso: Case
   if (!jaComecou) {
     const resultado = resultadoDoDiagnostico(estado, usuarioId)
     if (!resultado) return { ...base, estado: 'bloqueado', motivoBloqueio: 'Faça o diagnóstico para descobrir por onde começar.' }
-    const liberado = concluiuAlgumCase(estado, usuarioId) || opcoesDoPrimeiroCase(estado, resultado).has(caso.id)
-    if (!liberado) return { ...base, estado: 'bloqueado', motivoBloqueio: 'Abre depois do seu primeiro certificado.' }
+    const pendente = ilhaAnteriorPendente(estado, usuarioId, caso)
+    if (pendente) return { ...base, estado: 'bloqueado', motivoBloqueio: `Conclua a ilha ${pendente.ordem} (${pendente.titulo}) primeiro.` }
   }
 
   const noPrazo = !!progresso && progresso.tentativa === tentativa && !progresso.enviadaEm && agora.getTime() <= new Date(progresso.prazoEm).getTime()

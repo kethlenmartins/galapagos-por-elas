@@ -14,7 +14,7 @@ export const assessments = pgTable('assessments', {
   id: uuid('id').defaultRandom().primaryKey(), userId: uuid('user_id').notNull(), status: text('status').notNull(), answers: jsonb('answers').$type<Record<string, 'A'|'B'|'C'>>().notNull().default({}), versions: jsonb('versions').$type<Record<string,string>>().notNull(), result: jsonb('result'), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 export const cases = pgTable('cases', {
-  id: text('id').primaryKey(), title: text('title').notNull(), areaId: text('area_id').notNull(), summary: text('summary').notNull(), mission: text('mission').notNull(), context: text('context').notNull().default(''), content: jsonb('content').$type<Record<string,unknown>>().notNull().default({}), status: text('status').notNull().default('publicado'),
+  id: text('id').primaryKey(), title: text('title').notNull(), areaId: text('area_id').notNull(), summary: text('summary').notNull(), mission: text('mission').notNull(), context: text('context').notNull().default(''), content: jsonb('content').$type<Record<string,unknown>>().notNull().default({}), status: text('status').notNull().default('publicado'), islandOrder: integer('island_order').notNull().default(100),
 })
 export const checkpoints = pgTable('checkpoints', {
   id: text('id').primaryKey(), caseId: text('case_id').notNull(), order: integer('order').notNull(), stage: text('stage').notNull(), title: text('title').notNull(), description: text('description').notNull(), points: integer('points').notNull(), taskIds: jsonb('task_ids').$type<string[]>().notNull().default([]),

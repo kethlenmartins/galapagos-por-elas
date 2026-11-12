@@ -6,7 +6,30 @@
 .trilha-semana { display: grid; grid-template-columns: auto 1fr; gap: var(--space-4); align-items: center; padding: var(--space-5); border-radius: var(--radius-md); background: var(--white); box-shadow: var(--shadow-sm); }
 .trilha-semana p { color: var(--ink-600); font-size: 14px; }
 .trilha-dica { color: var(--ink-600); font-size: 14px; }
+.trilha-resumo-topo { display: grid; gap: var(--space-2); padding: var(--space-4) var(--space-5); border-radius: var(--radius-md); background: var(--white); box-shadow: var(--shadow-sm); }
+.trilha-resumo-topo p { color: var(--ink-600); font-size: 13px; }
 .trilha-lista { display: grid; gap: var(--space-4); }
+.ilhas { margin: 0; padding: 0; list-style: none; gap: 0; }
+.ilha { position: relative; display: flex; padding-bottom: var(--space-7, 40px); }
+.ilha:last-child { padding-bottom: 0; }
+.ilha-esquerda { justify-content: flex-start; }
+.ilha-direita { justify-content: flex-end; }
+.ilha .trilha-card { position: relative; width: min(100%, 640px); padding-top: calc(var(--space-5) + 36px); }
+/* Ponte pontilhada até a próxima ilha. */
+.ilha:not(:last-child)::after { content: ''; position: absolute; left: 50%; bottom: 4px; height: calc(var(--space-7, 40px) - 8px); border-left: 4px dotted var(--blue-200); }
+.ilha-forma { position: absolute; top: -26px; left: var(--space-5); display: grid; place-items: center; width: 96px; height: 72px; }
+.ilha-direita .ilha-forma { left: auto; right: var(--space-5); }
+.ilha-forma svg { position: absolute; inset: 0; }
+.ilha-forma b { position: relative; display: grid; place-items: center; width: 34px; height: 34px; margin-top: 6px; border-radius: 50%; background: var(--white); color: var(--blue-700); font-size: 16px; font-weight: 800; }
+.ilha-agua { fill: var(--blue-200); }
+.ilha-terra { fill: var(--blue-500); }
+.ilha-copa { fill: var(--blue-100); }
+.trilha-sugerido .ilha-terra, .trilha-em_andamento .ilha-terra { fill: var(--pink-500); }
+.trilha-concluido .ilha-terra { fill: var(--success); }
+.trilha-bloqueado .ilha-terra { fill: var(--ink-300); }
+.trilha-bloqueado .ilha-agua { fill: var(--ink-200); }
+@media (prefers-reduced-motion: no-preference) { .ilha-forma { animation: ilha-flutua 5s ease-in-out infinite; } }
+@keyframes ilha-flutua { 50% { transform: translateY(-4px); } }
 .trilha-card { display: grid; gap: var(--space-3); padding: var(--space-5); border: 2px solid transparent; border-radius: var(--radius-md); background: var(--white); box-shadow: var(--shadow-sm); }
 .trilha-sugerido { border-color: var(--pink-500); }
 .trilha-bloqueado { background: var(--blue-50); border: 1px dashed var(--ink-300); box-shadow: none; }
@@ -124,6 +147,9 @@
 .case-pontos { display: flex; align-items: center; gap: var(--space-2); color: var(--pink-700); font-weight: 700; }
 
 @media (max-width: 560px) {
+  .ilha-direita { justify-content: flex-start; }
+  .ilha-direita .ilha-forma { left: var(--space-5); right: auto; }
+  .ilha:not(:last-child)::after { left: 40px; }
   .trilha-semana { grid-template-columns: 1fr; }
   .case-painel { padding: var(--space-5) var(--space-4); }
   .case-etapa { grid-template-columns: 28px 1fr; }

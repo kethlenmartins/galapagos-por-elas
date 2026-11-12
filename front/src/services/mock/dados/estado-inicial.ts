@@ -16,7 +16,7 @@ import { CONFIG, REGRAS_DE_PONTOS, type IdRegra } from './config.ts'
 import { CONTEUDOS_INICIAIS } from './conteudos.ts'
 
 /** Muda sempre que o formato do estado muda: descarta o que estava salvo no navegador. */
-export const VERSAO_ESTADO = 3
+export const VERSAO_ESTADO = 4
 
 const SENHA_DEMO = 'Senha123'
 
@@ -103,7 +103,7 @@ export function criarEstadoInicial(agora: Date): EstadoMock {
 
   // Segundo case, de outra área: já publicado, abre para quem destravou.
   const segundoCase: CaseAdmin = {
-    ...gerarCase({ ...BRIEFING_BASE, areaId: 'credito-risco', tema: 'Construindo uma análise de crédito' }, { id: 'case-2', agora, status: 'rascunho' }),
+    ...gerarCase({ ...BRIEFING_BASE, areaId: 'credito-risco', tema: 'Construindo uma análise de crédito' }, { id: 'case-2', agora, status: 'rascunho', ordem: 2 }),
     status: 'publicado',
     conteudoIds: ['cont-4'],
     gabaritoConfirmado: true,
@@ -143,9 +143,12 @@ export function criarEstadoInicial(agora: Date): EstadoMock {
       evento('usr-marina', 'perfil_completo', 'Onboarding', antesDe(agora, 4 * DIA + 3 * HORA), 'perfil_completo'),
       evento('usr-marina', 'diagnostico', 'Diagnóstico de perfil', antesDe(agora, 4 * DIA + 2 * HORA), 'diagnostico'),
       evento('usr-marina', 'checkpoint', tituloCase, antesDe(agora, 2 * DIA), `checkpoint:${caseAtual.id}-cp-1`, 20),
-      evento('usr-marina', 'checkpoint', tituloCase, antesDe(agora, 1 * DIA + 6 * HORA), `checkpoint:${caseAtual.id}-cp-2`),
-      evento('usr-marina', 'conteudo', 'O que é valuation?', antesDe(agora, 1 * DIA), 'conteudo:cont-1'),
-      evento('usr-marina', 'checkpoint', tituloCase, antesDe(agora, 30 * MINUTO), `checkpoint:${caseAtual.id}-cp-3`),
+      evento('usr-marina', 'conteudo', 'O que é valuation?', antesDe(agora, 1 * DIA + 12 * HORA), 'conteudo:cont-1'),
+      evento('usr-marina', 'conteudo', 'Lendo um balanço', antesDe(agora, 1 * DIA + 10 * HORA), 'conteudo:cont-2'),
+      evento('usr-marina', 'conteudo', CONTEUDOS_INICIAIS[2].titulo, antesDe(agora, 1 * DIA + 8 * HORA), 'conteudo:cont-3'),
+      evento('usr-marina', 'checkpoint', tituloCase, antesDe(agora, 1 * DIA + 7 * HORA), `checkpoint:${caseAtual.id}-cp-2`, 10),
+      evento('usr-marina', 'checkpoint', tituloCase, antesDe(agora, 1 * DIA + 6 * HORA), `checkpoint:${caseAtual.id}-cp-3`),
+      evento('usr-marina', 'checkpoint', tituloCase, antesDe(agora, 30 * MINUTO), `checkpoint:${caseAtual.id}-cp-4`),
     ],
     diagnosticos: {
       'usr-marina': {
@@ -161,9 +164,9 @@ export function criarEstadoInicial(agora: Date): EstadoMock {
       [`usr-marina:${caseAtual.id}-t-1`]: { respostas: { margem: '12,4' }, salvoEm: antesDe(agora, 1 * DIA + 6 * HORA) },
       [`usr-marina:${caseAtual.id}-t-2`]: { respostas: { alavancagem: '2,1' }, salvoEm: antesDe(agora, 30 * MINUTO) },
     },
-    checkpointsConcluidos: { 'usr-marina': [`${caseAtual.id}-cp-1`, `${caseAtual.id}-cp-2`, `${caseAtual.id}-cp-3`] },
+    checkpointsConcluidos: { 'usr-marina': [1, 2, 3, 4].map(n => `${caseAtual.id}-cp-${n}`) },
     conteudos: CONTEUDOS_INICIAIS,
-    conteudosConcluidos: { 'usr-marina': ['cont-1'] },
+    conteudosConcluidos: { 'usr-marina': ['cont-1', 'cont-2', 'cont-3'] },
     progressos: [
       // Marina escolheu o case há 2 dias e tem 2 dias e 14 horas até o prazo (demonstração; o prazo real é sempre uma sexta, 23h59).
       { usuarioId: 'usr-marina', caseId: caseAtual.id, escolhidoEm: antesDe(agora, 2 * DIA), prazoEm: depoisDe(agora, 2 * DIA + 14 * HORA), tentativa: 1, enviadaEm: null },

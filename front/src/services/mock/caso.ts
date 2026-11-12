@@ -28,13 +28,12 @@ import {
   casesVisiveisPara as casesVisiveis,
   caseEmAndamento,
   escolhaDaSemana,
-  opcoesDoPrimeiroCase,
+  proximaIlha,
   posicaoNoFit,
   progressoDe,
   resultadoDoDiagnostico,
   situacaoDoCase,
   ultimaEntrega,
-  concluiuAlgumCase,
   temCertificado,
   type SituacaoDoCase,
 } from './trilha.ts'
@@ -146,19 +145,11 @@ export const caseService: CaseService = {
     executarLogada(ctx => {
       const { estado, usuario, agora } = ctx
       const resultado = resultadoDoDiagnostico(estado, usuario.id)
-      const primeiroConcluido = concluiuAlgumCase(estado, usuario.id)
       const situacoes = casesVisiveis(estado, usuario.id).map(c => ({ caso: c, sit: situacaoDoCase(estado, usuario.id, c, agora) }))
-
-      // “Comece por aqui”: só no primeiro case, o de melhor posição entre as opções.
-      let sugeridoId: string | null = null
-      const jaComecouAlgum = estado.progressos.some(p => p.usuarioId === usuario.id)
-      if (!primeiroConcluido && resultado && !jaComecouAlgum) {
-        const opcoes = opcoesDoPrimeiroCase(estado, resultado)
-        const melhores = situacoes
-          .filter(x => opcoes.has(x.caso.id) && x.sit.estado === 'disponivel')
-          .sort((a, b) => (posicaoNoFit(resultado, a.caso.areaId) ?? 99) - (posicaoNoFit(resultado, b.caso.areaId) ?? 99))
-        sugeridoId = melhores[0]?.caso.id ?? null
-      }
+      const proxima = proximaIlha(estado, usuario.id)
+      const primeiroConcluido = estado.certificados.some(c => c.usuarioId === usuario.id)
+      // “Comece por aqui”: a próxima ilha, se já puder ser feita.
+      const sugeridoId = proxima && situacoes.find(x => x.caso.id === proxima.id)?.sit.estado === 'disponivel' ? proxima.id : null
 
       const concluidos = concluidosDe(estado, usuario.id)
       const cases: ItemTrilha[] = situacoes
@@ -172,6 +163,7 @@ export const caseService: CaseService = {
             areaId: caso.areaId,
             area: nomeDaArea(caso.areaId),
             resumo: caso.resumo,
+            ordem: caso.ordem,
             estado: sit.estado,
             posicaoNoFit: posicao,
             noTop3: posicao !== null && posicao <= 3,
@@ -183,7 +175,7 @@ export const caseService: CaseService = {
             refazer: sit.refazer,
           }
         })
-        .sort((a, b) => (a.posicaoNoFit ?? 99) - (b.posicaoNoFit ?? 99) || a.titulo.localeCompare(b.titulo, 'pt-BR'))
+        .sort((a, b) => a.ordem - b.ordem)
 
       const escolhida = escolhaDaSemana(estado, usuario.id, agora)
       const ativo = caseEmAndamento(estado, usuario.id, agora)
@@ -201,6 +193,7 @@ export const caseService: CaseService = {
         primeiroCaseConcluido: primeiroConcluido,
         semana: { inicioEm: inicio.toISOString(), fimEm: sextaDaSemana(inicio).toISOString() },
         escolhaDaSemana: escolhida?.caseId ?? null,
+        proximoCaseId: proxima?.id ?? null,
         podeEscolher: motivo === null,
         motivoNaoPodeEscolher: motivo,
         cases,
@@ -312,6 +305,11 @@ export const caseService: CaseService = {
         }
       }
       if (Object.keys(erros).length) return falha('VALIDACAO', 'Preencha os campos obrigatórios antes de concluir o checkpoint.', erros)
+
+      if (checkpoint.etapa === 'conteudos') {
+        const feitos = ctx.estado.conteudosConcluidos[ctx.usuario.id] ?? []
+        if (!caso.conteudoIds.every(id => feitos.includes(id))) return falha('VALIDACAO', 'Conclua todos os conteúdos do case para avançar.')
+      }
 
       ctx.estado.checkpointsConcluidos[ctx.usuario.id] = [...(ctx.estado.checkpointsConcluidos[ctx.usuario.id] ?? []), checkpointId]
       const evento = conceder(ctx.estado, ctx.usuario.id, 'checkpoint', caso.titulo, ctx.agora, {

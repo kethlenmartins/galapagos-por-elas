@@ -1,4 +1,4 @@
-import type { Servicos, Resultado, Sessao, EstadoDiagnostico, ResultadoDiagnostico, EventoPontos } from './contratos.ts'
+import type { Servicos, Resultado, Sessao, ResultadoDiagnostico, EventoPontos } from './contratos.ts'
 import { servicosMock } from './mock/index.ts'
 
 const base = import.meta.env.VITE_API_URL ?? '/api'
@@ -71,26 +71,8 @@ const conteudos: Servicos['conteudos'] = { listarConteudos: filtro => { const q 
 const certificados: Servicos['certificados'] = { listarMeusCertificados: () => api('/certificates'), baixarCertificado: id => api('/certificates/' + encodeURIComponent(id) + '/pdf'), obterLinkLinkedIn: id => api('/certificates/' + encodeURIComponent(id) + '/linkedin'), validarCertificado: code => api('/certificates/validate/' + encodeURIComponent(code)) }
 
 const caso: Servicos['caso'] = {
-  obterTrilha: async () => {
-    const listed = await api<Array<{ id: string; titulo: string; areaId: string; resumo: string }>>('/cases')
-    if (listed.erro) return listed as never
-    const state = await api<EstadoDiagnostico>('/assessment/state')
-    if (state.erro) return state as never
-    const complete = state.dados?.status === 'concluido'
-    const detalhes = await Promise.all(listed.dados!.map(c => api<{ estado: 'disponivel' | 'em_andamento' | 'em_avaliacao'; prazoEm: string | null; checkpoints: Array<{ status: string }> }>(`/cases/${encodeURIComponent(c.id)}`)))
-    const falha = detalhes.find(r => r.erro)?.erro
-    if (falha) return { dados: null, erro: falha }
-    const cases = listed.dados!.map((c, index) => {
-      const detalhe = detalhes[index].dados!
-      const estado = complete ? detalhe.estado : 'bloqueado' as const
-      const total = detalhe.checkpoints.length
-      const concluidos = detalhe.checkpoints.filter(checkpoint => checkpoint.status === 'concluido').length
-      return { caseId: c.id, titulo: c.titulo, areaId: c.areaId, area: c.areaId, resumo: c.resumo, estado, posicaoNoFit: null, noTop3: false, sugerido: false, motivoBloqueio: complete ? null : 'Conclua o diagnóstico primeiro.', prazoEm: detalhe.prazoEm, progresso: { concluidos, total }, certificadoId: null, refazer: false }
-    })
-    const caseAtivo = cases.find(c => c.estado === 'em_andamento' || c.estado === 'em_avaliacao')
-    const motivo = !complete ? 'Conclua o diagnóstico primeiro.' : caseAtivo ? `Continue o case em andamento: ${caseAtivo.titulo}.` : null
-    return { dados: { diagnosticoConcluido: complete, primeiroCaseConcluido: false, semana: { inicioEm: new Date().toISOString(), fimEm: new Date().toISOString() }, escolhaDaSemana: caseAtivo?.caseId ?? null, podeEscolher: !motivo, motivoNaoPodeEscolher: motivo, cases }, erro: null }
-  },
+  // A trilha (ilhas em ordem, estados e bloqueios) é calculada pelo servidor.
+  obterTrilha: () => api('/trail'),
   escolherCase: async caseId => {
     const r = await api<{ enrollmentId: string }>('/cases/' + encodeURIComponent(caseId) + '/start', { method: 'POST' })
     if (r.erro) return r as never

@@ -61,8 +61,8 @@ export function Home() {
       <Button onClick={() => abrir(principal.caseId)} icon="arrow">{principal.estado === 'em_avaliacao' ? 'Ver case' : 'Continuar case'}</Button>
     </section> : <section className="dashboard-card weekly-case">
       <div className="card-top"><Tag>TRILHA DE CASES</Tag></div>
-      <h2>{trilha.diagnosticoConcluido ? 'Escolha o case desta semana' : 'Comece pelo diagnóstico'}</h2>
-      <p>{trilha.diagnosticoConcluido ? (trilha.podeEscolher ? 'Um case por semana, abre na segunda e fecha na sexta. Escolha o que mais combina com você.' : trilha.motivoNaoPodeEscolher) : 'O diagnóstico mostra as áreas com mais afinidade com você e indica por qual case começar.'}</p>
+      <h2>{trilha.diagnosticoConcluido ? 'Siga para a próxima ilha' : 'Comece pelo diagnóstico'}</h2>
+      <p>{trilha.diagnosticoConcluido ? (trilha.podeEscolher ? 'Os cases são ilhas em ordem: conclua uma para abrir a próxima. Um case por semana, de segunda a sexta.' : trilha.motivoNaoPodeEscolher) : 'O diagnóstico mostra as áreas com mais afinidade com você e libera a sua trilha de ilhas.'}</p>
       <Button onClick={() => go(trilha.diagnosticoConcluido ? 'trail' : 'diagnostic')} icon="arrow">{trilha.diagnosticoConcluido ? 'Ver a trilha' : 'Fazer o diagnóstico'}</Button>
     </section>}
     {top3.length > 0 && <section className="dashboard-section"><div className="section-title-row"><div><span className="eyebrow">SEU PERFIL</span><h2>Áreas recomendadas</h2></div><button className="text-link" onClick={() => go('match')}>Ver resultado</button></div><div className="area-cards">{top3.map(a => <article key={a.areaId}><strong>{a.pontuacao}%</strong><h3>{a.area}</h3><span>{a.posicao === 1 ? 'Maior afinidade' : `${a.posicao}ª afinidade`}</span></article>)}</div></section>}

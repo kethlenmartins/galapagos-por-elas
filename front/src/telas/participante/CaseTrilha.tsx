@@ -24,7 +24,7 @@ import {
   type Tarefa,
 } from '../../services'
 
-const ROTULO_ETAPA: Record<EtapaCase, string> = { entenda: 'Entenda a área', treino: 'Treino', situacao: 'A situação', defesa: 'Defesa final' }
+const ROTULO_ETAPA: Record<EtapaCase, string> = { entenda: 'Entenda a área', conteudos: 'Conteúdos do case', treino: 'Treino', situacao: 'A situação', defesa: 'Defesa final' }
 
 type Respostas = Record<string, RespostasDaTarefa>
 
@@ -107,19 +107,38 @@ function TarefaDoCase({ tarefa, tituloDoCheckpoint, respostas, erros, salvoEm, b
   </article>
 }
 
-/** Materiais de apoio ligados ao case. Some quando não há nenhum. */
-function ConteudosDeApoio({ caseId }: { caseId: string }) {
-  const [lista, setLista] = useState<Conteudo[]>([])
+const TIPO_CONTEUDO: Record<Conteudo['tipo'], string> = { artigo: 'Artigo', video: 'Vídeo', glossario: 'Glossário', link: 'Link externo' }
+
+/** Etapa obrigatória: todos os conteúdos do case precisam estar concluídos para avançar. */
+function PainelConteudos({ caseId, checkpoint, ocupado, aoConcluir }: { caseId: string; checkpoint: Checkpoint; ocupado: boolean; aoConcluir: () => void }) {
+  const [lista, setLista] = useState<Conteudo[] | null>(null)
+  const [erro, setErro] = useState('')
   useEffect(() => {
-    conteudoService.listarConteudos({ caseId }).then(r => r.dados && setLista(r.dados))
+    conteudoService.listarConteudos({ caseId }).then(r => {
+      if (r.erro) return sessaoExpirou(r.erro) ? undefined : setErro(r.erro.mensagem)
+      setLista(r.dados)
+    })
   }, [caseId])
-  if (lista.length === 0) return null
-  const tipo: Record<Conteudo['tipo'], string> = { artigo: 'Artigo', video: 'Vídeo', glossario: 'Glossário', link: 'Link externo' }
-  return <section className="case-apoio" aria-label="Conteúdos de apoio"><div className="case-apoio-titulo"><div><span className="eyebrow">PARA TE APOIAR</span><h3>Conteúdos do case</h3></div><span>{lista.filter(c => c.concluido).length} de {lista.length} concluídos</span></div>
-    <ul>{lista.map(c => <li key={c.id} className={c.concluido ? 'concluido' : ''}><button onClick={() => irParaConteudo(c.id)}>
-      <span className="case-apoio-tipo">{tipo[c.tipo]}</span><strong>{c.titulo}</strong><small>{c.resumo}</small>
-      <span className="case-apoio-meta"><span><Icon name="clock" size={14}/> {c.minutos} min</span><b>{c.concluido ? <><Icon name="check" size={14}/> Concluído</> : 'Pendente'}</b><em>{c.tipo === 'artigo' ? 'Ler artigo →' : 'Abrir conteúdo →'}</em></span>
-    </button></li>)}</ul></section>
+  const feitos = lista?.filter(c => c.concluido).length ?? 0
+  const total = lista?.length ?? 0
+  const pronto = lista !== null && feitos === total
+  return <section className="case-painel case-apoio" aria-label="Conteúdos do case">
+    <span className="eyebrow">{ROTULO_ETAPA.conteudos.toUpperCase()}</span>
+    <h2>{checkpoint.titulo}</h2>
+    <p>{checkpoint.descricao} Leia ou assista a todos os conteúdos abaixo: é obrigatório para avançar para o treino.</p>
+    {erro && <div className="alert alert-error" role="alert"><p>{erro}</p></div>}
+    {lista === null && !erro && <p role="status">Carregando os conteúdos…</p>}
+    {lista !== null && <>
+      <div className="case-apoio-titulo"><span>{feitos} de {total} concluídos</span></div>
+      <Progress value={total ? (feitos / total) * 100 : 100}/>
+      <ul>{lista.map(c => <li key={c.id} className={c.concluido ? 'concluido' : ''}><button onClick={() => irParaConteudo(c.id, true)}>
+        <span className="case-apoio-tipo">{TIPO_CONTEUDO[c.tipo]}</span><strong>{c.titulo}</strong><small>{c.resumo}</small>
+        <span className="case-apoio-meta"><span><Icon name="clock" size={14}/> {c.minutos} min</span><b>{c.concluido ? <><Icon name="check" size={14}/> Concluído</> : 'Pendente'}</b><em>{c.concluido ? 'Rever →' : c.tipo === 'artigo' ? 'Ler →' : 'Abrir →'}</em></span>
+      </button></li>)}</ul>
+    </>}
+    <div className="case-acoes"><Button onClick={aoConcluir} disabled={ocupado || !pronto}>{ocupado ? 'Concluindo…' : `Concluir esta etapa (+${checkpoint.pontos} pts)`}</Button></div>
+    {lista !== null && !pronto && <small>Faltam {total - feitos} conteúdo{total - feitos > 1 ? 's' : ''} para liberar o próximo passo.</small>}
+  </section>
 }
 
 function PainelEntenda({ caso, checkpoint, ocupado, aoConcluir }: { caso: CaseTrilha; checkpoint: Checkpoint; ocupado: boolean; aoConcluir: () => void }) {
@@ -348,8 +367,6 @@ export function CasePage() {
 
       <div className="case-progresso"><Progress value={total ? (feitos / total) * 100 : 0} pink/><span>{feitos} de {total} checkpoints</span></div>
 
-      {caso.estado !== 'bloqueado' && caso.estado !== 'disponivel' && <ConteudosDeApoio caseId={caso.id}/>}
-
       <details className="case-etapas-details">
         <summary><span>Etapas do case</span><small>{feitos} de {total} concluídas</small><Icon name="chevron" size={18}/></summary>
         <ol className="case-etapas" aria-label="Etapas do case">
@@ -366,6 +383,8 @@ export function CasePage() {
 
       {alerta}
 
+      {ativo?.etapa === 'conteudos' && ativo.tarefaIds.length === 0 && <PainelConteudos caseId={caso.id} checkpoint={ativo} ocupado={ocupado} aoConcluir={() => concluir(ativo)}/>}
+
       {ativo?.etapa === 'entenda' && ativo.tarefaIds.length === 0 && <PainelEntenda caso={caso} checkpoint={ativo} ocupado={ocupado} aoConcluir={() => concluir(ativo)}/>}
 
       {ativo && ativo.tarefaIds.length > 0 && <section className="case-painel">
@@ -376,7 +395,7 @@ export function CasePage() {
         <small>Depois de concluir, as respostas deste checkpoint ficam travadas.</small>
       </section>}
 
-      {ativo && ativo.tarefaIds.length === 0 && ativo.etapa !== 'entenda' && <section className="case-painel">
+      {ativo && ativo.tarefaIds.length === 0 && ativo.etapa !== 'entenda' && ativo.etapa !== 'conteudos' && <section className="case-painel">
         <span className="eyebrow">{ROTULO_ETAPA[ativo.etapa].toUpperCase()}</span>
         <h2>{ativo.titulo}</h2>
         <p>{ativo.descricao}</p>

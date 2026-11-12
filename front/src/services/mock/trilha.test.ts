@@ -70,11 +70,16 @@ async function publicarCaseNovo(areaId: string, tema: string): Promise<string> {
   return caso.id
 }
 
+/** Marca como concluídos todos os conteúdos do case-1. */
+async function concluirConteudosDoCase1() {
+  for (const id of ['cont-1', 'cont-2', 'cont-3']) dados(await s.conteudos.concluirConteudo(id))
+}
+
 /** Marina termina o último checkpoint do case-1 e envia. */
 async function marinaEnvia() {
   await entrar('marina@email.com')
   dados(await s.caso.salvarRascunho('case-1-t-3', { recomendacao: 'Investir com ressalvas', valorJusto: 24.5, analise: ANALISE }))
-  dados(await s.caso.concluirCheckpoint('case-1-cp-4'))
+  dados(await s.caso.concluirCheckpoint('case-1-cp-5'))
   return dados(await s.caso.enviarCase('case-1'))
 }
 
@@ -148,44 +153,30 @@ test('sem diagnóstico nenhum case abre', async () => {
   assert.equal(codigo(await s.caso.obterCase('case-1')), 'VALIDACAO')
 })
 
-test('primeiro case: abre para as áreas do Top 3 que têm case e marca "comece por aqui"', async () => {
-  await novaComDiagnostico('A') // Top 3: quant, equity-research, credito-risco
+test('ilhas em ordem: só a primeira abre; a seguinte espera o certificado da anterior', async () => {
+  await novaComDiagnostico('A')
   const trilha = dados(await s.caso.obterTrilha())
-  const c1 = trilha.cases.find(c => c.caseId === 'case-1')!
-  const c2 = trilha.cases.find(c => c.caseId === 'case-2')!
+  assert.deepEqual(trilha.cases.map(c => [c.caseId, c.ordem]), [['case-1', 1], ['case-2', 2]], 'ordenados pela ordem das ilhas, não pelo fit')
+  const [c1, c2] = trilha.cases
   assert.equal(c1.estado, 'disponivel')
-  assert.equal(c1.posicaoNoFit, 2)
-  assert.equal(c1.noTop3, true)
-  assert.equal(c2.estado, 'disponivel')
-  assert.equal(c2.posicaoNoFit, 3)
-  assert.equal(trilha.cases.filter(c => c.sugerido).map(c => c.caseId).join(), 'case-1', 'só um, o de melhor posição')
-  assert.deepEqual(trilha.cases.map(c => c.caseId), ['case-1', 'case-2'], 'ordenados pela posição no diagnóstico')
+  assert.equal(c1.sugerido, true, '"comece por aqui" é a próxima ilha')
+  assert.equal(c1.posicaoNoFit, 2, 'o fit continua como informação')
+  assert.equal(c2.estado, 'bloqueado')
+  assert.equal(c2.sugerido, false)
+  assert.match(c2.motivoBloqueio ?? '', /Conclua a ilha 1 \(Avaliando uma empresa para investir\) primeiro/)
+  assert.equal(trilha.proximoCaseId, 'case-1')
   assert.equal(trilha.podeEscolher, true)
   assert.equal(trilha.primeiroCaseConcluido, false)
+  assert.equal(codigo(await s.caso.escolherCase('case-2')), 'VALIDACAO')
+  assert.equal(codigo(await s.caso.obterCase('case-2')), 'VALIDACAO')
 })
 
-test('primeiro case: fora das opções o case fica bloqueado até o primeiro certificado', async () => {
-  await publicarCaseNovo('quant', 'Modelando risco com dados')
-  await publicarCaseNovo('macroeconomia', 'Lendo o cenário de juros')
-  dados(await s.sessao.sair())
-  await novaComDiagnostico('A') // quant, ER e crédito têm case; macroeconomia vem depois
-
-  const trilha = dados(await s.caso.obterTrilha())
-  const macro = trilha.cases.find(c => c.titulo === 'Lendo o cenário de juros')!
-  const quant = trilha.cases.find(c => c.titulo === 'Modelando risco com dados')!
-  assert.equal(quant.estado, 'disponivel')
-  assert.equal(quant.sugerido, true, 'a posição 1 é o "comece por aqui"')
-  assert.equal(macro.estado, 'bloqueado')
-  assert.match(macro.motivoBloqueio ?? '', /primeiro certificado/)
-  assert.equal(codigo(await s.caso.escolherCase(macro.caseId)), 'VALIDACAO')
-})
-
-test('primeiro case: sem case nas áreas do Top 3, o ranking segue até achar áreas com case', async () => {
+test('ilhas em ordem: o diagnóstico não muda a ordem, e a Top 3 não abre ilhas fora da vez', async () => {
   await novaComDiagnostico('B') // Top 3: venture-capital, fintechs, wealth-management (nenhuma tem case)
   const trilha = dados(await s.caso.obterTrilha())
-  assert.ok(trilha.cases.every(c => c.estado === 'disponivel'), 'os cases existentes abrem mesmo fora do Top 3')
+  assert.deepEqual(trilha.cases.map(c => c.estado), ['disponivel', 'bloqueado'])
   assert.ok(trilha.cases.every(c => !c.noTop3))
-  assert.equal(trilha.cases.filter(c => c.sugerido).length, 1)
+  assert.equal(trilha.proximoCaseId, 'case-1')
 })
 
 // --- escolher o case --------------------------------------------------------------
@@ -207,9 +198,9 @@ test('escolher o case: o conteúdo só aparece depois, com prazo na sexta, e esc
   assert.ok(escolhido.contexto.length > 0)
   assert.equal(escolhido.entenda?.cards.length, 3)
   assert.equal(escolhido.personagem?.nome, 'Clara Menezes')
-  assert.deepEqual(escolhido.checkpoints.map(c => c.etapa), ['entenda', 'situacao', 'situacao', 'situacao'])
+  assert.deepEqual(escolhido.checkpoints.map(c => c.etapa), ['entenda', 'conteudos', 'situacao', 'situacao', 'situacao'])
   assert.ok(escolhido.checkpoints.every(c => c.status === 'a_fazer'))
-  assert.equal(escolhido.pontosPossiveis, 20 + 30 * 3 + 150 + 100)
+  assert.equal(escolhido.pontosPossiveis, 20 + 10 + 30 * 3 + 150 + 100)
 
   assert.equal(dados(await s.caso.escolherCase('case-1')).prazoEm, SEXTA_20, 'idempotente')
   const trilha = dados(await s.caso.obterTrilha())
@@ -233,7 +224,7 @@ test('um case por semana: depois do prazo ele fica pausado, mas outro só abre n
 
   mockDebug.definirAgora(SEGUNDA_16)
   assert.equal(dados(await s.caso.obterTrilha()).podeEscolher, true)
-  assert.equal(dados(await s.caso.escolherCase('case-2')).estado, 'em_andamento')
+  assert.equal(dados(await s.caso.escolherCase('case-1')).estado, 'em_andamento', 'retoma o mesmo case')
 })
 
 // --- checkpoints ---------------------------------------------------------------------
@@ -244,26 +235,38 @@ test('checkpoints: abrem em ordem, pagam pontos uma vez e travam as respostas ao
   const saldo = async () => dados(await s.pontos.obterSaldoENivel()).saldo
   assert.equal(await saldo(), 100)
 
-  assert.equal(codigo(await s.caso.concluirCheckpoint('case-1-cp-2')), 'VALIDACAO', 'o anterior vem primeiro')
+  assert.equal(codigo(await s.caso.concluirCheckpoint('case-1-cp-3')), 'VALIDACAO', 'o anterior vem primeiro')
   assert.equal(codigo(await s.caso.salvarRascunho('case-1-t-1', { margem: '12,4' })), 'VALIDACAO')
   assert.equal(codigo(await s.caso.obterTarefa('case-1-t-1')), 'VALIDACAO')
 
   assert.deepEqual(dados(await s.caso.concluirCheckpoint('case-1-cp-1')).eventos.map(e => e.pontos), [20], '"entenda a área" paga 20')
   assert.equal(dados(await s.caso.concluirCheckpoint('case-1-cp-1')).eventos.length, 0, 'não paga duas vezes')
 
+  // Os conteúdos são uma etapa obrigatória: só conclui com todos os conteúdos do case concluídos.
+  assert.equal(codigo(await s.caso.concluirCheckpoint('case-1-cp-2')), 'VALIDACAO')
+  dados(await s.conteudos.concluirConteudo('cont-1'))
+  dados(await s.conteudos.concluirConteudo('cont-2'))
+  const parcial = await s.caso.concluirCheckpoint('case-1-cp-2')
+  assert.equal(codigo(parcial), 'VALIDACAO', 'falta um conteúdo')
+  assert.match(parcial.erro!.mensagem, /todos os conteúdos/)
+  assert.equal(codigo(await s.caso.obterTarefa('case-1-t-1')), 'VALIDACAO', 'as tarefas seguem fechadas')
+  dados(await s.conteudos.concluirConteudo('cont-3'))
+  assert.deepEqual(dados(await s.caso.concluirCheckpoint('case-1-cp-2')).eventos.map(e => e.pontos), [10])
+  assert.equal(await saldo(), 100 + 20 + 30 + 10)
+
   const tarefa = dados(await s.caso.obterTarefa('case-1-t-1'))
   const exposto = JSON.stringify(tarefa)
   for (const proibido of ['valorEsperado', 'tolerancia', 'gabarito', 'passoAPasso', 'notaMaxima']) {
     assert.ok(!exposto.includes(proibido), `"${proibido}" não pode chegar à participante`)
   }
-  const vazio = await s.caso.concluirCheckpoint('case-1-cp-2')
+  const vazio = await s.caso.concluirCheckpoint('case-1-cp-3')
   assert.equal(codigo(vazio), 'VALIDACAO')
   assert.ok(vazio.erro!.campos!['case-1-t-1.margem'])
   assert.equal(codigo(await s.caso.salvarRascunho('case-1-t-1', { margem: 'x'.repeat(5), inventado: '1' })), 'VALIDACAO')
 
   dados(await s.caso.salvarRascunho('case-1-t-1', { margem: '12,4' }))
-  assert.deepEqual(dados(await s.caso.concluirCheckpoint('case-1-cp-2')).eventos.map(e => e.pontos), [30])
-  assert.equal(await saldo(), 150)
+  assert.deepEqual(dados(await s.caso.concluirCheckpoint('case-1-cp-3')).eventos.map(e => e.pontos), [30])
+  assert.equal(await saldo(), 190)
   assert.equal(codigo(await s.caso.salvarRascunho('case-1-t-1', { margem: '13' })), 'VALIDACAO', 'concluído, travado')
   assert.equal(dados(await s.caso.obterTarefa('case-1-t-1')).somenteLeitura, true)
   assert.equal(codigo(await s.caso.enviarCase('case-1')), 'VALIDACAO', 'faltam checkpoints')
@@ -274,26 +277,28 @@ test('progresso: quem não termina no prazo mantém tudo e retoma na semana segu
   await novaComDiagnostico('A')
   dados(await s.caso.escolherCase('case-1'))
   dados(await s.caso.concluirCheckpoint('case-1-cp-1'))
-  dados(await s.caso.salvarRascunho('case-1-t-1', { margem: '12,4' }))
+  await concluirConteudosDoCase1()
   dados(await s.caso.concluirCheckpoint('case-1-cp-2'))
+  dados(await s.caso.salvarRascunho('case-1-t-1', { margem: '12,4' }))
+  dados(await s.caso.concluirCheckpoint('case-1-cp-3'))
   dados(await s.caso.salvarRascunho('case-1-t-2', { alavancagem: '2,1' })) // rascunho do próximo, sem concluir
 
   mockDebug.definirAgora(SABADO_14)
   assert.equal(codigo(await s.caso.salvarRascunho('case-1-t-2', { alavancagem: '2,2' })), 'VALIDACAO')
-  assert.match((await s.caso.concluirCheckpoint('case-1-cp-3')).erro!.mensagem, /prazo/i)
+  assert.match((await s.caso.concluirCheckpoint('case-1-cp-4')).erro!.mensagem, /prazo/i)
   assert.equal(codigo(await s.caso.enviarCase('case-1')), 'VALIDACAO')
   const pausado = dados(await s.caso.obterTrilha()).cases.find(c => c.caseId === 'case-1')!
   assert.equal(pausado.estado, 'disponivel')
-  assert.deepEqual(pausado.progresso, { concluidos: 2, total: 4 }, 'o progresso fica à mostra')
+  assert.deepEqual(pausado.progresso, { concluidos: 3, total: 5 }, 'o progresso fica à mostra')
 
   mockDebug.definirAgora(SEGUNDA_16)
   const retomado = dados(await s.caso.escolherCase('case-1'))
   assert.equal(retomado.estado, 'em_andamento')
   assert.equal(retomado.prazoEm, SEXTA_20)
-  assert.deepEqual(retomado.checkpoints.map(c => c.status), ['concluido', 'concluido', 'em_andamento', 'a_fazer'])
+  assert.deepEqual(retomado.checkpoints.map(c => c.status), ['concluido', 'concluido', 'concluido', 'em_andamento', 'a_fazer'])
   assert.deepEqual(dados(await s.caso.obterTarefa('case-1-t-2')).rascunho, { alavancagem: '2,1' }, 'o rascunho foi mantido')
-  assert.equal(dados(await s.caso.concluirCheckpoint('case-1-cp-2')).eventos.length, 0)
-  assert.equal(dados(await s.pontos.obterSaldoENivel()).saldo, 150, 'nada pago de novo')
+  assert.equal(dados(await s.caso.concluirCheckpoint('case-1-cp-3')).eventos.length, 0)
+  assert.equal(dados(await s.pontos.obterSaldoENivel()).saldo, 190, 'nada pago de novo')
 })
 
 // --- avaliação, certificado e próximos cases -------------------------------------------
@@ -302,11 +307,11 @@ test('ciclo completo: envio, avaliação, aprovação e certificado abrem os pr�
   const marinaAntes = await entrar('marina@email.com')
   assert.equal(marinaAntes.papel, 'participante')
   dados(await s.caso.salvarRascunho('case-1-t-3', { recomendacao: 'Investir com ressalvas', valorJusto: 24.5, analise: ANALISE }))
-  assert.deepEqual(dados(await s.caso.concluirCheckpoint('case-1-cp-4')).eventos.map(e => e.pontos), [30])
-  assert.deepEqual(dados(await s.caso.obterTrilha()).cases.find(c => c.caseId === 'case-1')!.progresso, { concluidos: 4, total: 4 })
+  assert.deepEqual(dados(await s.caso.concluirCheckpoint('case-1-cp-5')).eventos.map(e => e.pontos), [30])
+  assert.deepEqual(dados(await s.caso.obterTrilha()).cases.find(c => c.caseId === 'case-1')!.progresso, { concluidos: 5, total: 5 })
 
   dados(await s.caso.enviarCase('case-1'))
-  assert.equal(dados(await s.pontos.obterSaldoENivel()).saldo, 240, 'enviar não paga: os checkpoints já pagaram')
+  assert.equal(dados(await s.pontos.obterSaldoENivel()).saldo, 270, 'enviar não paga: os checkpoints já pagaram')
   assert.equal(codigo(await s.caso.enviarCase('case-1')), 'VALIDACAO')
   assert.equal(dados(await s.caso.obterResultadoCase('case-1')).estado, 'em_avaliacao')
   assert.equal(dados(await s.caso.obterTrilha()).cases.find(c => c.caseId === 'case-1')!.estado, 'em_avaliacao')
@@ -330,7 +335,7 @@ test('ciclo completo: envio, avaliação, aprovação e certificado abrem os pr�
   assert.ok(resultado.certificadoId)
   assert.equal(resultado.pontosGanhos, Math.round((resultado.nota / 10) * 150) + 100)
   const saldo = dados(await s.pontos.obterSaldoENivel()).saldo
-  assert.equal(saldo, 240 + resultado.pontosGanhos)
+  assert.equal(saldo, 270 + resultado.pontosGanhos)
   assert.equal(saldo, dados(await s.pontos.listarExtrato()).reduce((soma, e) => soma + e.pontos, 0), 'o saldo é sempre a soma do extrato')
 
   const trilha = dados(await s.caso.obterTrilha())
@@ -338,7 +343,9 @@ test('ciclo completo: envio, avaliação, aprovação e certificado abrem os pr�
   const c1 = trilha.cases.find(c => c.caseId === 'case-1')!
   assert.equal(c1.estado, 'concluido')
   assert.equal(c1.certificadoId, resultado.certificadoId)
-  assert.equal(trilha.cases.find(c => c.caseId === 'case-2')!.estado, 'disponivel')
+  assert.equal(trilha.cases.find(c => c.caseId === 'case-2')!.estado, 'disponivel', 'a ilha 2 abriu')
+  assert.equal(trilha.proximoCaseId, 'case-2')
+  assert.equal(trilha.cases.find(c => c.caseId === 'case-2')!.sugerido, true)
   assert.equal(trilha.podeEscolher, false, 'ela já escolheu o case desta semana')
   assert.match(trilha.motivoNaoPodeEscolher ?? '', /semana/)
   assert.equal(codigo(await s.caso.escolherCase('case-2')), 'VALIDACAO')
@@ -347,13 +354,15 @@ test('ciclo completo: envio, avaliação, aprovação e certificado abrem os pr�
   assert.equal(dados(await s.caso.escolherCase('case-2')).prazoEm, SEXTA_20, 'na segunda seguinte, ela escolhe o próximo')
 })
 
-test('depois do primeiro certificado, as áreas fora do Top 3 também abrem', async () => {
+test('ilhas em ordem: um case novo entra no fim da trilha e espera as ilhas anteriores', async () => {
   const novoId = await publicarCaseNovo('operacoes', 'Conferindo as operações do dia')
   await marinaConclui()
   const trilha = dados(await s.caso.obterTrilha())
-  const novo = trilha.cases.find(c => c.caseId === novoId)!
-  assert.equal(novo.estado, 'disponivel')
-  assert.equal(novo.sugerido, false, '"comece por aqui" é só do primeiro case')
+  assert.equal(trilha.cases.at(-1)!.caseId, novoId, 'a última ilha')
+  assert.equal(trilha.cases.at(-1)!.estado, 'bloqueado')
+  assert.match(trilha.cases.at(-1)!.motivoBloqueio ?? '', /Conclua a ilha 2/)
+  assert.equal(trilha.cases.at(-1)!.sugerido, false)
+  assert.equal(trilha.proximoCaseId, 'case-2', 'a próxima é a primeira não concluída')
 })
 
 test('sem aprovação não há certificado nem bônus, e ela pode refazer em uma nova tentativa', async () => {
@@ -499,7 +508,7 @@ test('admin: case arquivado sai da oferta, mas quem já começou mantém o progr
   const dela = dados(await s.caso.obterTrilha()).cases.find(c => c.caseId === 'case-1')
   assert.equal(dela?.estado, 'em_andamento', 'a Marina já tinha começado')
   dados(await s.caso.salvarRascunho('case-1-t-3', { recomendacao: 'Investir', analise: ANALISE }))
-  dados(await s.caso.concluirCheckpoint('case-1-cp-4'))
+  dados(await s.caso.concluirCheckpoint('case-1-cp-5'))
 
   dados(await s.sessao.sair())
   await novaComDiagnostico('A')

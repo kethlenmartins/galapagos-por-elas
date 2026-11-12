@@ -44,7 +44,7 @@ export const adminCasesService: AdminCasesService = {
       const erros = validarBriefing(briefing)
       if (Object.keys(erros).length) return falha('VALIDACAO', 'Confira os campos do briefing.', erros)
       if (!iaDisponivel) return falha('IA_INDISPONIVEL', 'Não conseguimos gerar agora. Tente de novo ou preencha manualmente.')
-      const caso = gerarCase(briefing, { id: novoId('case'), agora })
+      const caso = gerarCase(briefing, { id: novoId('case'), agora, ordem: Math.max(0, ...estado.cases.map(c => c.ordem)) + 1 })
       estado.cases.push(caso)
       return ok(caso)
     }, 'equipe'),

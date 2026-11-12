@@ -105,7 +105,8 @@ export function ContentPage() {
     }
   }
 
-  const voltar = <button className="back-link" onClick={() => go('content')}>← Voltar para os conteúdos</button>
+  const deCase = parametroDoHash('de') === 'case'
+  const voltar = <button className="back-link" onClick={() => go(deCase ? 'case' : 'content')}>{deCase ? '← Voltar para o case' : '← Voltar para os conteúdos'}</button>
   if (fase === 'carregando') return <AppShell route="content-item"><p aria-busy="true">Carregando…</p></AppShell>
   if (fase === 'erro' || !conteudo) return <AppShell route="content-item"><div className="content-page">{voltar}<div className="alert alert-error">{mensagem}</div></div></AppShell>
 

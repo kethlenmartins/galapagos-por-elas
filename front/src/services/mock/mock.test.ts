@@ -170,15 +170,15 @@ test('perfil completo concede 20 pontos uma única vez', async () => {
 test('pontos: nível e progresso, e conteúdo concluído não paga duas vezes', async () => {
   await entrar('marina@email.com')
   const antes = dados(await s.pontos.obterSaldoENivel())
-  assert.equal(antes.saldo, 210)
+  assert.equal(antes.saldo, 240)
   assert.equal(antes.nivel.nome, 'Aprendiz')
   assert.equal(antes.proximoNivel?.nome, 'Analista')
-  assert.equal(antes.faltam, 190)
+  assert.equal(antes.faltam, 160)
 
-  assert.deepEqual(dados(await s.conteudos.concluirConteudo('cont-2')).eventos.map(e => e.pontos), [10])
-  assert.equal(dados(await s.conteudos.concluirConteudo('cont-2')).eventos.length, 0)
+  assert.deepEqual(dados(await s.conteudos.concluirConteudo('cont-4')).eventos.map(e => e.pontos), [10])
+  assert.equal(dados(await s.conteudos.concluirConteudo('cont-4')).eventos.length, 0)
   assert.equal(dados(await s.conteudos.concluirConteudo('cont-1')).eventos.length, 0, 'já concluído no seed')
-  assert.equal(dados(await s.pontos.obterSaldoENivel()).saldo, 220)
+  assert.equal(dados(await s.pontos.obterSaldoENivel()).saldo, 250)
   assert.equal(codigo(await s.conteudos.concluirConteudo('nao-existe')), 'NAO_ENCONTRADO')
 })
 
@@ -351,11 +351,11 @@ test('catálogo: áreas são públicas', async () => {
 
 test('o estado inteiro é serializável (persistência em localStorage) e resetar restaura a demonstração', async () => {
   await entrar('marina@email.com')
-  dados(await s.conteudos.concluirConteudo('cont-2'))
+  dados(await s.conteudos.concluirConteudo('cont-4'))
   const estado = obterEstado()
   assert.deepEqual(JSON.parse(JSON.stringify(estado)), estado)
 
   resetarEstado()
   await entrar('marina@email.com')
-  assert.equal(dados(await s.pontos.obterSaldoENivel()).saldo, 210)
+  assert.equal(dados(await s.pontos.obterSaldoENivel()).saldo, 240)
 })

@@ -141,17 +141,29 @@ export function montarTarefas(
   return { tarefas, gabarito }
 }
 
+/** Com 3 ou mais checkpoints, o segundo é sempre “Conteúdos do case” (etapa obrigatória, sem tarefas). */
+export const temCheckpointDeConteudos = (quantidade: number) => quantidade >= 3
+
+/** Os ids que recebem tarefas: tudo, menos o checkpoint de conteúdos. */
+export const idsParaTarefas = (checkpointIds: string[]): string[] =>
+  temCheckpointDeConteudos(checkpointIds.length) ? [checkpointIds[0], ...checkpointIds.slice(2)] : checkpointIds
+
 export function montarCheckpoints(caseId: string, titulosDasTarefas: string[], quantidade: number): CheckpointAdmin[] {
   if (quantidade <= 1) {
     return [{ id: `${caseId}-cp-1`, ordem: 1, etapa: 'situacao', titulo: 'Resolva o case', descricao: 'Leia o contexto e faça as tarefas.', pontos: 30 }]
   }
+  const comConteudos = temCheckpointDeConteudos(quantidade)
   return Array.from({ length: quantidade }, (_, i) => {
     const entenda = i === 0
+    if (comConteudos && i === 1) {
+      return { id: `${caseId}-cp-2`, ordem: 2, etapa: 'conteudos' as const, titulo: 'Conteúdos do case', descricao: 'Estude todos os conteúdos do case antes de seguir para o treino e a situação.', pontos: 10 }
+    }
+    const indiceDaTarefa = comConteudos ? i - 2 : i - 1
     return {
       id: `${caseId}-cp-${i + 1}`,
       ordem: i + 1,
       etapa: entenda ? ('entenda' as const) : ('situacao' as const),
-      titulo: entenda ? 'Entenda a área' : (titulosDasTarefas[i - 1] ?? 'Revise sua análise'),
+      titulo: entenda ? 'Entenda a área' : (titulosDasTarefas[indiceDaTarefa] ?? 'Revise sua análise'),
       descricao: entenda ? 'Conheça a área, os termos e como se entra nela.' : 'Resolva a tarefa deste checkpoint.',
       // “Entenda a área” paga 20 pontos; os demais checkpoints, 30.
       pontos: entenda ? 20 : 30,
@@ -200,7 +212,7 @@ export const ENTENDA_EQUITY_RESEARCH: ConteudoEntenda = {
 export function criarCaseAtual(agora: Date): CaseAdmin {
   const caseId = 'case-1'
   const tipos: TipoTarefa[] = ['margem', 'alavancagem', 'recomendacao']
-  const tarefasBase = montarTarefas(caseId, tipos, [1, 2, 3, 4].map(n => `${caseId}-cp-${n}`))
+  const tarefasBase = montarTarefas(caseId, tipos, idsParaTarefas([1, 2, 3, 4, 5].map(n => `${caseId}-cp-${n}`)))
   return {
     id: caseId,
     titulo: 'Avaliando uma empresa para investir',
@@ -213,11 +225,12 @@ export function criarCaseAtual(agora: Date): CaseAdmin {
     personagem: { nome: 'Clara Menezes', papel: 'Diretora de análise da Horizonte Investimentos (empresa fictícia)' },
     contexto: CONTEXTO_AURORA,
     entenda: ENTENDA_EQUITY_RESEARCH,
-    checkpoints: montarCheckpoints(caseId, tarefasBase.tarefas.map(t => t.titulo), 4),
+    checkpoints: montarCheckpoints(caseId, tarefasBase.tarefas.map(t => t.titulo), 5),
     tarefas: tarefasBase.tarefas,
     dadosApoio: tabelaEmpresa(),
     gabarito: tarefasBase.gabarito,
     conteudoIds: ['cont-1', 'cont-2', 'cont-3'],
+    ordem: 1,
     gabaritoConfirmado: true,
     revisadoEm: antesDe(agora, 5 * DIA),
     atualizadoEm: antesDe(agora, 5 * DIA),

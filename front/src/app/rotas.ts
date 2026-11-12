@@ -73,6 +73,6 @@ export function irParaEditor(caseId?: string) {
 }
 
 /** Abre um conteúdo de apoio. */
-export function irParaConteudo(conteudoId: string) {
-  window.location.hash = `/content-item?id=${encodeURIComponent(conteudoId)}`
+export function irParaConteudo(conteudoId: string, deCase = false) {
+  window.location.hash = `/content-item?id=${encodeURIComponent(conteudoId)}${deCase ? '&de=case' : ''}`
 }
