@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react'
-import { go, registrarNavegacao, rotaDoHash, rotasAdmin, rotasPublicas, type Route } from './app/rotas'
+import { go, registrarNavegacao, rotaDoHash, rotasAdmin, rotasPublicas, routes, type Route } from './app/rotas'
 import { SessaoProvider, useSessao } from './app/sessao'
 import { Diagnostico } from './telas/participante/Diagnostico'
 import { Resultado } from './telas/participante/Resultado'
@@ -80,6 +80,11 @@ function Rotas() {
   useEffect(() => {
     if (sessao && rota === 'landing') go('home')
   }, [rota, sessao])
+
+  // A aba do navegador mostra a tela atual e o nome da plataforma ("Comunidade · Alumna").
+  useEffect(() => {
+    document.title = rota === 'landing' || !routes[rota] ? 'Alumna' : `${routes[rota]} · Alumna`
+  }, [rota])
 
   if (!telas[rota]) return <NotFound />
   if (carregando) return null
