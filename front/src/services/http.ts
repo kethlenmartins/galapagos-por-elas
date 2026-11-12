@@ -90,11 +90,17 @@ const caso: Servicos['caso'] = {
 
 // Durante a migração incremental, serviços ainda não cobertos continuam apontando
 // para o mock. Assim o seletor de ambiente não quebra telas fora do piloto.
+const simulacao: Servicos['simulacao'] = {
+  obterResumoDaSimulacao: areaId => api('/interview/' + encodeURIComponent(areaId)),
+  iniciarSimulacao: config => api('/interview/sessions', { method: 'POST', body: JSON.stringify(config) }),
+  responderSimulacao: (sessaoId, resposta) => api('/interview/sessions/' + encodeURIComponent(sessaoId) + '/answer', { method: 'POST', body: JSON.stringify({ resposta }) }),
+}
+
 const treino: Servicos['treino'] = {
   obterResumoDoTreino: areaId => api('/training/' + encodeURIComponent(areaId)),
   sortearPerguntas: ({ areaId, nivel, quantidade, tema }) => api(`/training/${encodeURIComponent(areaId)}/questions?nivel=${nivel}&quantidade=${quantidade}${tema ? '&tema=' + encodeURIComponent(tema) : ''}`),
   responderPergunta: (perguntaId, letra) => api('/training/questions/' + encodeURIComponent(perguntaId) + '/answer', { method: 'POST', body: JSON.stringify({ letra }) }),
 }
 
-export const servicosHttp: Servicos = { treino, sessao, perfil, catalogo, pontos, diagnostico, caso, conteudos, certificados, adminCases: servicosMock.adminCases, adminCorrecao: servicosMock.adminCorrecao, adminConteudos: servicosMock.adminConteudos }
+export const servicosHttp: Servicos = { simulacao, treino, sessao, perfil, catalogo, pontos, diagnostico, caso, conteudos, certificados, adminCases: servicosMock.adminCases, adminCorrecao: servicosMock.adminCorrecao, adminConteudos: servicosMock.adminConteudos }
 export const servicosAtivos: Servicos = import.meta.env.VITE_API_URL ? servicosHttp : servicosMock

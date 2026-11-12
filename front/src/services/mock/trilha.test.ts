@@ -453,3 +453,25 @@ test('treino de entrevista: só abre com o certificado do case básico, sorteia 
   assert.ok(errada.feedback.length > 10)
   assert.ok(PERGUNTAS_ENTREVISTA.every(q => q.opcoes.length === 4 && 'ABCD'.includes(q.resposta)))
 })
+
+test('simulação de entrevista (demonstração): abre com o case básico, conduz as perguntas e entrega feedback', async () => {
+  await entrar('marina@email.com')
+  const config = { areaId: 'equity-research', rigor: 'equilibrado' as const, dificuldade: 'iniciante' as const, perguntas: 3 }
+  assert.equal(dados(await s.simulacao.obterResumoDaSimulacao('equity-research')).liberado, false)
+  assert.equal(codigo(await s.simulacao.iniciarSimulacao(config)), 'VALIDACAO')
+  await marinaConclui()
+  const resumo = dados(await s.simulacao.obterResumoDaSimulacao('equity-research'))
+  assert.equal(resumo.liberado, true)
+  assert.equal(resumo.demonstracao, true)
+
+  const turno = dados(await s.simulacao.iniciarSimulacao(config))
+  assert.equal(turno.total, 3)
+  const r1 = dados(await s.simulacao.responderSimulacao(turno.sessaoId, 'Porque gosto de analisar empresas e entender o que move o valor delas ao longo do tempo.'))
+  assert.equal(r1.proximo?.numero, 2)
+  const r2 = dados(await s.simulacao.responderSimulacao(turno.sessaoId, null))
+  assert.equal(r2.proximo?.numero, 3)
+  const r3 = dados(await s.simulacao.responderSimulacao(turno.sessaoId, 'Organizo por prioridade e prazo.'))
+  assert.equal(r3.proximo, null)
+  assert.ok(r3.feedbackFinal && r3.feedbackFinal.criterios.length > 0)
+  assert.equal(codigo(await s.simulacao.responderSimulacao(turno.sessaoId, 'mais')), 'NAO_ENCONTRADO', 'a simulação terminou')
+})

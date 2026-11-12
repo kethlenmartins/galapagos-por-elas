@@ -6,7 +6,7 @@ import { PageTitle, Tag } from '../../componentes/Basicos'
 import { Icon } from '../../componentes/Icone'
 import { AppShell } from '../../componentes/Layout'
 import { Button } from '../../componentes/Botao'
-import { caseService, catalogoService, treinoService, type Area, type ResumoTreino, type TrilhaDaUsuaria } from '../../services'
+import { caseService, catalogoService, simulacaoService, treinoService, type Area, type ResumoSimulacao, type ResumoTreino, type TrilhaDaUsuaria } from '../../services'
 import { CartaoCase } from './CartaoCase'
 
 /** Uma ilha é uma área: apresentação, case básico, cases avançados e treino de entrevista. */
@@ -15,6 +15,7 @@ export function Ilha() {
   const [trilha, setTrilha] = useState<TrilhaDaUsuaria | null>(null)
   const [area, setArea] = useState<Area | null>(null)
   const [treino, setTreino] = useState<ResumoTreino | null>(null)
+  const [simulacao, setSimulacao] = useState<ResumoSimulacao | null>(null)
   const [fase, setFase] = useState<'carregando' | 'ok' | 'erro'>('carregando')
   const [mensagem, setMensagem] = useState('')
   const [confirmando, setConfirmando] = useState<string | null>(null)
@@ -23,7 +24,7 @@ export function Ilha() {
 
   const carregar = useCallback(async () => {
     if (!areaId) return go('trail')
-    const [t, a, r] = await Promise.all([caseService.obterTrilha(), catalogoService.obterArea(areaId), treinoService.obterResumoDoTreino(areaId)])
+    const [t, a, r, sim] = await Promise.all([caseService.obterTrilha(), catalogoService.obterArea(areaId), treinoService.obterResumoDoTreino(areaId), simulacaoService.obterResumoDaSimulacao(areaId)])
     const falha = t.erro ?? a.erro
     if (falha || !t.dados || !a.dados) {
       if (falha && sessaoExpirou(falha)) return
@@ -33,6 +34,7 @@ export function Ilha() {
     setTrilha(t.dados)
     setArea(a.dados)
     setTreino(r.dados ?? null)
+    setSimulacao(sim.dados ?? null)
     setFase('ok')
   }, [areaId])
 
@@ -129,6 +131,17 @@ export function Ilha() {
             </article>
           )
         })()}
+        <article className={`trilha-card ${basicoConcluido ? '' : 'trilha-bloqueado'}`}>
+          <div className="trilha-etiquetas">
+            <Tag tone="blue">ENTREVISTA COM IA</Tag>
+            <span className="trilha-estado"><Tag tone={simulacao?.demonstracao ? 'yellow' : 'blue'}>{simulacao?.demonstracao ? 'DEMONSTRAÇÃO' : 'TEXTO'}</Tag></span>
+          </div>
+          <h3>Simule uma entrevista de {area.nome}</h3>
+          <p className="trilha-resumo">Uma entrevistadora faz as perguntas, uma de cada vez. Você escolhe a vaga, o rigor e a dificuldade, e recebe um feedback no fim.</p>
+          {!basicoConcluido && <p className="trilha-aviso"><Icon name="lock" size={16} /> Abre depois que você concluir o case básico.</p>}
+          {basicoConcluido && simulacao && !simulacao.disponivel && <p className="trilha-aviso"><Icon name="spark" size={16} /> Indisponível no momento.</p>}
+          {basicoConcluido && simulacao?.disponivel && <div className="trilha-acoes"><Button onClick={() => go('simulation')} icon="arrow">Começar a simulação</Button></div>}
+        </article>
       </section>
     </>}
   </div></AppShell>

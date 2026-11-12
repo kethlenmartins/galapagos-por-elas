@@ -8,9 +8,10 @@ import { eq, and, isNull, desc, sql, inArray } from 'drizzle-orm'
 import argon2 from 'argon2'
 import { z } from 'zod'
 import { db } from './db/client.js'
-import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProgress, deliveries, assessments, pointEvents, contents, contentCompletions, certificates, reviewRequests, aiLogs, interviewQuestions } from './db/schema.js'
+import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProgress, deliveries, assessments, pointEvents, contents, contentCompletions, certificates, reviewRequests, aiLogs, interviewQuestions, interviewSessions } from './db/schema.js'
 import { configuracaoPublica, gerarResultado } from '../../front/src/services/fit/motor.ts'
 import { AREAS } from '../../front/src/services/mock/dados/areas.ts'
+import { GROQ_URL, feedbackFinal, iaDisponivel, proximaPergunta, type TurnoSalvo } from './entrevista-ia.js'
 import { montarPdfCertificado, slug } from '../../front/src/services/mock/pdf.ts'
 
 const app = Fastify({ logger: true, trustProxy: true })
@@ -123,7 +124,7 @@ async function sugerirCorrecaoGroq(deliveryId: string, respostas: unknown) {
   if (!key || !model) return
   const started = Date.now(); let status = 'falha'; let costTicks: string | null = null
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' }, body: JSON.stringify({ model, temperature: 0, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: 'Você sugere feedback curto em português do Brasil para uma equipe revisora. Não decide nota, não use dados pessoais e retorne JSON com feedbackGeral, pontosFortes e pontosAMelhorar.' }, { role: 'user', content: JSON.stringify({ respostas }) }] }) })
+    const response = await fetch(GROQ_URL, { method: 'POST', headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' }, body: JSON.stringify({ model, temperature: 0, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: 'Você sugere feedback curto em português do Brasil para uma equipe revisora. Não decide nota, não use dados pessoais e retorne JSON com feedbackGeral, pontosFortes e pontosAMelhorar.' }, { role: 'user', content: JSON.stringify({ respostas }) }] }) })
     const payload = await response.json().catch(() => null) as { usage?: { cost_in_usd_ticks?: number }; choices?: Array<{ message?: { content?: string | null } }> } | null
     const content = payload?.choices?.[0]?.message?.content
     if (response.ok && content) { z.object({ feedbackGeral: z.string(), pontosFortes: z.array(z.string()), pontosAMelhorar: z.array(z.string()) }).parse(JSON.parse(content)); status = 'concluida'; costTicks = payload.usage?.cost_in_usd_ticks?.toString() ?? null }
@@ -347,6 +348,71 @@ app.post('/api/training/questions/:id/answer', async (req, reply) => {
   if (!q) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Pergunta não encontrada.' } })
   if (!(await treinoLiberado(user.id, q.areaId)).liberado) return reply.code(403).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'O treino ainda não está liberado.' } })
   return { dados: { correta: corpo.data.letra !== null && q.answer === corpo.data.letra, letraCerta: q.answer, feedback: q.feedback }, erro: null }
+})
+
+const SIMULACOES_POR_DIA = 5
+const ConfigSimulacaoSchema = z.object({
+  areaId: z.string().min(1).max(60),
+  vaga: z.string().trim().max(600).optional(),
+  rigor: z.enum(['acolhedor', 'equilibrado', 'exigente']),
+  dificuldade: z.enum(['iniciante', 'intermediario', 'avancado']),
+  perguntas: z.number().int().min(3).max(8),
+})
+const simulacoesDeHoje = async (userId: string) => (await db.select({ id: interviewSessions.id }).from(interviewSessions).where(and(eq(interviewSessions.userId, userId), sql`${interviewSessions.createdAt} > now() - interval '24 hours'`))).length
+
+app.get('/api/interview/:areaId', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  const { areaId } = req.params as { areaId: string }
+  return { dados: { areaId, ...(await treinoLiberado(user.id, areaId)), disponivel: iaDisponivel(), demonstracao: false, restantesHoje: Math.max(0, SIMULACOES_POR_DIA - (await simulacoesDeHoje(user.id))) }, erro: null }
+})
+
+app.post('/api/interview/sessions', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  const corpo = ConfigSimulacaoSchema.safeParse(req.body)
+  if (!corpo.success) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Revise as opções da simulação.' } })
+  const { areaId, vaga, rigor, dificuldade, perguntas } = corpo.data
+  const area = areasPublicas.find(a => a.id === areaId)
+  if (!area) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Área não encontrada.' } })
+  const { liberado, motivoBloqueio } = await treinoLiberado(user.id, areaId)
+  if (!liberado) return reply.code(403).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: motivoBloqueio ?? 'A simulação ainda não está liberada.' } })
+  if (!iaDisponivel()) return reply.code(503).send({ dados: null, erro: { codigo: 'IA_INDISPONIVEL', mensagem: 'A simulação com IA não está disponível agora. Tente o treino de perguntas.' } })
+  if ((await simulacoesDeHoje(user.id)) >= SIMULACOES_POR_DIA) return reply.code(429).send({ dados: null, erro: { codigo: 'LIMITE_EXCEDIDO', mensagem: `Você já fez ${SIMULACOES_POR_DIA} simulações nas últimas 24 horas. Volte mais tarde.` } })
+  const config = { vaga: vaga || null, rigor, dificuldade, perguntas }
+  const primeira = await proximaPergunta(area.nome, config, [])
+  if (!primeira) return reply.code(502).send({ dados: null, erro: { codigo: 'IA_INDISPONIVEL', mensagem: 'A entrevistadora não respondeu agora. Tente de novo em instantes.' } })
+  const [sessao] = await db.insert(interviewSessions).values({ userId: user.id, areaId, config, turns: [{ pergunta: primeira.proximaPergunta, resposta: null }] }).returning()
+  return { dados: { sessaoId: sessao.id, numero: 1, total: perguntas, pergunta: primeira.proximaPergunta }, erro: null }
+})
+
+app.post('/api/interview/sessions/:id/answer', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  const { id } = req.params as { id: string }
+  const corpo = z.object({ resposta: z.string().trim().max(2000).nullable() }).safeParse(req.body)
+  if (!corpo.success) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'A resposta pode ter até 2000 caracteres.' } })
+  if (!z.string().uuid().safeParse(id).success) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Simulação não encontrada.' } })
+  const [sessao] = await db.select().from(interviewSessions).where(and(eq(interviewSessions.id, id), eq(interviewSessions.userId, user.id))).limit(1)
+  if (!sessao) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Simulação não encontrada.' } })
+  if (sessao.status !== 'em_andamento') return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Esta simulação já terminou.' } })
+  const config = sessao.config as { vaga: string | null; rigor: 'acolhedor' | 'equilibrado' | 'exigente'; dificuldade: 'iniciante' | 'intermediario' | 'avancado'; perguntas: number }
+  const area = areasPublicas.find(a => a.id === sessao.areaId)
+  const turnos: TurnoSalvo[] = sessao.turns.map(t => ({ ...t }))
+  turnos[turnos.length - 1] = { ...turnos[turnos.length - 1], resposta: corpo.data.resposta || null }
+  const indisponivel = () => reply.code(502).send({ dados: null, erro: { codigo: 'IA_INDISPONIVEL', mensagem: 'A entrevistadora não respondeu agora. Envie a resposta de novo.' } })
+  if (turnos.length < config.perguntas) {
+    const proxima = await proximaPergunta(area?.nome ?? sessao.areaId, config, turnos)
+    if (!proxima) return indisponivel()
+    turnos[turnos.length - 1].reacao = proxima.reacao
+    turnos.push({ pergunta: proxima.proximaPergunta, resposta: null })
+    await db.update(interviewSessions).set({ turns: turnos }).where(eq(interviewSessions.id, id))
+    return { dados: { reacao: proxima.reacao ?? '', proximo: { numero: turnos.length, pergunta: proxima.proximaPergunta }, feedbackFinal: null }, erro: null }
+  }
+  const feedback = await feedbackFinal(area?.nome ?? sessao.areaId, config, turnos)
+  if (!feedback) return indisponivel()
+  await db.update(interviewSessions).set({ turns: turnos, status: 'concluida', feedback, finishedAt: new Date() }).where(eq(interviewSessions.id, id))
+  return { dados: { reacao: '', proximo: null, feedbackFinal: feedback }, erro: null }
 })
 
 app.post('/api/cases/:caseId/start', async (req, reply) => {

@@ -841,7 +841,63 @@ export interface TreinoService {
   responderPergunta(perguntaId: string, letra: string | null): Promise<Resultado<RespostaTreino>>
 }
 
+// ---------------------------------------------------------------------------
+// Simulação de entrevista com IA
+// ---------------------------------------------------------------------------
+
+export type RigorSimulacao = 'acolhedor' | 'equilibrado' | 'exigente'
+export type DificuldadeSimulacao = 'iniciante' | 'intermediario' | 'avancado'
+
+export type ConfigSimulacao = {
+  areaId: string
+  /** Texto livre sobre a vaga (cargo, empresa, requisitos). Opcional. */
+  vaga?: string
+  rigor: RigorSimulacao
+  dificuldade: DificuldadeSimulacao
+  /** Quantas perguntas a entrevistadora faz (3 a 8). */
+  perguntas: number
+}
+
+export type ResumoSimulacao = {
+  areaId: string
+  /** Abre depois do certificado do case básico da área, como o treino. */
+  liberado: boolean
+  motivoBloqueio: string | null
+  /** `false` quando a IA não está configurada no servidor. */
+  disponivel: boolean
+  /** `true` no mock: perguntas e feedback roteirizados, sem IA. */
+  demonstracao: boolean
+  restantesHoje: number
+}
+
+export type TurnoSimulacao = { sessaoId: string; numero: number; total: number; pergunta: string }
+
+export type FeedbackSimulacao = {
+  resumo: string
+  criterios: { nome: string; nota: number; comentario: string }[]
+  pontosFortes: string[]
+  pontosAMelhorar: string[]
+  proximosPassos: string[]
+}
+
+export type RespostaSimulacao = {
+  /** Reação curta da entrevistadora à resposta. */
+  reacao: string
+  /** A pergunta seguinte, ou `null` quando a entrevista acabou. */
+  proximo: { numero: number; pergunta: string } | null
+  feedbackFinal: FeedbackSimulacao | null
+}
+
+export interface SimulacaoService {
+  obterResumoDaSimulacao(areaId: string): Promise<Resultado<ResumoSimulacao>>
+  /** Erros: `VALIDACAO` (ainda bloqueada), `LIMITE_EXCEDIDO` (limite do dia), `IA_INDISPONIVEL` se a IA não responde. */
+  iniciarSimulacao(config: ConfigSimulacao): Promise<Resultado<TurnoSimulacao>>
+  /** `resposta` nula: o tempo acabou sem resposta. */
+  responderSimulacao(sessaoId: string, resposta: string | null): Promise<Resultado<RespostaSimulacao>>
+}
+
 export type Servicos = {
+  simulacao: SimulacaoService
   treino: TreinoService
   sessao: SessaoService
   perfil: PerfilService

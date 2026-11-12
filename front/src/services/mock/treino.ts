@@ -6,8 +6,8 @@ import { casesDaArea, temCertificado } from './trilha.ts'
 
 const NIVEIS: NivelPergunta[] = ['facil', 'medio', 'dificil']
 
-/** O treino da ilha abre com o certificado do case básico da área. */
-function liberacao(estado: EstadoMock, usuarioId: string, areaId: string): { liberado: boolean; motivoBloqueio: string | null } {
+/** O treino (e a simulação) da ilha abre com o certificado do case básico da área. */
+export function liberacao(estado: EstadoMock, usuarioId: string, areaId: string): { liberado: boolean; motivoBloqueio: string | null } {
   const basico = casesDaArea(estado, areaId)[0]
   if (!basico) return { liberado: false, motivoBloqueio: 'Esta ilha ainda não tem case básico.' }
   if (!temCertificado(estado, usuarioId, basico.id)) return { liberado: false, motivoBloqueio: 'Abre depois que você concluir o case básico desta ilha.' }

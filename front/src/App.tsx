@@ -17,6 +17,7 @@ import { CasePage } from './telas/participante/CaseTrilha'
 import { Trilha } from './telas/participante/Trilha'
 import { Ilha } from './telas/participante/Ilha'
 import { Treino } from './telas/participante/Treino'
+import { Simulacao } from './telas/participante/Simulacao'
 import { ContentList, ContentPage } from './telas/participante/Conteudo'
 import { PointsStatement } from './telas/participante/ExtratoPontos'
 import { Home } from './telas/participante/Home'
@@ -37,6 +38,7 @@ const telas: Record<Route, () => ReactElement> = {
   trail: () => <Trilha />,
   island: () => <Ilha />,
   training: () => <Treino />,
+  simulation: () => <Simulacao />,
   case: () => <CasePage />,
   task: () => <CasePage />,
   result: () => <CasePage />,
