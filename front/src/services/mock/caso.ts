@@ -408,25 +408,24 @@ export const caseService: CaseService = {
       })
     }),
 
-  pedirRevisaoDaIA: (tarefaId, respostas) =>
+  revisarCheckpointComIA: checkpointId =>
     executarLogada(ctx => {
-      const achado = localizarTarefa(ctx.estado, ctx.usuario.id, tarefaId)
-      if (!achado) return falha('NAO_ENCONTRADO', 'Atividade não encontrada.')
-      const campos = achado.tarefa.campos
-      const preenchidos = campos.filter(c => { const v = respostas[c.id]; return v !== undefined && v !== null && String(v).trim() !== '' })
-      if (preenchidos.length === 0) return falha('VALIDACAO', 'Escreva ao menos uma resposta antes de pedir a revisão.')
-      // Demonstração roteirizada, sem IA: só observa o que falta e o tamanho das respostas de texto.
-      const faltam = campos.filter(c => c.obrigatorio && !preenchidos.includes(c))
-      const curtas = preenchidos.filter(c => c.tipo === 'texto' && String(respostas[c.id]).trim().length < 60)
+      const caso = ctx.estado.cases.find(c => c.checkpoints.some(k => k.id === checkpointId))
+      if (!caso) return falha('NAO_ENCONTRADO', 'Etapa não encontrada.')
+      if (!concluidosDe(ctx.estado, ctx.usuario.id).has(checkpointId)) return falha('VALIDACAO', 'Conclua a etapa antes de ver a revisão da IA.')
+      const tarefas = caso.tarefas.filter(t => t.checkpointId === checkpointId && t.campos.length > 0)
+      if (!tarefas.length) return ok(null)
+      // Demonstração roteirizada, sem IA: só observa quantos campos foram respondidos e o tamanho dos textos.
+      const campos = tarefas.flatMap(t => t.campos.map(c => ({ c, v: ctx.estado.rascunhos[`${ctx.usuario.id}:${t.id}`]?.respostas[c.id] })))
+      const preenchidos = campos.filter(x => x.v !== undefined && x.v !== null && String(x.v).trim() !== '')
+      const curtas = preenchidos.filter(x => x.c.tipo === 'texto' && String(x.v).trim().length < 60)
+      const fracao = campos.length ? preenchidos.length / campos.length : 1
       return ok({
+        rumo: curtas.length === 0 && fracao === 1 ? 'no_caminho' : fracao >= 0.6 ? 'quase' : 'rever',
         resumo: 'Revisão de demonstração (sem IA): com a IA ativa, a mentora lê suas respostas e comenta o que está bom e o que revisar.',
-        pontosFortes: [`Você já respondeu ${preenchidos.length} de ${campos.length} campos.`],
-        pontosAMelhorar: [
-          ...faltam.map(c => `Falta responder: ${c.rotulo}.`),
-          ...curtas.map(c => `Detalhe mais a resposta de “${c.rotulo}” com os dados do enunciado.`),
-        ].slice(0, 4),
+        pontosFortes: [`Você respondeu ${preenchidos.length} de ${campos.length} campos desta etapa.`],
+        pontosAMelhorar: curtas.slice(0, 3).map(x => `Detalhe mais a resposta de “${x.c.rotulo}” com os dados do enunciado.`),
         dica: 'Releia o enunciado e confira se cada resposta usa os dados da tabela.',
-        restantes: 4,
       })
     }),
 

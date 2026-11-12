@@ -96,39 +96,45 @@ function dividirEnunciado(enunciado: string): Segmento[] {
   })
 }
 
-/** Revisão geral da IA (a mentora) durante a etapa: feedback formativo, sem nota e sem a resposta. */
-function RevisaoDaIA({ tarefaId, respostas }: { tarefaId: string; respostas: RespostasDaTarefa }) {
-  const [revisao, setRevisao] = useState<RevisaoIA | null>(null)
-  const [pedindo, setPedindo] = useState(false)
-  const [erro, setErro] = useState('')
-  const pedir = async () => {
-    setPedindo(true)
-    setErro('')
-    const r = await caseService.pedirRevisaoDaIA(tarefaId, respostas)
-    setPedindo(false)
-    if (r.erro) {
-      if (!sessaoExpirou(r.erro)) setErro(r.erro.mensagem)
-      return
-    }
-    setRevisao(r.dados)
-  }
-  return <div className="case-revisao-ia">
-    <div className="case-acoes">
-      <Button variant="ghost" onClick={pedir} disabled={pedindo} icon="spark">{pedindo ? 'A mentora está lendo…' : revisao ? 'Pedir outra revisão' : 'Pedir revisão da IA'}</Button>
-      <small>Feedback sobre o que você escreveu até agora. Não vale nota e não entrega a resposta.</small>
-    </div>
-    {erro && <div className="alert alert-warning" role="status"><p>{erro}</p></div>}
-    {revisao && <section className="case-revisao-ia-painel" aria-label="Revisão da IA" aria-live="polite">
-      <span className="eyebrow">REVISÃO DA IA · SÓ PARA VOCÊ MELHORAR, NÃO VALE NOTA</span>
+const RUMO: Record<RevisaoIA['rumo'], { titulo: string; classe: string }> = {
+  no_caminho: { titulo: 'Você está no caminho certo', classe: 'certo' },
+  quase: { titulo: 'Quase lá: faltam alguns ajustes', classe: 'quase' },
+  rever: { titulo: 'Vale rever partes importantes', classe: 'rever' },
+}
+
+/**
+ * O fechamento de uma etapa: a mentora (IA) dá uma visão geral do que a pessoa respondeu, com o que viu de bom
+ * e de ruim, e só então ela avança. A revisão é automática; se a IA não responde, a pessoa avança sem ela.
+ */
+function PainelFechamento({ etapa, estado, revisao, mensagem, aoAvancar }: {
+  etapa: string
+  estado: 'lendo' | 'pronto' | 'sem_revisao'
+  revisao: RevisaoIA | null
+  mensagem: string
+  aoAvancar: () => void
+}) {
+  return <section className="case-painel case-fechamento" aria-live="polite" aria-busy={estado === 'lendo'}>
+    <span className="eyebrow">ETAPA CONCLUÍDA · {etapa.toUpperCase()}</span>
+    {estado === 'lendo' && <>
+      <h2>A mentora está lendo as suas respostas…</h2>
+      <p className="trilha-dica">Em instantes você vê o que ela achou de bom e o que vale revisar. Isso não vale nota.</p>
+    </>}
+    {estado === 'sem_revisao' && <>
+      <h2>Etapa concluída</h2>
+      {mensagem && <p className="trilha-dica">{mensagem}</p>}
+    </>}
+    {estado === 'pronto' && revisao && <>
+      <span className={`case-rumo case-rumo-${RUMO[revisao.rumo].classe}`}>{RUMO[revisao.rumo].titulo}</span>
       <p>{revisao.resumo}</p>
       <div className="case-duas-colunas">
-        {revisao.pontosFortes.length > 0 && <div><h3>O que está bom</h3><ul>{revisao.pontosFortes.map(p => <li key={p}>{p}</li>)}</ul></div>}
-        {revisao.pontosAMelhorar.length > 0 && <div><h3>Para revisar</h3><ul>{revisao.pontosAMelhorar.map(p => <li key={p}>{p}</li>)}</ul></div>}
+        {revisao.pontosFortes.length > 0 && <div><h3>O que a IA viu de bom</h3><ul>{revisao.pontosFortes.map(p => <li key={p}>{p}</li>)}</ul></div>}
+        {revisao.pontosAMelhorar.length > 0 && <div><h3>O que a IA viu de ruim</h3><ul>{revisao.pontosAMelhorar.map(p => <li key={p}>{p}</li>)}</ul></div>}
       </div>
       {revisao.dica && <p className="case-revisao-dica"><b>Dica:</b> {revisao.dica}</p>}
-      <small>{revisao.restantes > 0 ? `Você ainda pode pedir ${revisao.restantes} ${revisao.restantes === 1 ? 'revisão' : 'revisões'} nesta atividade hoje.` : 'Você usou as revisões desta atividade hoje.'}</small>
-    </section>}
-  </div>
+      <small>Revisão da IA só para você acompanhar o caminho: não vale nota. As respostas desta etapa já estão fechadas; a avaliação final é da equipe.</small>
+    </>}
+    <div className="case-acoes"><Button onClick={aoAvancar} disabled={estado === 'lendo'} icon="arrow">Avançar</Button></div>
+  </section>
 }
 
 /** As linhas já reveladas do trecho. Com `digitando`, mostra o balão de quem vai falar a seguir. */
@@ -200,7 +206,6 @@ function TarefaDoCase({ tarefa, tituloDoCheckpoint, respostas, erros, salvoEm, b
     <div className="form-stack">
       {tarefa.campos.filter(visivel).map(campo => <CampoDaTarefa key={campo.id} campo={campo} valor={respostas[campo.id]} erro={erros[`${tarefa.id}.${campo.id}`]} bloqueado={bloqueado} aoMudar={v => aoMudar(campo.id, v)}/>)}
     </div>
-    {completo && !bloqueado && !tarefa.somenteLeitura && <RevisaoDaIA tarefaId={tarefa.id} respostas={respostas}/>}
     {!bloqueado && salvoEm && <small className="case-salvo"><Icon name="check" size={14}/> Rascunho salvo às {horaCurta(salvoEm)}</small>}
   </article>
 }
@@ -331,6 +336,7 @@ export function CasePage() {
   const [fase, setFase] = useState<'carregando' | 'ok' | 'erro'>('carregando')
   const [mensagem, setMensagem] = useState('')
   const [etapaEscolhida, setEtapaEscolhida] = useState<string | null>(null)
+  const [fechamento, setFechamento] = useState<{ etapa: string; estado: 'lendo' | 'pronto' | 'sem_revisao'; revisao: RevisaoIA | null; mensagem: string } | null>(null)
   const [tarefas, setTarefas] = useState<Record<string, Tarefa>>({})
   const [respostas, setRespostas] = useState<Respostas>({})
   const [salvoEm, setSalvoEm] = useState<Record<string, string>>({})
@@ -461,7 +467,16 @@ export function CasePage() {
       window.setTimeout(() => setAviso(null), 3500)
     }
     window.scrollTo({ top: 0, behavior: 'smooth' })
+    // Etapa com atividade: antes de avançar, a mentora (IA) dá uma visão geral das respostas que ela fechou.
+    const comAtividade = checkpoint.tarefaIds.length > 0
+    if (comAtividade) setFechamento({ etapa: ROTULO_ETAPA[checkpoint.etapa], estado: 'lendo', revisao: null, mensagem: '' })
     await carregar()
+    if (!comAtividade) return
+    const rev = await caseService.revisarCheckpointComIA(checkpoint.id)
+    if (rev.erro && sessaoExpirou(rev.erro)) return
+    setFechamento(f => f && (rev.dados
+      ? { ...f, estado: 'pronto', revisao: rev.dados }
+      : { ...f, estado: 'sem_revisao', mensagem: rev.erro ? rev.erro.mensagem : '' }))
   }
 
   const enviar = async () => {
@@ -536,6 +551,9 @@ export function CasePage() {
 
       {alerta}
 
+      {fechamento && <PainelFechamento etapa={fechamento.etapa} estado={fechamento.estado} revisao={fechamento.revisao} mensagem={fechamento.mensagem} aoAvancar={() => { setFechamento(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }}/>}
+
+      {!fechamento && <>
       {ativo?.etapa === 'conteudos' && ativo.tarefaIds.length === 0 && <PainelConteudos caseId={caso.id} checkpoint={ativo} ocupado={ocupado} aoConcluir={() => concluir(ativo)}/>}
 
       {ativo?.etapa === 'entenda' && ativo.tarefaIds.length === 0 && <PainelEntenda caso={caso} checkpoint={ativo} ocupado={ocupado} aoConcluir={() => concluir(ativo)}/>}
@@ -564,6 +582,8 @@ export function CasePage() {
           ? <div className="case-acoes"><Button onClick={enviar} disabled={ocupado}>{ocupado ? 'Enviando…' : 'Sim, enviar agora'}</Button><Button variant="ghost" onClick={() => setConfirmandoEnvio(false)} disabled={ocupado}>Ainda não</Button></div>
           : <div className="case-acoes"><Button onClick={() => setConfirmandoEnvio(true)}>Enviar para avaliação</Button></div>}
       </section>}
+
+      </>}
 
       {caso.estado === 'em_avaliacao' && <section className="case-painel">
         <span className="eyebrow">EM AVALIAÇÃO</span>

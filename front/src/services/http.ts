@@ -86,7 +86,7 @@ const caso: Servicos['caso'] = {
   enviarCase: caseId => api(`/cases/${encodeURIComponent(caseId)}/submit`, { method: 'POST' }),
   obterResultadoCase: caseId => api(`/cases/${encodeURIComponent(caseId)}/result`),
   pedirRevisao: (tarefaId, motivo) => api('/reviews', { method: 'POST', body: JSON.stringify({ tarefaId, motivo }) }),
-  pedirRevisaoDaIA: (tarefaId, respostas) => api('/tasks/' + encodeURIComponent(tarefaId) + '/ai-review', { method: 'POST', body: JSON.stringify({ respostas }) }),
+  revisarCheckpointComIA: checkpointId => api('/checkpoints/' + encodeURIComponent(checkpointId) + '/ai-review', { method: 'POST' }),
 }
 
 // Durante a migração incremental, serviços ainda não cobertos continuam apontando

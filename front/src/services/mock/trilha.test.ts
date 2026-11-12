@@ -513,12 +513,13 @@ test('vagas: entram como rascunho, só aparecem depois de a equipe conferir e pu
   assert.equal(dados(await s.vagas.listarVagas({ areaId: 'sales-trading' })).length, visiveis[0].areaId === 'sales-trading' ? 1 : 0)
 })
 
-test('revisão da IA durante a etapa (demonstração): exige alguma resposta e não dá nota', async () => {
+test('revisão da IA ao fechar a etapa (demonstração): só depois de concluir, com rumo e sem nota', async () => {
   await entrar('marina@email.com')
-  assert.equal(codigo(await s.caso.pedirRevisaoDaIA('case-1-t-1', {})), 'VALIDACAO')
-  const revisao = dados(await s.caso.pedirRevisaoDaIA('case-1-t-1', { margem: '12,4' }))
-  assert.ok(revisao.resumo.length > 0)
-  assert.ok(revisao.pontosFortes.length > 0)
+  const revisao = dados(await s.caso.revisarCheckpointComIA('case-1-cp-3'))
+  assert.ok(revisao && revisao.resumo.length > 0 && revisao.pontosFortes.length > 0)
+  assert.ok(['no_caminho', 'quase', 'rever'].includes(revisao.rumo))
   assert.ok(!('nota' in revisao))
-  assert.equal(codigo(await s.caso.pedirRevisaoDaIA('nao-existe', { a: 'b' })), 'NAO_ENCONTRADO')
+  assert.equal(dados(await s.caso.revisarCheckpointComIA('case-1-cp-1')), null, 'etapa sem atividade não tem revisão')
+  assert.equal(codigo(await s.caso.revisarCheckpointComIA('case-1-cp-5')), 'VALIDACAO', 'etapa ainda não concluída')
+  assert.equal(codigo(await s.caso.revisarCheckpointComIA('nao-existe')), 'NAO_ENCONTRADO')
 })

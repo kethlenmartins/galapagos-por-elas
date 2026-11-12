@@ -15,7 +15,7 @@ const iaFalsa = createServer((req, res) => {
   req.on('end', () => {
     if (corpo.includes('Eva, mentora')) {
       res.setHeader('content-type', 'application/json')
-      return res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ resumo: 'Bom começo, falta justificar com os dados.', pontosFortes: ['Tem uma recomendação clara'], pontosAMelhorar: ['Justifique com a tabela'], dica: 'Releia o enunciado.' }) } }] }))
+      return res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ rumo: 'quase', resumo: 'Bom começo, falta justificar com os dados.', pontosFortes: ['Tem uma recomendação clara'], pontosAMelhorar: ['Justifique com a tabela'], dica: 'Releia o enunciado.' }) } }] }))
     }
     const fim = corpo.includes('A entrevista terminou')
     const conteudo = fim
@@ -238,15 +238,19 @@ try {
   assert.equal(tentativa2.checkpoints.find(c => c.id === 'piloto-cp-2').status, 'a_fazer', 'a situação volta a fazer')
   const tarefaDeNovo = await request('/tasks/piloto-task-1')
   assert.equal(tarefaDeNovo.rascunho.recomendacao, 'Investiria com ressalvas, acompanhando o endividamento.', 'a resposta anterior vira rascunho')
-  if (resumoSim.disponivel) {
-    const vazia = await fetch(`${base}/tasks/piloto-task-1/ai-review`, { method: 'POST', headers: { cookie, origin, 'content-type': 'application/json' }, body: JSON.stringify({ respostas: { recomendacao: '' } }) })
-    assert.equal(vazia.status, 400, 'sem resposta não há o que revisar')
-    const revisaoIA = await request('/tasks/piloto-task-1/ai-review', { method: 'POST', body: { respostas: tarefaDeNovo.rascunho } })
-    assert.ok(revisaoIA.resumo && revisaoIA.pontosAMelhorar.length > 0)
-    assert.equal(revisaoIA.restantes, 4)
-    assert.ok(!('nota' in revisaoIA), 'a revisão da IA não dá nota')
-  }
+  // A revisão da IA vem ao fechar a etapa (não sob demanda): antes de concluir não há revisão.
+  const revisarCp = path => fetch(`${base}/checkpoints/${path}/ai-review`, { method: 'POST', headers: { cookie, origin } })
+  assert.equal((await revisarCp('piloto-cp-2')).status, 400, 'a revisão só vem depois de concluir a etapa')
   await request('/checkpoints/piloto-cp-2/complete', { method: 'POST' })
+  if (resumoSim.disponivel) {
+    const revisaoIA = await request('/checkpoints/piloto-cp-2/ai-review', { method: 'POST' })
+    assert.ok(['no_caminho', 'quase', 'rever'].includes(revisaoIA.rumo))
+    assert.ok(revisaoIA.resumo && revisaoIA.pontosAMelhorar.length > 0)
+    assert.ok(!('nota' in revisaoIA), 'a revisão da IA não dá nota')
+    assert.equal(await request('/checkpoints/piloto-cp-1/ai-review', { method: 'POST' }), null, 'etapa sem atividade não tem revisão')
+  } else {
+    assert.equal((await revisarCp('piloto-cp-2')).status, 503, 'sem IA configurada a revisão responde 503 e a etapa segue')
+  }
   const reenvio = await request('/cases/piloto-corporate-finance/submit', { method: 'POST' })
   assert.notEqual(reenvio.entregaId, submission.entregaId, 'o reenvio é uma nova entrega')
   assert.equal((await request('/cases/piloto-corporate-finance/result')).estado, 'em_avaliacao')

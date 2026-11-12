@@ -469,13 +469,13 @@ export type ResultadoCase =
     }
 
 export type RevisaoIA = {
+  /** Se as respostas apontam na direção certa, precisam de ajustes ou de uma nova olhada. */
+  rumo: 'no_caminho' | 'quase' | 'rever'
   resumo: string
   pontosFortes: string[]
   pontosAMelhorar: string[]
   /** Uma pista para o próximo passo, sem a resposta. Pode vir vazia. */
   dica: string
-  /** Quantas revisões ainda restam hoje nesta atividade. */
-  restantes: number
 }
 
 export type PedidoRevisaoParticipante = {
@@ -519,11 +519,12 @@ export interface CaseService {
   /** Só depois de o resultado ser publicado. Motivo entre 10 e 500 caracteres. */
   pedirRevisao(tarefaId: string, motivo: string): Promise<Resultado<PedidoRevisaoParticipante>>
   /**
-   * Revisão geral da IA (a mentora) sobre o que ela já respondeu nesta atividade, no meio do case.
-   * Feedback formativo: não dá nota, não vale pontos e não entrega a resposta. Erros: `IA_INDISPONIVEL`,
-   * `LIMITE_EXCEDIDO` (limite por atividade e por dia) e `VALIDACAO` (nada respondido ainda).
+   * Visão geral da IA (a mentora) sobre as respostas de uma etapa que ela acabou de concluir: se está no caminho
+   * certo, o que viu de bom e de ruim e uma dica. Pedida automaticamente ao fechar a etapa, não pela participante.
+   * Feedback formativo: não dá nota, não vale pontos e não entrega a resposta. `null` quando a etapa não tem
+   * atividade para revisar. Erros: `IA_INDISPONIVEL` e `LIMITE_EXCEDIDO` (a tela segue sem a revisão).
    */
-  pedirRevisaoDaIA(tarefaId: string, respostas: RespostasDaTarefa): Promise<Resultado<RevisaoIA>>
+  revisarCheckpointComIA(checkpointId: string): Promise<Resultado<RevisaoIA | null>>
 }
 
 // ---------------------------------------------------------------------------

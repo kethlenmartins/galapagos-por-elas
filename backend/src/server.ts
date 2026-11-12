@@ -709,31 +709,33 @@ app.delete('/api/admin/contents/:id', async (req, reply) => {
   return { dados: true, erro: null }
 })
 
-// --- Revisão da IA durante as etapas -------------------------------------------------------------------------------
+// --- Revisão da IA ao fechar uma etapa -------------------------------------------------------------------------------
 
-const REVISOES_POR_TAREFA_POR_DIA = 5
-const REVISOES_POR_DIA = 30
+const REVISOES_POR_ETAPA_POR_DIA = 3
+const REVISOES_POR_DIA = 40
 
-app.post('/api/tasks/:taskId/ai-review', async (req, reply) => {
+/** Visão geral da IA sobre as respostas de uma etapa já concluída: rumo, o que viu de bom e de ruim. */
+app.post('/api/checkpoints/:checkpointId/ai-review', async (req, reply) => {
   const user = await usuarioAtual(req)
   if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
-  const { taskId } = req.params as { taskId: string }
-  const corpo = z.object({ respostas: z.record(z.string(), z.union([z.string().max(4000), z.number(), z.null()])).optional() }).safeParse(req.body ?? {})
-  if (!corpo.success) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Respostas inválidas.' } })
-  const [task] = await db.select().from(tasks).where(eq(tasks.id, taskId)).limit(1)
-  const [enrollment] = task ? await db.select().from(enrollments).where(and(eq(enrollments.userId, user.id), eq(enrollments.caseId, task.caseId), eq(enrollments.status, 'em_andamento'))).limit(1) : []
-  if (!task || !enrollment) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Atividade não encontrada.' } })
-  if (!iaDisponivel()) return reply.code(503).send({ dados: null, erro: { codigo: 'IA_INDISPONIVEL', mensagem: 'A revisão da IA não está disponível agora. Você pode seguir sem ela.' } })
-  const [progresso] = await db.select().from(checkpointProgress).where(and(eq(checkpointProgress.enrollmentId, enrollment.id), eq(checkpointProgress.checkpointId, task.checkpointId))).limit(1)
-  const respostas = corpo.data.respostas ?? progresso?.answers[taskId] ?? {}
-  if (!Object.values(respostas).some(v => v !== null && v !== '')) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Escreva ao menos uma resposta antes de pedir a revisão.' } })
+  const { checkpointId } = req.params as { checkpointId: string }
+  const [cp] = await db.select().from(checkpoints).where(eq(checkpoints.id, checkpointId)).limit(1)
+  const [enrollment] = cp ? await db.select().from(enrollments).where(and(eq(enrollments.userId, user.id), eq(enrollments.caseId, cp.caseId), eq(enrollments.status, 'em_andamento'))).limit(1) : []
+  if (!cp || !enrollment) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Etapa não encontrada.' } })
+  const [progresso] = await db.select().from(checkpointProgress).where(and(eq(checkpointProgress.enrollmentId, enrollment.id), eq(checkpointProgress.checkpointId, cp.id))).limit(1)
+  if (!progresso?.completedAt) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Conclua a etapa antes de ver a revisão da IA.' } })
+  const doCheckpoint = (await db.select().from(tasks).where(eq(tasks.checkpointId, cp.id))).filter(t => t.fields.length > 0)
+  // Etapas sem atividade (entenda, conteúdos) não têm o que revisar.
+  if (!doCheckpoint.length) return { dados: null, erro: null }
+  if (!iaDisponivel()) return reply.code(503).send({ dados: null, erro: { codigo: 'IA_INDISPONIVEL', mensagem: 'A revisão da IA não está disponível agora. Você pode avançar sem ela.' } })
+  const respostas = Object.fromEntries(doCheckpoint.map(t => [t.id, progresso.answers[t.id] ?? {}]))
+  if (!Object.values(respostas).some(r => Object.values(r).some(v => v !== null && v !== ''))) return { dados: null, erro: null }
   const ultimas = await db.select({ taskId: taskReviews.taskId }).from(taskReviews).where(and(eq(taskReviews.userId, user.id), sql`${taskReviews.createdAt} > now() - interval '24 hours'`))
-  if (ultimas.filter(r => r.taskId === taskId).length >= REVISOES_POR_TAREFA_POR_DIA || ultimas.length >= REVISOES_POR_DIA) return reply.code(429).send({ dados: null, erro: { codigo: 'LIMITE_EXCEDIDO', mensagem: 'Você já usou as revisões da IA desta atividade hoje. Revise com calma e tente de novo amanhã.' } })
-  const revisao = await revisarEtapa({ titulo: task.title, prompt: task.prompt, fields: task.fields, answerKey: task.answerKey }, respostas)
-  if (!revisao) return reply.code(502).send({ dados: null, erro: { codigo: 'IA_INDISPONIVEL', mensagem: 'A mentora não respondeu agora. Tente de novo em instantes.' } })
-  await db.insert(taskReviews).values({ userId: user.id, taskId })
-  const usadas = ultimas.filter(r => r.taskId === taskId).length + 1
-  return { dados: { ...revisao, restantes: Math.max(0, REVISOES_POR_TAREFA_POR_DIA - usadas) }, erro: null }
+  if (ultimas.filter(r => r.taskId === cp.id).length >= REVISOES_POR_ETAPA_POR_DIA || ultimas.length >= REVISOES_POR_DIA) return reply.code(429).send({ dados: null, erro: { codigo: 'LIMITE_EXCEDIDO', mensagem: 'O limite de revisões da IA de hoje acabou. Você pode avançar sem ela.' } })
+  const revisao = await revisarEtapa(doCheckpoint.map(t => ({ id: t.id, titulo: t.title, prompt: t.prompt, fields: t.fields, answerKey: t.answerKey })), respostas as Record<string, Record<string, string | number | null>>)
+  if (!revisao) return reply.code(502).send({ dados: null, erro: { codigo: 'IA_INDISPONIVEL', mensagem: 'A mentora não respondeu agora. Você pode avançar sem a revisão.' } })
+  await db.insert(taskReviews).values({ userId: user.id, taskId: cp.id })
+  return { dados: revisao, erro: null }
 })
 
 app.post('/api/cases/:caseId/start', async (req, reply) => {

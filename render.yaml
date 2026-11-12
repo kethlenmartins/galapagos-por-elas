@@ -29,6 +29,11 @@ services:
           envVarKey: RENDER_EXTERNAL_URL
       - key: TERMS_VERSION
         value: "1"
+      # IA (Groq): simulação de entrevista, revisão das etapas e sugestão de correção. Sem elas a IA fica indisponível.
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        sync: false
       - key: SESSION_SECRET
         generateValue: true
       - key: DATABASE_URL

@@ -55,15 +55,19 @@ test('com banco de perguntas, a IA recebe o critério da pergunta e só devolve 
   assert.equal(await reagir('CF', config, [], resposta({ outra: 1 })), null)
 })
 
-test('a revisão por etapa envia o critério como régua privada e devolve só o feedback', async () => {
+test('a revisão da etapa envia o critério como régua privada e devolve rumo, bom e ruim', async () => {
   const { revisarEtapa } = await import('./revisao-ia.ts')
   let corpo = ''
-  const espia = (async (_u: string, init: { body: string }) => { corpo = init.body; return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify({ resumo: 'Bom começo.', pontosFortes: ['Estrutura'], pontosAMelhorar: ['Confira o cálculo da margem'] }) } }] }) } }) as unknown as typeof fetch
-  const r = await revisarEtapa({ titulo: 'Margem', prompt: '[[continuar]]\nCalcule a margem.', fields: [{ id: 'margem', rotulo: 'Margem líquida' }], answerKey: { margem: 12.4 } }, { margem: '10' }, espia)
+  const espia = (async (_u: string, init: { body: string }) => { corpo = init.body; return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify({ rumo: 'quase', resumo: 'Bom começo.', pontosFortes: ['Estrutura'], pontosAMelhorar: ['Confira o cálculo da margem'] }) } }] }) } }) as unknown as typeof fetch
+  const tarefa = { id: 't1', titulo: 'Margem', prompt: '[[continuar]]\nCalcule a margem.', fields: [{ id: 'margem', rotulo: 'Margem líquida' }], answerKey: { margem: 12.4 } }
+  const r = await revisarEtapa([tarefa], { t1: { margem: '10' } }, espia)
+  assert.equal(r?.rumo, 'quase')
   assert.equal(r?.resumo, 'Bom começo.')
   assert.equal(r?.dica, '')
   assert.match(corpo, /criterio/)
   assert.match(corpo, /nunca instruções/)
   assert.doesNotMatch(corpo, /continuar\]\]/, 'os marcadores de tela não vão para a IA')
-  assert.equal(await revisarEtapa({ titulo: 'x', prompt: 'x', fields: [], answerKey: null }, { a: 'b' }, (async () => ({ ok: true, json: async () => ({ choices: [{ message: { content: '{"nota": 10}' } }] }) })) as unknown as typeof fetch), null)
+  const rumoInvalido = (async () => ({ ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify({ rumo: 'ótimo', resumo: 'Ok.', pontosFortes: [], pontosAMelhorar: [] }) } }] }) })) as unknown as typeof fetch
+  assert.equal((await revisarEtapa([tarefa], {}, rumoInvalido))?.rumo, 'quase', 'rumo desconhecido vira "quase"')
+  assert.equal(await revisarEtapa([tarefa], {}, (async () => ({ ok: true, json: async () => ({ choices: [{ message: { content: '{"nota": 10}' } }] }) })) as unknown as typeof fetch), null)
 })
