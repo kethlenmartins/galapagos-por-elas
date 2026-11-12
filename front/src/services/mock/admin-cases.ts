@@ -109,7 +109,7 @@ export const adminCasesService: AdminCasesService = {
     executarLogada(({ estado, agora }) => {
       const caso = estado.cases.find(c => c.id === caseId)
       if (!caso) return falha('NAO_ENCONTRADO', 'Case não encontrado.')
-      if (caso.status !== 'revisado') return falha('VALIDACAO', 'Aprove o case antes de publicar.')
+      if (caso.status !== 'revisado' && caso.status !== 'arquivado') return falha('VALIDACAO', 'Aprove o case antes de publicar.')
       caso.status = 'publicado'
       caso.atualizadoEm = agora.toISOString()
       return ok(caso)

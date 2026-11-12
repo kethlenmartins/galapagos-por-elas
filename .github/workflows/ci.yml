@@ -60,6 +60,7 @@ jobs:
           SESSION_SECRET: ci-only-secret-with-more-than-32-bytes
           APP_ORIGIN: http://127.0.0.1:3000
           COOKIE_SECURE: "false"
+          RATE_LIMIT_MAX: "5000"
           # IA falsa do e2e (a simulação de entrevista roda de ponta a ponta sem chamar a Groq).
           GROQ_API_URL: http://127.0.0.1:4010
           GROQ_API_KEY: e2e

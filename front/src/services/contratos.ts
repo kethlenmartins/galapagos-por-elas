@@ -684,7 +684,7 @@ export interface AdminCasesService {
   conferirGabarito(caseId: string): Promise<Resultado<ConferenciaGabarito>>
   /** Exige `gabaritoConfirmado` e que o gabarito confira. Status vira `revisado`. */
   aprovarCase(caseId: string, opcoes: { gabaritoConfirmado: boolean }): Promise<Resultado<CaseAdmin>>
-  /** Só case `revisado`. O case entra na trilha para quem já o destravou. */
+  /** Case `revisado` ou `arquivado` (republicar). O case entra na trilha para quem já o destravou. */
   publicarCase(caseId: string): Promise<Resultado<CaseAdmin>>
   /** Tira o case da oferta. Quem já começou mantém o progresso. */
   arquivarCase(caseId: string): Promise<Resultado<CaseAdmin>>

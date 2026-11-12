@@ -36,6 +36,12 @@ export function AdminCases() {
     else carregar()
   }
 
+  const republicar = async (id: string) => {
+    const r = await adminCasesService.publicarCase(id)
+    if (r.erro) setErro(r.erro.mensagem)
+    else carregar()
+  }
+
   const contar = (s: StatusCaseAdmin[]) => cases?.filter(c => s.includes(c.status)).length ?? 0
   const visiveis = (cases ?? []).filter(c => (!status || c.status === status) && c.titulo.toLowerCase().includes(busca.trim().toLowerCase()))
 
@@ -66,6 +72,7 @@ export function AdminCases() {
             : <span className="row-actions">
               <button className="icon-btn" onClick={() => irParaEditor(c.id)} aria-label={`${c.status === 'publicado' || c.status === 'arquivado' ? 'Ver' : 'Editar'} ${c.titulo}`}><Icon name="edit"/></button>
               {c.status === 'publicado' && <button className="text-link" onClick={() => setConfirmando(c.id)}>Arquivar</button>}
+              {c.status === 'arquivado' && <button className="text-link" onClick={() => republicar(c.id)}>Republicar</button>}
             </span>}</td>
         </tr>)}
       </tbody></table></div>}

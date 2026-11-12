@@ -90,6 +90,28 @@ const caso: Servicos['caso'] = {
 
 // Durante a migração incremental, serviços ainda não cobertos continuam apontando
 // para o mock. Assim o seletor de ambiente não quebra telas fora do piloto.
+const SEM_EDITOR = { dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'A edição de cases pela plataforma ainda não está disponível. Os cases são publicados pela equipe técnica; aqui você pode arquivar e republicar.' } } as const
+const semEditor = async () => SEM_EDITOR
+
+const adminCases: Servicos['adminCases'] = {
+  listarCases: filtro => api('/admin/cases' + (filtro?.status ? '?status=' + filtro.status : '')),
+  // Arquivar e republicar devolvem só o resumo do case; o editor completo ainda não existe na API.
+  arquivarCase: id => api('/admin/cases/' + encodeURIComponent(id) + '/archive', { method: 'POST' }) as never,
+  publicarCase: id => api('/admin/cases/' + encodeURIComponent(id) + '/publish', { method: 'POST' }) as never,
+  obterCase: semEditor,
+  gerarRascunhoComIA: semEditor,
+  regenerarSecao: semEditor,
+  salvarCase: semEditor,
+  conferirGabarito: semEditor,
+  aprovarCase: semEditor,
+}
+
+const adminConteudos: Servicos['adminConteudos'] = {
+  listarConteudosAdmin: () => api('/admin/contents'),
+  salvarConteudo: conteudo => api('/admin/contents', { method: 'POST', body: JSON.stringify(conteudo) }),
+  removerConteudo: id => api('/admin/contents/' + encodeURIComponent(id), { method: 'DELETE' }),
+}
+
 const adminCorrecao: Servicos['adminCorrecao'] = {
   listarEntregas: filtro => api('/admin/deliveries' + (filtro?.status ? '?status=' + filtro.status : '')),
   obterEntregaComSugestaoIA: id => api('/admin/deliveries/' + encodeURIComponent(id)),
@@ -124,5 +146,5 @@ const treino: Servicos['treino'] = {
   responderPergunta: (perguntaId, letra) => api('/training/questions/' + encodeURIComponent(perguntaId) + '/answer', { method: 'POST', body: JSON.stringify({ letra }) }),
 }
 
-export const servicosHttp: Servicos = { vagas, adminVagas, simulacao, treino, sessao, perfil, catalogo, pontos, diagnostico, caso, conteudos, certificados, adminCases: servicosMock.adminCases, adminCorrecao, adminConteudos: servicosMock.adminConteudos }
+export const servicosHttp: Servicos = { vagas, adminVagas, simulacao, treino, sessao, perfil, catalogo, pontos, diagnostico, caso, conteudos, certificados, adminCases, adminCorrecao, adminConteudos }
 export const servicosAtivos: Servicos = import.meta.env.VITE_API_URL ? servicosHttp : servicosMock

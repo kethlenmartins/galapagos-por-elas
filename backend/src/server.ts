@@ -28,7 +28,8 @@ const tokenDaRequisicao = (req: FastifyRequest) => {
 await app.register(cookie)
 await app.register(helmet)
 await app.register(cors, { origin: process.env.APP_ORIGIN ?? false, credentials: true, methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], allowedHeaders: ['content-type', 'authorization'] })
-await app.register(rateLimit, { max: 100, timeWindow: '1 minute' })
+// Só os testes e2e sobem o limite (RATE_LIMIT_MAX); em produção vale o padrão.
+await app.register(rateLimit, { max: Number(process.env.RATE_LIMIT_MAX ?? 100), timeWindow: '1 minute' })
 
 app.addHook('preHandler', async (req, reply) => {
   if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) || !req.cookies.gpe_session) return
@@ -636,6 +637,75 @@ app.post('/api/admin/reviews/:id/resolve', async (req, reply) => {
   const [d] = await db.select().from(deliveries).where(eq(deliveries.id, novo.deliveryId)).limit(1)
   const { resumo } = d ? await resumoDaEntrega(d) : { resumo: null }
   return { dados: { id: novo.id, entregaId: novo.deliveryId, tarefaId: novo.taskId, participanteNome: resumo?.participanteNome ?? '—', caseTitulo: resumo?.caseTitulo ?? '—', motivo: novo.reason, status: 'resolvido', criadoEm: novo.createdAt.toISOString() }, erro: null }
+})
+
+// --- Cases e conteúdos para a equipe -------------------------------------------------------------------------------
+
+const STATUS_CASE_ADMIN = ['rascunho_ia', 'rascunho', 'revisado', 'publicado', 'arquivado']
+const resumoDoCase = (c: typeof cases.$inferSelect) => ({ id: c.id, titulo: c.title, areaId: c.areaId, area: nomeDaArea(c.areaId), status: STATUS_CASE_ADMIN.includes(c.status) ? c.status : 'rascunho', geradoPorIA: false })
+
+app.get('/api/admin/cases', async (req, reply) => {
+  if (!(await usuarioEquipe(req, reply))) return
+  const { status } = req.query as { status?: string }
+  const rows = (await db.select().from(cases)).sort((a, b) => a.areaId.localeCompare(b.areaId) || a.islandOrder - b.islandOrder || a.id.localeCompare(b.id))
+  return { dados: rows.map(resumoDoCase).filter(c => !status || c.status === status), erro: null }
+})
+
+for (const [acao, de, para] of [['archive', ['publicado'], 'arquivado'], ['publish', ['arquivado', 'revisado'], 'publicado']] as const) {
+  app.post(`/api/admin/cases/:id/${acao}`, async (req, reply) => {
+    if (!(await usuarioEquipe(req, reply))) return
+    const { id } = req.params as { id: string }
+    const [atual] = await db.select().from(cases).where(eq(cases.id, id)).limit(1)
+    if (!atual) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Case não encontrado.' } })
+    if (!(de as readonly string[]).includes(atual.status)) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: acao === 'archive' ? 'Só um case publicado pode ser arquivado.' : 'Só um case arquivado ou revisado pode ser publicado.' } })
+    // Quem já começou o case mantém o progresso: arquivar só tira o case da oferta.
+    const [novo] = await db.update(cases).set({ status: para }).where(eq(cases.id, id)).returning()
+    return { dados: resumoDoCase(novo), erro: null }
+  })
+}
+
+const conteudoAdmin = (c: typeof contents.$inferSelect) => ({ id: c.id, titulo: c.title, tipo: c.type, areaId: c.areaId, resumo: c.summary, corpo: c.body, url: c.url, minutos: c.minutes, caseIds: c.caseIds })
+const ConteudoSchema = z.object({
+  id: z.string().max(80).optional(), titulo: z.string().trim().min(3).max(160), tipo: z.enum(['artigo', 'video', 'glossario', 'link']), areaId: z.string().min(1).max(60),
+  resumo: z.string().trim().max(400), corpo: z.string().max(20000).nullable().optional(), url: z.string().trim().max(500).nullable().optional(), minutos: z.number().int().min(1).max(600), caseIds: z.array(z.string().max(80)).max(50),
+})
+
+app.get('/api/admin/contents', async (req, reply) => {
+  if (!(await usuarioEquipe(req, reply))) return
+  return { dados: (await db.select().from(contents).orderBy(contents.areaId, contents.title)).map(conteudoAdmin), erro: null }
+})
+
+app.post('/api/admin/contents', async (req, reply) => {
+  if (!(await usuarioEquipe(req, reply))) return
+  const corpo = ConteudoSchema.safeParse(req.body)
+  const erros: Record<string, string> = {}
+  if (!corpo.success) for (const i of corpo.error.issues) erros[String(i.path[0] ?? 'geral')] = i.path[0] === 'titulo' ? 'Informe o título.' : i.path[0] === 'minutos' ? 'Informe o tempo estimado em minutos.' : 'Revise este campo.'
+  const c = corpo.success ? corpo.data : null
+  if (c) {
+    if (!areasPublicas.some(a => a.id === c.areaId)) erros.areaId = 'Escolha uma área.'
+    if ((c.tipo === 'video' || c.tipo === 'link') && !/^https:\/\//.test(c.url ?? '')) erros.url = 'Informe um link que comece com https://.'
+    if ((c.tipo === 'artigo' || c.tipo === 'glossario') && !(c.corpo ?? '').trim()) erros.corpo = 'Escreva o conteúdo.'
+  }
+  if (!c || Object.keys(erros).length) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Confira os campos destacados.', campos: erros } })
+  const externo = c.tipo === 'video' || c.tipo === 'link'
+  const existentes = c.caseIds.length ? await db.select({ id: cases.id }).from(cases).where(inArray(cases.id, c.caseIds)) : []
+  const valores = { title: c.titulo, type: c.tipo, areaId: c.areaId, summary: c.resumo, body: externo ? null : c.corpo ?? null, url: externo ? c.url ?? null : null, minutes: c.minutos, caseIds: existentes.map(x => x.id) }
+  if (c.id) {
+    const [novo] = await db.update(contents).set(valores).where(eq(contents.id, c.id)).returning()
+    if (!novo) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Conteúdo não encontrado.' } })
+    return { dados: conteudoAdmin(novo), erro: null }
+  }
+  const [criado] = await db.insert(contents).values({ id: `cont-${randomUUID().slice(0, 8)}`, ...valores }).returning()
+  return { dados: conteudoAdmin(criado), erro: null }
+})
+
+app.delete('/api/admin/contents/:id', async (req, reply) => {
+  if (!(await usuarioEquipe(req, reply))) return
+  const { id } = req.params as { id: string }
+  const apagados = await db.delete(contents).where(eq(contents.id, id)).returning({ id: contents.id })
+  if (!apagados.length) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Conteúdo não encontrado.' } })
+  await db.delete(contentCompletions).where(eq(contentCompletions.contentId, id))
+  return { dados: true, erro: null }
 })
 
 app.post('/api/cases/:caseId/start', async (req, reply) => {
