@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import './trilha.css'
 import { horaCurta } from '../../app/formatos'
-import { definirCaseAtual, go, irParaConteudo, obterCaseAtual } from '../../app/rotas'
+import { definirCaseAtual, definirIlhaAtual, go, irParaConteudo, obterCaseAtual } from '../../app/rotas'
 import { sessaoExpirou } from '../../app/sessao'
 import { Toast } from '../../componentes/Aviso'
 import { PageTitle, Progress, Tag } from '../../componentes/Basicos'
@@ -215,6 +215,13 @@ function PainelEntenda({ caso, checkpoint, ocupado, aoConcluir }: { caso: CaseTr
   </section>
 }
 
+/** Sai do case de volta para a ilha da área dele. */
+function voltarParaIlha(areaId: string) {
+  definirCaseAtual(null)
+  definirIlhaAtual(areaId)
+  go('island')
+}
+
 function PainelResultado({ resultado, caso }: { resultado: ResultadoCase; caso: CaseTrilha }) {
   if (resultado.estado !== 'publicado') return null
   return <section className={`case-painel case-resultado ${resultado.aprovada ? 'aprovada' : 'nao-aprovada'}`}>
@@ -232,8 +239,8 @@ function PainelResultado({ resultado, caso }: { resultado: ResultadoCase; caso: 
     </ul>
     {resultado.pontosGanhos > 0 && <p className="case-pontos"><Icon name="spark" size={16}/> +{resultado.pontosGanhos} pontos pelo resultado e pelo certificado</p>}
     <div className="case-acoes">
-      {resultado.aprovada ? <Button icon="award" onClick={() => go('certificates')}>Ver meu certificado</Button> : <Button onClick={() => { definirCaseAtual(null); go('trail') }}>Voltar à trilha</Button>}
-      {resultado.aprovada && <Button variant="ghost" onClick={() => { definirCaseAtual(null); go('trail') }}>Escolher o próximo case</Button>}
+      {resultado.aprovada ? <Button icon="award" onClick={() => go('certificates')}>Ver meu certificado</Button> : <Button onClick={() => voltarParaIlha(caso.areaId)}>Voltar à ilha</Button>}
+      {resultado.aprovada && <Button variant="ghost" onClick={() => voltarParaIlha(caso.areaId)}>Voltar à ilha</Button>}
     </div>
     <small>Case: {caso.titulo} · tentativa {resultado.tentativa}</small>
   </section>
@@ -393,7 +400,7 @@ export function CasePage() {
 
   return <AppShell route="case"><div className="case-page">
     {aviso && <Toast text={aviso} show/>}
-    <button className="back-link" onClick={() => { definirCaseAtual(null); go('trail') }}>← Voltar para a trilha</button>
+    <button className="back-link" onClick={() => (caso ? voltarParaIlha(caso.areaId) : go('trail'))}>← Voltar para a ilha</button>
 
     {fase === 'carregando' && <p role="status" className="diagnostico-estado">Carregando o case…</p>}
     {fase === 'erro' && <div className="alert alert-error" role="alert"><p>{mensagem}</p></div>}
@@ -458,7 +465,7 @@ export function CasePage() {
         <span className="eyebrow">EM AVALIAÇÃO</span>
         <h2>Recebemos o seu case</h2>
         <p>A avaliação está em andamento. Assim que a equipe publicar o resultado, ele aparece aqui, junto com o seu certificado se você for aprovada.</p>
-        <div className="case-acoes"><Button variant="ghost" onClick={() => { definirCaseAtual(null); go('trail') }}>Voltar à trilha</Button></div>
+        <div className="case-acoes"><Button variant="ghost" onClick={() => voltarParaIlha(caso.areaId)}>Voltar à ilha</Button></div>
       </section>}
 
       {resultado && <PainelResultado resultado={resultado} caso={caso}/>}

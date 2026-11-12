@@ -1,6 +1,6 @@
 /**
  * Regras da trilha de cases (PRD_Cases_Trilha.md), como funções puras sobre o estado do mock.
- * Os cases são ilhas em ordem: uma só abre quando as anteriores têm certificado. Quem desbloqueia o quê e em que estado cada case está para uma usuária.
+ * Cada área é uma ilha: dentro dela o case básico vem primeiro e os avançados só abrem depois do certificado dos anteriores; as áreas são independentes. Quem desbloqueia o quê e em que estado cada case está para uma usuária.
  */
 import type { CaseAdmin, EstadoCaseTrilha, ResultadoDiagnostico } from '../contratos.ts'
 import { CONFIG } from './dados/config.ts'
@@ -42,16 +42,36 @@ export function resultadoDoDiagnostico(estado: EstadoMock, usuarioId: string): R
 export const posicaoNoFit = (resultado: ResultadoDiagnostico | null, areaId: string): number | null =>
   resultado?.areas.find(a => a.areaId === areaId)?.posicao ?? null
 
-/** As ilhas (cases publicados) na ordem em que são feitas. */
+/** Os cases publicados na ordem em que são feitos: por área, do básico aos avançados. */
 export const ilhasEmOrdem = (estado: EstadoMock): CaseAdmin[] => [...casesPublicados(estado)].sort((a, b) => a.ordem - b.ordem)
 
-/** A primeira ilha anterior a este case que ela ainda não concluiu (sem certificado), se houver. */
-export const ilhaAnteriorPendente = (estado: EstadoMock, usuarioId: string, caso: CaseAdmin): CaseAdmin | undefined =>
-  ilhasEmOrdem(estado).find(c => c.ordem < caso.ordem && !temCertificado(estado, usuarioId, c.id))
+/** Os cases da mesma área, na ordem. O primeiro é o case básico. */
+export const casesDaArea = (estado: EstadoMock, areaId: string): CaseAdmin[] => ilhasEmOrdem(estado).filter(c => c.areaId === areaId)
 
-/** A próxima ilha a fazer: a primeira não concluída. `null` quando todas estão concluídas. */
-export const proximaIlha = (estado: EstadoMock, usuarioId: string): CaseAdmin | null =>
-  ilhasEmOrdem(estado).find(c => !temCertificado(estado, usuarioId, c.id)) ?? null
+export const nivelDoCase = (estado: EstadoMock, caso: CaseAdmin): 'basico' | 'avancado' =>
+  casesDaArea(estado, caso.areaId)[0]?.id === caso.id ? 'basico' : 'avancado'
+
+/** O primeiro case anterior a este, na mesma área, que ela ainda não concluiu (sem certificado), se houver. */
+export const ilhaAnteriorPendente = (estado: EstadoMock, usuarioId: string, caso: CaseAdmin): CaseAdmin | undefined =>
+  casesDaArea(estado, caso.areaId).find(c => c.ordem < caso.ordem && !temCertificado(estado, usuarioId, c.id))
+
+/**
+ * O case sugerido: o que ela já começou ou, senão, o primeiro aberto da área que mais combina com ela no diagnóstico.
+ * `null` quando não há nenhum aberto.
+ */
+export function proximaIlha(estado: EstadoMock, usuarioId: string, agora: Date): CaseAdmin | null {
+  const resultado = resultadoDoDiagnostico(estado, usuarioId)
+  const abertos = casesVisiveisPara(estado, usuarioId)
+    .map(c => ({ caso: c, sit: situacaoDoCase(estado, usuarioId, c, agora) }))
+    .filter(x => x.sit.estado === 'em_andamento' || x.sit.estado === 'disponivel')
+  const ordenados = abertos.sort(
+    (a, b) =>
+      Number(b.sit.estado === 'em_andamento') - Number(a.sit.estado === 'em_andamento') ||
+      (posicaoNoFit(resultado, a.caso.areaId) ?? 999) - (posicaoNoFit(resultado, b.caso.areaId) ?? 999) ||
+      a.caso.ordem - b.caso.ordem,
+  )
+  return ordenados[0]?.caso ?? null
+}
 
 export type SituacaoDoCase = {
   estado: EstadoCaseTrilha
@@ -81,7 +101,7 @@ export function situacaoDoCase(estado: EstadoMock, usuarioId: string, caso: Case
     const resultado = resultadoDoDiagnostico(estado, usuarioId)
     if (!resultado) return { ...base, estado: 'bloqueado', motivoBloqueio: 'Faça o diagnóstico para descobrir por onde começar.' }
     const pendente = ilhaAnteriorPendente(estado, usuarioId, caso)
-    if (pendente) return { ...base, estado: 'bloqueado', motivoBloqueio: `Conclua a ilha ${pendente.ordem} (${pendente.titulo}) primeiro.` }
+    if (pendente) return { ...base, estado: 'bloqueado', motivoBloqueio: `Conclua o case "${pendente.titulo}" primeiro.` }
   }
 
   // Quem começou termina: sem prazo, o case iniciado e não enviado fica em andamento.
@@ -97,9 +117,9 @@ export function caseEmAndamento(estado: EstadoMock, usuarioId: string, agora: Da
   return null
 }
 
-/** O case que ela começou e ainda não terminou: em andamento ou enviado e esperando a avaliação. */
-export function caseNaoTerminado(estado: EstadoMock, usuarioId: string, agora: Date): CaseAdmin | null {
-  for (const caso of casesVisiveisPara(estado, usuarioId)) {
+/** O case da área que ela começou e ainda não terminou: em andamento ou enviado e esperando a avaliação. */
+export function caseNaoTerminado(estado: EstadoMock, usuarioId: string, agora: Date, areaId: string): CaseAdmin | null {
+  for (const caso of casesVisiveisPara(estado, usuarioId).filter(c => c.areaId === areaId)) {
     const e = situacaoDoCase(estado, usuarioId, caso, agora).estado
     if (e === 'em_andamento' || e === 'em_avaliacao') return caso
   }

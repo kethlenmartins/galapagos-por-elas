@@ -47,7 +47,8 @@ Mostre `erro.mensagem`: ela já vem em português e pronta para a usuária.
 Implementa o modelo de `docs/PRD_Cases_Trilha.md`:
 
 - **Desbloqueio:** sem diagnóstico, nada abre. Os cases são ilhas em ordem: cada uma abre quando a anterior termina com certificado. Quem já começou um case mantém o acesso, mesmo arquivado.
-- **Quem começa termina:** só um case em andamento por vez (`escolherCase`); enviado e em avaliação conta como não terminado. Não há case por semana nem prazo: o progresso fica salvo até ela concluir.
+- **Cada área é uma ilha:** o primeiro case da área é o básico (`nivel: 'basico'`); os avançados só abrem com o certificado dos anteriores da mesma área. As áreas são independentes: ela entra em qualquer uma depois do diagnóstico, e `proximoCaseId`/`sugerido` só indicam por onde começar.
+- **Quem começa termina:** dentro da ilha, enviado e em avaliação conta como não terminado. Não há case por semana nem prazo: o progresso fica salvo até ela concluir.
 - **Checkpoints** abrem em ordem, pagam pontos uma vez (20 no “entenda a área”, 30 nos demais) e travam as respostas ao concluir. Enviar não paga: os checkpoints já pagaram.
 - **Aprovada** = nota publicada ≥ mínimo (6,0, suposição). Só então saem o bônus de nota (até 150, uma vez por case), o certificado (100) e os próximos cases. Sem aprovação, ela refaz em uma nova tentativa: a situação e a defesa recomeçam, e o que já foi pago não se repete.
 - **Certificado:** PDF gerado sem dependências (`mock/pdf.ts`, A4 paisagem, texto selecionável), com o nome do case, o nome dela, a área, a data e o código; e o link de “adicionar ao LinkedIn” com o endereço de validação. No backend real, o PDF é gerado no servidor e o código é imprevisível.

@@ -75,7 +75,7 @@ export function Certificates() {
       <span><Icon name="award" size={34}/></span>
       <h2>Seu primeiro certificado está a caminho</h2>
       <p>Conclua um case e seja aprovada na avaliação para receber o seu certificado.</p>
-      <Button onClick={() => go('trail')}>Ver minha trilha</Button>
+      <Button onClick={() => go('trail')}>Ver as ilhas</Button>
     </div>}
 
     {lista && lista.length > 0 && <div className="certificate-list">

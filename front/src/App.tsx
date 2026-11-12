@@ -15,6 +15,7 @@ import { ValidateCertificate } from './telas/publicas/ValidarCertificado'
 import { Certificates } from './telas/participante/Certificados'
 import { CasePage } from './telas/participante/CaseTrilha'
 import { Trilha } from './telas/participante/Trilha'
+import { Ilha } from './telas/participante/Ilha'
 import { ContentList, ContentPage } from './telas/participante/Conteudo'
 import { PointsStatement } from './telas/participante/ExtratoPontos'
 import { Home } from './telas/participante/Home'
@@ -33,6 +34,7 @@ const telas: Record<Route, () => ReactElement> = {
   match: () => <Resultado />,
   home: () => <Home />,
   trail: () => <Trilha />,
+  island: () => <Ilha />,
   case: () => <CasePage />,
   task: () => <CasePage />,
   result: () => <CasePage />,

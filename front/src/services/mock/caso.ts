@@ -26,6 +26,8 @@ import {
   casesPublicados,
   casesVisiveisPara as casesVisiveis,
   caseNaoTerminado,
+  casesDaArea,
+  nivelDoCase,
   proximaIlha,
   posicaoNoFit,
   progressoDe,
@@ -143,9 +145,8 @@ export const caseService: CaseService = {
       const { estado, usuario, agora } = ctx
       const resultado = resultadoDoDiagnostico(estado, usuario.id)
       const situacoes = casesVisiveis(estado, usuario.id).map(c => ({ caso: c, sit: situacaoDoCase(estado, usuario.id, c, agora) }))
-      const proxima = proximaIlha(estado, usuario.id)
+      const proxima = proximaIlha(estado, usuario.id, agora)
       const primeiroConcluido = estado.certificados.some(c => c.usuarioId === usuario.id)
-      // “Comece por aqui”: a próxima ilha, se já puder ser feita.
       const sugeridoId = proxima && situacoes.find(x => x.caso.id === proxima.id)?.sit.estado === 'disponivel' ? proxima.id : null
 
       const concluidos = concluidosDe(estado, usuario.id)
@@ -160,7 +161,8 @@ export const caseService: CaseService = {
             areaId: caso.areaId,
             area: nomeDaArea(caso.areaId),
             resumo: caso.resumo,
-            ordem: caso.ordem,
+            ordem: casesDaArea(estado, caso.areaId).findIndex(c => c.id === caso.id) + 1,
+            nivel: nivelDoCase(estado, caso),
             estado: sit.estado,
             posicaoNoFit: posicao,
             noTop3: posicao !== null && posicao <= 3,
@@ -171,12 +173,10 @@ export const caseService: CaseService = {
             refazer: sit.refazer,
           }
         })
-        .sort((a, b) => a.ordem - b.ordem)
+        .sort((a, b) => a.areaId.localeCompare(b.areaId) || a.ordem - b.ordem)
 
-      const ativo = caseNaoTerminado(estado, usuario.id, agora)
       let motivo: string | null = null
       if (!resultado) motivo = 'Faça o diagnóstico para descobrir por onde começar.'
-      else if (ativo) motivo = `Termine o case em andamento: ${ativo.titulo}.`
       else if (!cases.some(c => c.estado === 'disponivel')) motivo = 'Nenhum case disponível para você agora.'
 
       return ok({
@@ -201,7 +201,7 @@ export const caseService: CaseService = {
       if (sit.estado === 'concluido') return falha('VALIDACAO', 'Você já concluiu este case.')
       if (sit.estado === 'em_andamento') return ok(montarCase(caso, ctx))
 
-      const outro = caseNaoTerminado(estado, usuario.id, agora)
+      const outro = caseNaoTerminado(estado, usuario.id, agora, caso.areaId)
       if (outro) return falha('VALIDACAO', `Termine o case em andamento antes de escolher outro: ${outro.titulo}.`)
 
       // Nova tentativa depois de uma avaliação sem aprovação.

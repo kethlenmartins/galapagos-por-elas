@@ -2,7 +2,7 @@
 
 export type Route =
   | 'landing' | 'signup' | 'login' | 'forgot' | 'reset' | 'validate'
-  | 'onboarding' | 'diagnostic' | 'match' | 'home' | 'trail' | 'case' | 'task'
+  | 'onboarding' | 'diagnostic' | 'match' | 'home' | 'trail' | 'island' | 'case' | 'task'
   | 'result' | 'content' | 'content-item' | 'certificates' | 'profile'
   | 'admin-cases' | 'admin-editor' | 'admin-review' | 'admin-content'
   | 'terms' | 'privacy' | 'points' | 'forbidden' | 'system-error' | 'maintenance' | 'session-expired'
@@ -11,7 +11,7 @@ export const routes: Record<Route, string> = {
   landing: 'Início', signup: 'Cadastro', login: 'Entrar', forgot: 'Recuperar senha',
   reset: 'Nova senha', validate: 'Validar certificado', onboarding: 'Seu perfil',
   diagnostic: 'Diagnóstico', match: 'Seu Mapa de Carreira', home: 'Início',
-  trail: 'Sua trilha', case: 'Case', task: 'Case', result: 'Case',
+  trail: 'Suas ilhas', island: 'Ilha', case: 'Case', task: 'Case', result: 'Case',
   content: 'Conteúdos', 'content-item': 'Conteúdo', certificates: 'Certificados', profile: 'Perfil',
   'admin-cases': 'Cases', 'admin-editor': 'Editor de case',
   'admin-review': 'Fila de correção', 'admin-content': 'Conteúdos',
@@ -45,6 +45,26 @@ export const rotaDoHash = (): Route => (window.location.hash.replace('#/', '').s
 export function parametroDoHash(nome: string): string | null {
   const consulta = window.location.hash.split('?')[1]
   return consulta ? new URLSearchParams(consulta).get(nome) : null
+}
+
+const CHAVE_ILHA_ATUAL = 'galapagos:ilha-atual'
+
+/** A ilha (área) que a participante está vendo; a rota `island` não leva o id no endereço. */
+export function definirIlhaAtual(areaId: string | null) {
+  try {
+    if (areaId) sessionStorage.setItem(CHAVE_ILHA_ATUAL, areaId)
+    else sessionStorage.removeItem(CHAVE_ILHA_ATUAL)
+  } catch {
+    // Sem armazenamento: a tela volta para o mapa de ilhas.
+  }
+}
+
+export function obterIlhaAtual(): string | null {
+  try {
+    return sessionStorage.getItem(CHAVE_ILHA_ATUAL)
+  } catch {
+    return null
+  }
 }
 
 const CHAVE_CASE_ATUAL = 'galapagos:case-atual'

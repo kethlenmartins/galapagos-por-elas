@@ -207,7 +207,7 @@ export function Resultado() {
 
       <div className="diagnostico-acoes">
         <Button variant="ghost" onClick={() => go('diagnostic')}>Refazer diagnóstico</Button>
-        <Button onClick={() => go('trail')}>Ver minha trilha</Button>
+        <Button onClick={() => go('trail')}>Ver as ilhas</Button>
       </div>
     </>}
   </div></AppShell>

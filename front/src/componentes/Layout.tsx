@@ -10,7 +10,7 @@ import { Logo } from './Logo'
 
 export const participantNav: { label: string; route: Route; icon: IconName }[] = [
   { label: 'Início', route: 'home', icon: 'home' },
-  { label: 'Case', route: 'trail', icon: 'case' },
+  { label: 'Ilhas', route: 'trail', icon: 'case' },
   { label: 'Conteúdos', route: 'content', icon: 'book' },
   { label: 'Perfil', route: 'profile', icon: 'user' },
 ]
@@ -45,7 +45,7 @@ function useCaseEmAndamento(ligado: boolean) {
 export function AppShell({ route, children, admin = false }: { route: Route; children: ReactNode; admin?: boolean }) {
   const nav = admin ? adminNav : participantNav
   /** O item “Case” fica aceso na trilha e dentro de um case. */
-  const ativo = (rota: Route) => rota === route || (rota === 'trail' && route === 'case') || (rota === 'content' && route === 'content-item')
+  const ativo = (rota: Route) => rota === route || (rota === 'trail' && (route === 'case' || route === 'island')) || (rota === 'content' && route === 'content-item')
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userOpen, setUserOpen] = useState(false)
   const { sessao } = useSessao()

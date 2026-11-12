@@ -115,9 +115,8 @@ test('escolher o case: o conteúdo só aparece depois, e escolher de novo não m
 
   assert.equal(dados(await s.caso.escolherCase('case-1')).estado, 'em_andamento', 'idempotente')
   const trilha = dados(await s.caso.obterTrilha())
-  assert.equal(trilha.podeEscolher, false)
-  assert.match(trilha.motivoNaoPodeEscolher ?? '', /em andamento/)
-  assert.equal(codigo(await s.caso.escolherCase('case-2')), 'VALIDACAO', 'um case por vez')
+  assert.equal(trilha.podeEscolher, true, 'as áreas são independentes: ela pode entrar em outra ilha')
+  assert.equal(trilha.cases.find(c => c.caseId === 'case-2')!.estado, 'disponivel')
 })
 
 test('quem começa termina: o case iniciado não expira, mesmo semanas depois', async () => {
@@ -136,8 +135,7 @@ test('quem começa termina: o case iniciado não expira, mesmo semanas depois', 
   const c1 = trilha.cases.find(c => c.caseId === 'case-1')!
   assert.equal(c1.estado, 'em_andamento')
   assert.deepEqual(c1.progresso, { concluidos: 3, total: 5 })
-  assert.equal(trilha.podeEscolher, false)
-  assert.equal(codigo(await s.caso.escolherCase('case-2')), 'VALIDACAO', 'ainda não terminou o case 1')
+  assert.equal(trilha.cases.find(c => c.caseId === 'case-2')!.estado, 'disponivel', 'outra área segue aberta')
   const retomado = dados(await s.caso.obterCase('case-1'))
   assert.equal(retomado.estado, 'em_andamento')
   assert.deepEqual(dados(await s.caso.obterTarefa('case-1-t-2')).rascunho, { alavancagem: '2,1' })
@@ -259,20 +257,28 @@ test('enviado e ainda em avaliação conta como não terminado: nada novo começ
   await marinaEnvia()
   const trilha = dados(await s.caso.obterTrilha())
   assert.equal(trilha.cases.find(c => c.caseId === 'case-1')!.estado, 'em_avaliacao')
-  assert.equal(trilha.podeEscolher, false)
-  assert.match(trilha.motivoNaoPodeEscolher ?? '', /Termine o case em andamento/)
-  assert.equal(codigo(await s.caso.escolherCase('case-2')), 'VALIDACAO')
+  assert.equal(trilha.cases.find(c => c.caseId === 'case-2')!.estado, 'disponivel', 'outra área segue aberta')
 })
 
-test('ilhas em ordem: um case novo entra no fim da trilha e espera as ilhas anteriores', async () => {
-  const novoId = await publicarCaseNovo('operacoes', 'Conferindo as operações do dia')
+test('cada área é uma ilha: o avançado espera o básico da própria área, e as áreas não dependem entre si', async () => {
+  const avancadoId = await publicarCaseNovo('equity-research', 'Avaliando uma empresa em detalhes')
+  const outraAreaId = await publicarCaseNovo('operacoes', 'Conferindo as operações do dia')
+  await entrar('marina@email.com')
+  let trilha = dados(await s.caso.obterTrilha())
+  const avancado = trilha.cases.find(c => c.caseId === avancadoId)!
+  assert.equal(avancado.nivel, 'avancado')
+  assert.equal(avancado.ordem, 2, 'o segundo case da área')
+  assert.equal(avancado.estado, 'bloqueado')
+  assert.match(avancado.motivoBloqueio ?? '', /Conclua o case/)
+  assert.equal(codigo(await s.caso.escolherCase(avancadoId)), 'VALIDACAO')
+  assert.equal(trilha.cases.find(c => c.caseId === 'case-1')!.nivel, 'basico')
+  const outra = trilha.cases.find(c => c.caseId === outraAreaId)!
+  assert.equal(outra.nivel, 'basico', 'o primeiro case de uma área é o básico')
+  assert.equal(outra.estado, 'disponivel', 'outra área não espera a primeira')
+
   await marinaConclui()
-  const trilha = dados(await s.caso.obterTrilha())
-  assert.equal(trilha.cases.at(-1)!.caseId, novoId, 'a última ilha')
-  assert.equal(trilha.cases.at(-1)!.estado, 'bloqueado')
-  assert.match(trilha.cases.at(-1)!.motivoBloqueio ?? '', /Conclua a ilha 2/)
-  assert.equal(trilha.cases.at(-1)!.sugerido, false)
-  assert.equal(trilha.proximoCaseId, 'case-2', 'a próxima é a primeira não concluída')
+  trilha = dados(await s.caso.obterTrilha())
+  assert.equal(trilha.cases.find(c => c.caseId === avancadoId)!.estado, 'disponivel', 'o certificado do básico abre o avançado')
 })
 
 test('sem aprovação não há certificado nem bônus, e ela pode refazer em uma nova tentativa', async () => {

@@ -364,13 +364,15 @@ export type ItemTrilha = {
   areaId: string
   area: string
   resumo: string
-  /** Número da ilha (1, 2, 3…): a ordem em que os cases são feitos. Uma ilha só abre quando a anterior é concluída. */
+  /** Posição do case dentro da área (1, 2, 3…). Cada área é uma ilha: um case só abre quando os anteriores da mesma área estão concluídos. */
   ordem: number
+  /** `basico` é o primeiro case da área (a porta de entrada); os demais são avançados e abrem depois dele. */
+  nivel: 'basico' | 'avancado'
   estado: EstadoCaseTrilha
   /** Posição da área no diagnóstico mais recente. `null` sem diagnóstico. */
   posicaoNoFit: number | null
   noTop3: boolean
-  /** O case “Comece por aqui”: o de melhor posição entre os que ela pode escolher no primeiro case. */
+  /** O case “Comece por aqui”: o case aberto da área de melhor posição no diagnóstico. */
   sugerido: boolean
   /** Por que está bloqueado, em português. */
   motivoBloqueio: string | null
@@ -382,14 +384,13 @@ export type ItemTrilha = {
 
 export type TrilhaDaUsuaria = {
   diagnosticoConcluido: boolean
-  /** `true` depois do primeiro certificado: todas as áreas com case ficam abertas. */
   primeiroCaseConcluido: boolean
-  /** `false` se ela já tem um case em andamento ou em avaliação: quem começa um case termina antes de começar outro. */
+  /** `false` sem diagnóstico ou sem nenhum case aberto. Cada case ainda tem o seu próprio estado e bloqueio. */
   podeEscolher: boolean
   motivoNaoPodeEscolher: string | null
-  /** A próxima ilha a fazer (a primeira não concluída), ou `null` quando todas estão concluídas. */
+  /** O case sugerido agora (o que ela já começou ou o da área que mais combina), ou `null` quando não há nenhum aberto. */
   proximoCaseId: string | null
-  /** Ordenados pela ordem das ilhas (`ordem`). */
+  /** Todos os cases publicados, de todas as áreas; a tela agrupa por `areaId` e ordena por `ordem`. */
   cases: ItemTrilha[]
 }
 

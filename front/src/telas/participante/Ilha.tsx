@@ -1,0 +1,124 @@
+import { useCallback, useEffect, useState } from 'react'
+import './trilha.css'
+import { definirCaseAtual, definirIlhaAtual, go, obterIlhaAtual } from '../../app/rotas'
+import { sessaoExpirou } from '../../app/sessao'
+import { PageTitle, Tag } from '../../componentes/Basicos'
+import { Icon } from '../../componentes/Icone'
+import { AppShell } from '../../componentes/Layout'
+import { caseService, catalogoService, type Area, type TrilhaDaUsuaria } from '../../services'
+import { CartaoCase } from './CartaoCase'
+
+/** Uma ilha é uma área: apresentação, case básico, cases avançados e treino de entrevista. */
+export function Ilha() {
+  const areaId = obterIlhaAtual()
+  const [trilha, setTrilha] = useState<TrilhaDaUsuaria | null>(null)
+  const [area, setArea] = useState<Area | null>(null)
+  const [fase, setFase] = useState<'carregando' | 'ok' | 'erro'>('carregando')
+  const [mensagem, setMensagem] = useState('')
+  const [confirmando, setConfirmando] = useState<string | null>(null)
+  const [ocupado, setOcupado] = useState(false)
+  const [erroDaAcao, setErroDaAcao] = useState('')
+
+  const carregar = useCallback(async () => {
+    if (!areaId) return go('trail')
+    const [t, a] = await Promise.all([caseService.obterTrilha(), catalogoService.obterArea(areaId)])
+    const falha = t.erro ?? a.erro
+    if (falha || !t.dados || !a.dados) {
+      if (falha && sessaoExpirou(falha)) return
+      setMensagem(falha?.mensagem ?? 'Não foi possível abrir a ilha.')
+      return setFase('erro')
+    }
+    setTrilha(t.dados)
+    setArea(a.dados)
+    setFase('ok')
+  }, [areaId])
+
+  useEffect(() => {
+    carregar()
+  }, [carregar])
+
+  const escolher = async (caseId: string) => {
+    setOcupado(true)
+    setErroDaAcao('')
+    const r = await caseService.escolherCase(caseId)
+    setOcupado(false)
+    if (r.erro) {
+      if (sessaoExpirou(r.erro)) return
+      setErroDaAcao(r.erro.mensagem)
+      setConfirmando(null)
+      return carregar()
+    }
+    definirCaseAtual(caseId)
+    go('case')
+  }
+
+  const voltar = () => {
+    definirIlhaAtual(null)
+    go('trail')
+  }
+
+  const cases = (trilha?.cases ?? []).filter(c => c.areaId === areaId).sort((a, b) => a.ordem - b.ordem)
+  const basico = cases.find(c => c.nivel === 'basico')
+  const avancados = cases.filter(c => c.nivel === 'avancado')
+  const basicoConcluido = basico?.estado === 'concluido'
+
+  const cartao = (item: (typeof cases)[number]) => (
+    <CartaoCase
+      key={item.caseId}
+      item={item}
+      confirmando={confirmando === item.caseId}
+      ocupado={ocupado}
+      aoPedirConfirmacao={() => { setErroDaAcao(''); setConfirmando(item.caseId) }}
+      aoConfirmar={() => escolher(item.caseId)}
+      aoCancelar={() => setConfirmando(null)}
+    />
+  )
+
+  return <AppShell route="island"><div className="trilha-page">
+    <button className="back-link" onClick={voltar}>← Voltar para as ilhas</button>
+
+    {fase === 'carregando' && <p role="status" className="diagnostico-estado">Carregando a ilha…</p>}
+    {fase === 'erro' && <div className="alert alert-error" role="alert"><p>{mensagem}</p></div>}
+
+    {fase === 'ok' && trilha && area && <>
+      <PageTitle eyebrow="ILHA" title={area.nome} subtitle={area.oQueFaz} />
+      <section className="ilha-apresentacao" aria-label={`Sobre a área de ${area.nome}`}>
+        <h2>Sobre a área</h2>
+        <p>{area.descricao}</p>
+      </section>
+
+      {!trilha.diagnosticoConcluido && (
+        <div className="alert alert-warning" role="note">
+          <p>Conclua o diagnóstico para começar os cases. <button className="text-link" onClick={() => go('diagnostic')}>Fazer o diagnóstico</button></p>
+        </div>
+      )}
+      {erroDaAcao && <div className="alert alert-error" role="alert"><p>{erroDaAcao}</p></div>}
+
+      <section className="ilha-secao" aria-label="Case básico">
+        <h2>Comece pelo case básico</h2>
+        <p className="trilha-dica">Conteúdos, etapas e certificado. Concluí-lo abre os cases avançados e o treino de entrevista desta ilha.</p>
+        {basico ? cartao(basico) : <div className="empty-state"><span><Icon name="case" size={34} /></span><h2>Ainda não há case nesta ilha</h2><p>Assim que a equipe publicar o case básico, ele aparece aqui.</p></div>}
+      </section>
+
+      <section className="ilha-secao" aria-label="Cases avançados">
+        <h2>Cases avançados</h2>
+        {avancados.length > 0
+          ? avancados.map(cartao)
+          : <p className="trilha-dica">Novos cases mais complexos desta área vão aparecer aqui.</p>}
+      </section>
+
+      <section className="ilha-secao" aria-label="Treino de entrevista">
+        <h2>Treino de entrevista</h2>
+        <article className={`trilha-card ${basicoConcluido ? '' : 'trilha-bloqueado'}`}>
+          <div className="trilha-etiquetas">
+            <Tag tone="blue">ENTREVISTA</Tag>
+            <span className="trilha-estado"><Tag tone="yellow">EM BREVE</Tag></span>
+          </div>
+          <h3>Treine para entrevistas de {area.nome}</h3>
+          <p className="trilha-resumo">Perguntas por nível de dificuldade, modo cronometrado e simulação com IA, ajustada à vaga que você quer e ao quanto de rigor você prefere.</p>
+          {!basicoConcluido && <p className="trilha-aviso"><Icon name="lock" size={16} /> Abre depois que você concluir o case básico.</p>}
+        </article>
+      </section>
+    </>}
+  </div></AppShell>
+}

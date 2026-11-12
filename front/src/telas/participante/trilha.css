@@ -44,6 +44,15 @@
 .trilha-confirmacao { display: grid; gap: var(--space-3); padding: var(--space-4); border-radius: var(--radius-sm); background: var(--pink-100); }
 .trilha-confirmacao p { color: var(--ink-700); font-size: 14px; }
 
+/* --- Ilha (área) --- */
+.ilha-apresentacao { display: grid; gap: var(--space-2); padding: var(--space-5); border-radius: var(--radius-md); background: var(--blue-100); color: var(--ink-700); }
+.ilha-apresentacao h2 { font-size: 16px; }
+.ilha-secao { display: grid; gap: var(--space-3); }
+.ilha-secao > h2 { font-size: 20px; }
+.ilha-secao .trilha-card h3 { font-size: 20px; }
+.ilha-progresso-area { display: grid; gap: var(--space-1); }
+.ilha-progresso-area span { color: var(--ink-600); font-size: 12px; }
+
 /* --- Case --- */
 .case-resumo { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); color: var(--ink-600); font-size: 13px; }
 .case-resumo span { display: inline-flex; align-items: center; gap: var(--space-1); }

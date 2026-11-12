@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { definirCaseAtual, go } from '../../app/rotas'
+import { definirCaseAtual, definirIlhaAtual, go } from '../../app/rotas'
 import { sessaoExpirou, useSessao } from '../../app/sessao'
 import { PageTitle, Progress, Tag } from '../../componentes/Basicos'
 import { Button } from '../../componentes/Botao'
@@ -47,6 +47,7 @@ export function Home() {
   const principal = casePrincipal(trilha.cases)
   const abrir = (caseId: string) => {
     definirCaseAtual(caseId)
+    definirIlhaAtual(trilha.cases.find(c => c.caseId === caseId)?.areaId ?? null)
     go('case')
   }
 
@@ -59,10 +60,10 @@ export function Home() {
       <Progress value={principal.progresso.total ? (principal.progresso.concluidos / principal.progresso.total) * 100 : 0}/>
       <Button onClick={() => abrir(principal.caseId)} icon="arrow">{principal.estado === 'em_avaliacao' ? 'Ver case' : 'Continuar case'}</Button>
     </section> : <section className="dashboard-card weekly-case">
-      <div className="card-top"><Tag>TRILHA DE CASES</Tag></div>
-      <h2>{trilha.diagnosticoConcluido ? 'Siga para a próxima ilha' : 'Comece pelo diagnóstico'}</h2>
-      <p>{trilha.diagnosticoConcluido ? (trilha.podeEscolher ? 'Conclua uma ilha para abrir a próxima.' : trilha.motivoNaoPodeEscolher) : 'O diagnóstico mostra as áreas com mais afinidade com você e libera a sua trilha de ilhas.'}</p>
-      <Button onClick={() => go(trilha.diagnosticoConcluido ? 'trail' : 'diagnostic')} icon="arrow">{trilha.diagnosticoConcluido ? 'Ver a trilha' : 'Fazer o diagnóstico'}</Button>
+      <div className="card-top"><Tag>ILHAS</Tag></div>
+      <h2>{trilha.diagnosticoConcluido ? 'Escolha uma ilha para explorar' : 'Comece pelo diagnóstico'}</h2>
+      <p>{trilha.diagnosticoConcluido ? 'Cada área é uma ilha: comece pelo case básico para abrir os avançados e o treino de entrevista.' : 'O diagnóstico mostra as áreas com mais afinidade com você e libera as suas ilhas.'}</p>
+      <Button onClick={() => go(trilha.diagnosticoConcluido ? 'trail' : 'diagnostic')} icon="arrow">{trilha.diagnosticoConcluido ? 'Ver as ilhas' : 'Fazer o diagnóstico'}</Button>
     </section>}
     {top3.length > 0 && <section className="dashboard-section"><div className="section-title-row"><div><span className="eyebrow">SEU PERFIL</span><h2>Áreas recomendadas</h2></div><button className="text-link" onClick={() => go('match')}>Ver resultado</button></div><div className="area-cards">{top3.map(a => <article key={a.areaId}><strong>{a.pontuacao}%</strong><h3>{a.area}</h3><span>{a.posicao === 1 ? 'Maior afinidade' : `${a.posicao}ª afinidade`}</span></article>)}</div></section>}
   </div><aside className="activity-card"><div className="section-title-row"><h2>Últimos pontos</h2><button onClick={() => go('points')}>Ver extrato</button></div>
