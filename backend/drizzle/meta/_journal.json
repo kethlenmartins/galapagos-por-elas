@@ -183,6 +183,13 @@
       "when": 1795958100000,
       "tag": "0025_comunidade",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1796044500000,
+      "tag": "0026_ilhas_faltantes",
+      "breakpoints": true
     }
   ]
 }

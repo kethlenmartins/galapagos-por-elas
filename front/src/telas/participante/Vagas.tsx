@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './trilha.css'
-import { definirIlhaAtual, go, obterIlhaAtual } from '../../app/rotas'
+import { definirIlhaAtual, go } from '../../app/rotas'
 import { sessaoExpirou } from '../../app/sessao'
 import { PageTitle, Tag } from '../../componentes/Basicos'
 import { Icon } from '../../componentes/Icone'
@@ -14,7 +14,9 @@ export function Vagas() {
   const [vagas, setVagas] = useState<Vaga[] | null>(null)
   const [areas, setAreas] = useState<Area[]>([])
   const [erro, setErro] = useState('')
-  const [areaId, setAreaId] = useState(obterIlhaAtual() ?? '')
+  // Vagas sempre começa em todas as áreas. Herdar a última ilha aberta escondia
+  // oportunidades quando aquela área ainda não tinha anúncio publicado.
+  const [areaId, setAreaId] = useState('')
   const [tipo, setTipo] = useState<'' | TipoVaga>('')
 
   useEffect(() => {

@@ -12,8 +12,8 @@ const TEXTOS: Record<string, { oQueFaz: string; descricao: string }> = {
     descricao: 'Estrutura operações como ofertas de ações e fusões e aquisições, com muita análise, prazos apertados e trabalho em equipe.',
   },
   'asset-management': {
-    oQueFaz: 'Escolhe onde investir o dinheiro de clientes e instituições para ele render ao longo do tempo.',
-    descricao: 'Monta e acompanha carteiras de investimento a partir da análise de empresas, setores e cenários.',
+    oQueFaz: 'Administra carteiras e fundos conforme objetivos, limites de risco, liquidez e regras do mandato.',
+    descricao: 'A equipe decide como alocar patrimônio, acompanha desempenho e controla concentração, liquidez, custos e governança.',
   },
   'wealth-management': {
     oQueFaz: 'Assessora pessoas e famílias na gestão do patrimônio: investimentos, planejamento financeiro, proteção, tributação e sucessão, sempre a partir dos objetivos da cliente.',
@@ -28,12 +28,12 @@ const TEXTOS: Record<string, { oQueFaz: string; descricao: string }> = {
     descricao: 'Sales & Trading é a mesa de operações de bancos e corretoras. Sales atende clientes institucionais, como gestoras, fundos de pensão, seguradoras e empresas, leva ideias de investimento e de proteção e traz a operação para a mesa. Trading dá o preço, executa as operações e administra o risco das posições do banco, dentro de limites; muitas vezes faz market making, oferecendo preço de compra e de venda ao mesmo tempo e ganhando na diferença.',
   },
   quant: {
-    oQueFaz: 'Usa matemática, estatística e programação para entender mercados e criar estratégias.',
-    descricao: 'Finanças quantitativas: constrói modelos e sistemas que testam hipóteses com dados.',
+    oQueFaz: 'Aplica matemática, estatística e programação para modelar preços, riscos e estratégias financeiras.',
+    descricao: 'A área testa hipóteses com dados, constrói modelos e sistemas e controla vieses, custos e riscos fora da amostra.',
   },
   'credito-risco': {
-    oQueFaz: 'Avalia quem pode receber crédito e mede o que pode dar errado nas decisões financeiras.',
-    descricao: 'Analisa a capacidade de pagamento, define limites e acompanha os riscos da carteira de empréstimos.',
+    oQueFaz: 'Avalia capacidade de pagamento, define condições de concessão e acompanha perdas potenciais.',
+    descricao: 'A área analisa renda ou caixa, dívidas, garantias e histórico, além de monitorar políticas, limites e risco da carteira.',
   },
   fintechs: {
     oQueFaz: 'Cria produtos e serviços financeiros com tecnologia, em empresas jovens e de crescimento rápido.',
