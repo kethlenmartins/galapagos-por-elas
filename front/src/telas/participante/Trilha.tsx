@@ -7,23 +7,26 @@ import { Button } from '../../componentes/Botao'
 import { Icon } from '../../componentes/Icone'
 import { CaminhoDeBolinhas, type NoDoCaminho } from '../../componentes/CaminhoDeBolinhas'
 import { AppShell } from '../../componentes/Layout'
-import { caseService, catalogoService, type Area, type ItemTrilha, type TrilhaDaUsuaria } from '../../services'
+import { caseService, catalogoService, diagnosticoService, type Area, type ItemTrilha, type TrilhaDaUsuaria } from '../../services'
 
 type IlhaDaArea = { area: Area; cases: ItemTrilha[]; posicao: number | null }
 
-/** As áreas que têm case publicado, da que mais combina com ela para a que menos combina. */
-function agruparIlhas(areas: Area[], trilha: TrilhaDaUsuaria): IlhaDaArea[] {
+/**
+ * Todas as áreas viram ilha, mesmo as que ainda não têm case publicado ("em breve"), da que mais combina
+ * com ela para a que menos combina. `posicoes` vem do diagnóstico: vale para as ilhas sem case também.
+ */
+function agruparIlhas(areas: Area[], trilha: TrilhaDaUsuaria, posicoes: Map<string, number>): IlhaDaArea[] {
   return areas
     .map(area => {
       const cases = trilha.cases.filter(c => c.areaId === area.id).sort((a, b) => a.ordem - b.ordem)
-      return { area, cases, posicao: cases[0]?.posicaoNoFit ?? null }
+      return { area, cases, posicao: posicoes.get(area.id) ?? cases[0]?.posicaoNoFit ?? null }
     })
-    .filter(i => i.cases.length > 0)
-    .sort((a, b) => (a.posicao ?? 999) - (b.posicao ?? 999) || a.area.nome.localeCompare(b.area.nome))
+    .sort((a, b) => (a.posicao ?? 999) - (b.posicao ?? 999) || Number(b.cases.length > 0) - Number(a.cases.length > 0) || a.area.nome.localeCompare(b.area.nome))
 }
 
 /** O resumo da ilha para quem olha o mapa: o que ela já fez e o que vem a seguir. */
-function situacao(cases: ItemTrilha[]): { estado: 'concluido' | 'em_andamento' | 'disponivel'; rotulo: string; tom: 'green' | 'pink' | 'blue' } {
+function situacao(cases: ItemTrilha[]): { estado: 'concluido' | 'em_andamento' | 'disponivel' | 'em_breve'; rotulo: string; tom: 'green' | 'pink' | 'blue' | 'yellow' } {
+  if (cases.length === 0) return { estado: 'em_breve', rotulo: 'EM BREVE', tom: 'yellow' }
   if (cases.every(c => c.estado === 'concluido')) return { estado: 'concluido', rotulo: 'CONCLUÍDA', tom: 'green' }
   if (cases.some(c => c.estado === 'em_andamento' || c.estado === 'em_avaliacao')) return { estado: 'em_andamento', rotulo: 'EM ANDAMENTO', tom: 'pink' }
   return { estado: 'disponivel', rotulo: 'PARA EXPLORAR', tom: 'blue' }
@@ -37,7 +40,7 @@ export function Trilha() {
   const [escolhida, setEscolhida] = useState<string | null>(null)
 
   const carregar = useCallback(async () => {
-    const [t, a] = await Promise.all([caseService.obterTrilha(), catalogoService.listarAreas()])
+    const [t, a, d] = await Promise.all([caseService.obterTrilha(), catalogoService.listarAreas(), diagnosticoService.obterResultadoDiagnostico()])
     const falha = t.erro ?? a.erro
     if (falha || !t.dados || !a.dados) {
       if (falha && sessaoExpirou(falha)) return
@@ -45,7 +48,8 @@ export function Trilha() {
       return setFase('erro')
     }
     setTrilha(t.dados)
-    setIlhas(agruparIlhas(a.dados, t.dados))
+    // Sem diagnóstico o resultado vem com erro NAO_ENCONTRADO: só não há posição para mostrar.
+    setIlhas(agruparIlhas(a.dados, t.dados, new Map((d.dados?.areas ?? []).map(x => [x.areaId, x.posicao]))))
     setFase('ok')
   }, [])
 
@@ -60,17 +64,17 @@ export function Trilha() {
 
   // Cada ilha é uma bolinha: preenchida quando todos os cases estão concluídos, destacada quando em andamento.
   const estadoDaIlha = (i: IlhaDaArea): NoDoCaminho['estado'] => {
-    if (!trilha?.diagnosticoConcluido) return 'bloqueado'
+    if (i.cases.length === 0 || !trilha?.diagnosticoConcluido) return 'bloqueado'
     const s = situacao(i.cases).estado
     return s === 'concluido' ? 'feito' : s === 'em_andamento' || i.cases.some(c => c.sugerido) ? 'atual' : 'aberto'
   }
   const nos: NoDoCaminho[] = ilhas.map(i => ({
     id: i.area.id,
     rotulo: i.area.nome,
-    detalhe: `${i.cases.filter(c => c.estado === 'concluido').length} de ${i.cases.length} ${i.cases.length === 1 ? 'case' : 'cases'}`,
+    detalhe: i.cases.length === 0 ? 'Em breve' : `${i.cases.filter(c => c.estado === 'concluido').length} de ${i.cases.length} ${i.cases.length === 1 ? 'case' : 'cases'}`,
     estado: estadoDaIlha(i),
     emblema: <svg viewBox="0 0 120 90" width="40" height="30" aria-hidden="true"><path className="ilha-terra" d="M14 58C10 40 26 22 46 24c8-14 30-14 38 2 18-2 30 14 22 32-10 8-28 10-46 10S22 66 14 58z"/><path className="ilha-copa" d="M52 40c-2-10 8-18 16-12 8-6 18 4 12 12-4 6-24 8-28 0z"/></svg>,
-    progresso: (i.cases.filter(c => c.estado === 'concluido').length / i.cases.length) * 100,
+    progresso: i.cases.length ? (i.cases.filter(c => c.estado === 'concluido').length / i.cases.length) * 100 : 0,
   }))
   const escolhidaEfetiva = escolhida ?? nos.find(n => n.estado === 'atual')?.id ?? nos.find(n => n.estado !== 'bloqueado')?.id ?? null
   const detalheDaIlha = (no: NoDoCaminho) => {
@@ -85,14 +89,17 @@ export function Trilha() {
       </div>
       <h2>{i.area.nome}</h2>
       <p className="trilha-resumo">{i.area.oQueFaz}</p>
-      {no.estado === 'bloqueado' && <p className="trilha-aviso"><Icon name="lock" size={16} /> Faça o diagnóstico para abrir as ilhas.</p>}
+      {i.cases.length === 0
+        ? <p className="trilha-aviso"><Icon name="spark" size={16} /> O case desta ilha ainda não foi publicado. Você já pode conhecer a área.</p>
+        : no.estado === 'bloqueado' && <p className="trilha-aviso"><Icon name="lock" size={16} /> Faça o diagnóstico para começar os cases desta ilha.</p>}
       <div className="trilha-acoes">
-        <Button onClick={() => entrar(i.area.id)} icon="arrow" disabled={no.estado === 'bloqueado'}>{s.estado === 'em_andamento' ? 'Continuar na ilha' : 'Entrar na ilha'}</Button>
+        <Button onClick={() => entrar(i.area.id)} icon="arrow">{s.estado === 'em_andamento' ? 'Continuar na ilha' : i.cases.length === 0 ? 'Conhecer a área' : 'Entrar na ilha'}</Button>
       </div>
     </article>
   }
 
-  const concluidas = ilhas.filter(i => i.cases.every(c => c.estado === 'concluido')).length
+  const ilhasComCase = ilhas.filter(i => i.cases.length > 0)
+  const concluidas = ilhasComCase.filter(i => i.cases.every(c => c.estado === 'concluido')).length
 
   return <AppShell route="trail"><div className="trilha-page">
     <PageTitle eyebrow="SEU ARQUIPÉLAGO" title="Ilhas" subtitle="Cada área é uma ilha, com a apresentação da área, um case básico, cases avançados e treino de entrevista. Entre pela que mais combina com você." />
@@ -109,9 +116,9 @@ export function Trilha() {
 
       {ilhas.length > 0 && (
         <section className="trilha-resumo-topo" aria-label="Seu avanço no arquipélago">
-          <strong>{concluidas} de {ilhas.length} ilhas concluídas</strong>
-          <Progress value={(concluidas / ilhas.length) * 100} pink />
-          <p>Em cada ilha, comece pelo case básico: ele abre os cases avançados e o treino de entrevista.</p>
+          <strong>{concluidas} de {ilhasComCase.length} ilhas com case concluídas</strong>
+          <Progress value={ilhasComCase.length ? (concluidas / ilhasComCase.length) * 100 : 0} pink />
+          <p>Em cada ilha, comece pelo case básico: ele abre os cases avançados e o treino de entrevista. As ilhas “em breve” ainda não têm case publicado.</p>
         </section>
       )}
 

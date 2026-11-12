@@ -176,7 +176,7 @@ export function Ilha() {
       <section className="ilha-secao" aria-label="Seu caminho na ilha">
         <h2>Seu caminho nesta ilha</h2>
         <p className="trilha-dica">Comece pelo case básico: concluí-lo abre os cases avançados, o treino e a simulação. Toque numa bolinha para ver os detalhes.</p>
-        {cases.length === 0 && <div className="empty-state"><span><Icon name="case" size={34} /></span><h2>Ainda não há case nesta ilha</h2><p>Assim que a equipe publicar o case básico, ele aparece aqui.</p></div>}
+        {cases.length === 0 && <div className="empty-state"><span><Icon name="case" size={34} /></span><h2>Em breve: o case desta ilha</h2><p>A equipe ainda vai publicar o case básico. Enquanto isso, leia sobre a área e fique de olho nas vagas.</p></div>}
         <CaminhoDeBolinhas rotuloDaLista="Etapas da ilha" nos={nos} escolhido={escolhido} aoEscolher={setNoEscolhido} detalhe={painelDoNo}/>
       </section>
     </>}
