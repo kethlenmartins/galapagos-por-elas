@@ -948,6 +948,9 @@
 .community-post p { display: -webkit-box; overflow: hidden; margin: var(--space-2) 0 var(--space-3); color: var(--ink-600); line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 .community-post footer { display: flex; align-items: center; gap: var(--space-4); color: var(--ink-600); font-size: 13px; }
 .community-post footer button { border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.community-action { min-height: 40px; display: inline-flex; align-items: center; gap: 5px; padding: 0 var(--space-2); border-radius: var(--radius-sm) !important; }
+.community-action:hover, .community-action:focus-visible { background: var(--blue-50) !important; color: var(--blue-700) !important; }
+.community-icon-action { width: 40px; height: 40px; border-radius: 50% !important; font-size: 18px !important; }
 .community-post footer button.voted { color: var(--blue-700); font-weight: 800; }
 .community-aside { display: grid; gap: var(--space-4); }
 .community-aside section { padding: var(--space-5); border-radius: var(--radius-md); background: var(--white); box-shadow: var(--shadow-sm); }
@@ -958,4 +961,36 @@
 .community-pinned small { color: var(--pink-700); font-weight: 800; letter-spacing: .06em; }
 .community-new { position: fixed; right: 24px; bottom: 24px; z-index: 8; border-radius: var(--radius-pill); box-shadow: var(--shadow); }
 @media (max-width: 800px) { .community-layout { grid-template-columns: 1fr; } .community-aside { grid-template-columns: 1fr; } }
-@media (max-width: 540px) { .community-tabs { overflow-x: auto; } .community-tabs span { display: none; } .community-post footer { gap: var(--space-2); } .community-new { right: 16px; bottom: 76px; } }
+.community-thread { max-height: min(92vh, 820px); overflow-y: auto; }
+.community-thread h2 { margin: var(--space-3) 0 var(--space-1); }
+.community-thread h3 { margin: var(--space-6) 0 var(--space-3); }
+.community-thread-actions { display: flex; align-items: center; gap: var(--space-3); }
+.community-comment-box { display: grid; gap: var(--space-3); padding: var(--space-4); margin-bottom: var(--space-5); border: 1px solid var(--ink-200); border-radius: var(--radius-md); background: var(--blue-50); }
+.community-comment-box textarea { width: 100%; resize: vertical; border: 1px solid var(--ink-300); border-radius: var(--radius-sm); padding: var(--space-3); font: inherit; }
+.community-comment-box .btn { justify-self: end; }
+.community-reply { display: grid; grid-template-columns: 36px 1fr; gap: var(--space-3); padding: var(--space-4) 0; border-top: 1px solid var(--ink-200); }
+.community-reply.indented { margin-left: var(--space-7); padding-left: var(--space-3); border-left: 2px solid var(--blue-200); }
+.community-reply .community-avatar { width: 34px; height: 34px; }
+.community-reply small { color: var(--ink-500); }
+.community-reply p { margin: var(--space-2) 0; white-space: pre-wrap; }
+@media (max-width: 540px) {
+  .community-page { margin: 0 calc(var(--space-4) * -1); padding: 0 var(--space-4) 96px; }
+  .community-header { margin-top: var(--space-2); }
+  .community-header h1 { font-size: 26px; }
+  .community-chips, .community-tabs { margin-right: calc(var(--space-4) * -1); padding-right: var(--space-4); }
+  .community-tabs { overflow-x: auto; }
+  .community-tabs span, .community-tabs button:nth-last-child(-n+2) { display: none; }
+  .community-post { grid-template-columns: 34px 1fr; gap: var(--space-2); padding: var(--space-4) 0; }
+  .community-avatar { width: 34px; height: 34px; }
+  .community-title { font-size: 16px; line-height: 1.3; }
+  .community-post p { -webkit-line-clamp: 4; }
+  .community-post footer { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 0; margin-left: calc(var(--space-2) * -1); }
+  .community-action { justify-content: center; padding: 0 4px; font-size: 12px !important; }
+  .community-action strong { display: none; }
+  .community-icon-action { width: 36px; height: 40px; }
+  .community-aside { display: none; }
+  .community-new { right: 16px; bottom: 76px; min-height: 48px; }
+  .community-thread { width: 100%; min-height: 100vh; max-height: 100vh; border-radius: 0; padding: var(--space-5) var(--space-4); }
+  .community-comment-box .btn { width: 100%; justify-self: stretch; }
+  .community-reply.indented { margin-left: var(--space-4); }
+}
