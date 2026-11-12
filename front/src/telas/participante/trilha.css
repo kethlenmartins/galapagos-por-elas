@@ -218,3 +218,11 @@
 .conteudo-corpo { display: grid; gap: var(--space-3); padding: var(--space-4); border-radius: var(--radius-sm); background: var(--blue-50); color: var(--ink-700); font-size: 15px; line-height: 1.6; }
 .conteudo-corpo p { margin: 0; }
 @media (max-width: 560px) { .conteudo-popup.modal { padding: var(--space-5); } .conteudo-seta { display: none; } }
+
+/* Revisão da IA durante a etapa. */
+.case-revisao-ia { display: grid; gap: var(--space-3); }
+.case-revisao-ia .case-acoes small { color: var(--ink-600); font-size: 12px; }
+.case-revisao-ia-painel { display: grid; gap: var(--space-3); padding: var(--space-4); border-radius: var(--radius-md); background: var(--blue-50); border-left: 4px solid var(--blue-500); color: var(--ink-700); }
+.case-revisao-ia-painel p { margin: 0; }
+.case-revisao-ia-painel h3 { font-size: 14px; }
+.case-revisao-dica { padding: var(--space-3); border-radius: var(--radius-sm); background: var(--white); }

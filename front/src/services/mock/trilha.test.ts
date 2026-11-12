@@ -512,3 +512,13 @@ test('vagas: entram como rascunho, só aparecem depois de a equipe conferir e pu
   assert.ok(!('status' in visiveis[0]) && !('observacao' in visiveis[0]), 'a participante não recebe campos internos')
   assert.equal(dados(await s.vagas.listarVagas({ areaId: 'sales-trading' })).length, visiveis[0].areaId === 'sales-trading' ? 1 : 0)
 })
+
+test('revisão da IA durante a etapa (demonstração): exige alguma resposta e não dá nota', async () => {
+  await entrar('marina@email.com')
+  assert.equal(codigo(await s.caso.pedirRevisaoDaIA('case-1-t-1', {})), 'VALIDACAO')
+  const revisao = dados(await s.caso.pedirRevisaoDaIA('case-1-t-1', { margem: '12,4' }))
+  assert.ok(revisao.resumo.length > 0)
+  assert.ok(revisao.pontosFortes.length > 0)
+  assert.ok(!('nota' in revisao))
+  assert.equal(codigo(await s.caso.pedirRevisaoDaIA('nao-existe', { a: 'b' })), 'NAO_ENCONTRADO')
+})

@@ -13,6 +13,10 @@ const iaFalsa = createServer((req, res) => {
   let corpo = ''
   req.on('data', c => { corpo += c })
   req.on('end', () => {
+    if (corpo.includes('Eva, mentora')) {
+      res.setHeader('content-type', 'application/json')
+      return res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ resumo: 'Bom começo, falta justificar com os dados.', pontosFortes: ['Tem uma recomendação clara'], pontosAMelhorar: ['Justifique com a tabela'], dica: 'Releia o enunciado.' }) } }] }))
+    }
     const fim = corpo.includes('A entrevista terminou')
     const conteudo = fim
       ? { resumo: 'Bom treino.', criterios: [{ nome: 'Clareza', nota: 7, comentario: 'Respostas organizadas.' }], pontosFortes: ['Estrutura'], pontosAMelhorar: ['Exemplos'], proximosPassos: ['Treinar de novo'] }
@@ -222,6 +226,31 @@ try {
   assert.equal(validacao.nome, 'Participante E2E')
   const revisao = await request('/reviews', { method: 'POST', body: { tarefaId: 'piloto-task-1', motivo: 'Gostaria de uma revisão detalhada da minha justificativa.' } })
   assert.equal(revisao.status, 'aberto')
+  // Refazer e reenviar: nova tentativa mantém o que vem antes da situação, traz as respostas como rascunho,
+  // a IA revisa a etapa e o novo envio vira uma segunda entrega.
+  await pool.query('UPDATE deliveries SET grade=4 WHERE id=$1', [submission.entregaId])
+  await pool.query('DELETE FROM certificates WHERE user_id=$1', [idDela])
+  await request('/cases/piloto-corporate-finance/start', { method: 'POST' })
+  const tentativa2 = await request('/cases/piloto-corporate-finance')
+  assert.equal(tentativa2.tentativa, 2)
+  assert.equal(tentativa2.estado, 'em_andamento')
+  assert.equal(tentativa2.checkpoints.find(c => c.id === 'piloto-cp-conteudos').status, 'concluido', 'o que vem antes da situação continua feito')
+  assert.equal(tentativa2.checkpoints.find(c => c.id === 'piloto-cp-2').status, 'a_fazer', 'a situação volta a fazer')
+  const tarefaDeNovo = await request('/tasks/piloto-task-1')
+  assert.equal(tarefaDeNovo.rascunho.recomendacao, 'Investiria com ressalvas, acompanhando o endividamento.', 'a resposta anterior vira rascunho')
+  if (resumoSim.disponivel) {
+    const vazia = await fetch(`${base}/tasks/piloto-task-1/ai-review`, { method: 'POST', headers: { cookie, origin, 'content-type': 'application/json' }, body: JSON.stringify({ respostas: { recomendacao: '' } }) })
+    assert.equal(vazia.status, 400, 'sem resposta não há o que revisar')
+    const revisaoIA = await request('/tasks/piloto-task-1/ai-review', { method: 'POST', body: { respostas: tarefaDeNovo.rascunho } })
+    assert.ok(revisaoIA.resumo && revisaoIA.pontosAMelhorar.length > 0)
+    assert.equal(revisaoIA.restantes, 4)
+    assert.ok(!('nota' in revisaoIA), 'a revisão da IA não dá nota')
+  }
+  await request('/checkpoints/piloto-cp-2/complete', { method: 'POST' })
+  const reenvio = await request('/cases/piloto-corporate-finance/submit', { method: 'POST' })
+  assert.notEqual(reenvio.entregaId, submission.entregaId, 'o reenvio é uma nova entrega')
+  assert.equal((await request('/cases/piloto-corporate-finance/result')).estado, 'em_avaliacao')
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM deliveries d JOIN enrollments e ON e.id = d.enrollment_id WHERE e.user_id=$1', [idDela])).rows[0].n, 2)
   await request('/session/login', { method: 'POST', body: { email: secondEmail, senha: 'SenhaSegura!123' } })
   const privateResult = await fetch(`${base}/assessment/result/${assessment.resultadoId}`, { headers: { cookie, origin: new URL(base).origin } })
   assert.equal(privateResult.status, 404, 'outra participante não pode ler resultado do diagnóstico alheio')

@@ -468,6 +468,16 @@ export type ResultadoCase =
       tentativa: number
     }
 
+export type RevisaoIA = {
+  resumo: string
+  pontosFortes: string[]
+  pontosAMelhorar: string[]
+  /** Uma pista para o próximo passo, sem a resposta. Pode vir vazia. */
+  dica: string
+  /** Quantas revisões ainda restam hoje nesta atividade. */
+  restantes: number
+}
+
 export type PedidoRevisaoParticipante = {
   id: string
   tarefaId: string
@@ -508,6 +518,12 @@ export interface CaseService {
   obterResultadoCase(caseId: string): Promise<Resultado<ResultadoCase>>
   /** Só depois de o resultado ser publicado. Motivo entre 10 e 500 caracteres. */
   pedirRevisao(tarefaId: string, motivo: string): Promise<Resultado<PedidoRevisaoParticipante>>
+  /**
+   * Revisão geral da IA (a mentora) sobre o que ela já respondeu nesta atividade, no meio do case.
+   * Feedback formativo: não dá nota, não vale pontos e não entrega a resposta. Erros: `IA_INDISPONIVEL`,
+   * `LIMITE_EXCEDIDO` (limite por atividade e por dia) e `VALIDACAO` (nada respondido ainda).
+   */
+  pedirRevisaoDaIA(tarefaId: string, respostas: RespostasDaTarefa): Promise<Resultado<RevisaoIA>>
 }
 
 // ---------------------------------------------------------------------------

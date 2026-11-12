@@ -19,6 +19,7 @@ import {
   type CaseTrilha,
   type Checkpoint,
   type Conteudo,
+  type RevisaoIA,
   type ErroServico,
   type EtapaCase,
   type RespostaCampo,
@@ -94,6 +95,41 @@ function dividirEnunciado(enunciado: string): Segmento[] {
   })
 }
 
+/** Revisão geral da IA (a mentora) durante a etapa: feedback formativo, sem nota e sem a resposta. */
+function RevisaoDaIA({ tarefaId, respostas }: { tarefaId: string; respostas: RespostasDaTarefa }) {
+  const [revisao, setRevisao] = useState<RevisaoIA | null>(null)
+  const [pedindo, setPedindo] = useState(false)
+  const [erro, setErro] = useState('')
+  const pedir = async () => {
+    setPedindo(true)
+    setErro('')
+    const r = await caseService.pedirRevisaoDaIA(tarefaId, respostas)
+    setPedindo(false)
+    if (r.erro) {
+      if (!sessaoExpirou(r.erro)) setErro(r.erro.mensagem)
+      return
+    }
+    setRevisao(r.dados)
+  }
+  return <div className="case-revisao-ia">
+    <div className="case-acoes">
+      <Button variant="ghost" onClick={pedir} disabled={pedindo} icon="spark">{pedindo ? 'A mentora está lendo…' : revisao ? 'Pedir outra revisão' : 'Pedir revisão da IA'}</Button>
+      <small>Feedback sobre o que você escreveu até agora. Não vale nota e não entrega a resposta.</small>
+    </div>
+    {erro && <div className="alert alert-warning" role="status"><p>{erro}</p></div>}
+    {revisao && <section className="case-revisao-ia-painel" aria-label="Revisão da IA" aria-live="polite">
+      <span className="eyebrow">REVISÃO DA IA · SÓ PARA VOCÊ MELHORAR, NÃO VALE NOTA</span>
+      <p>{revisao.resumo}</p>
+      <div className="case-duas-colunas">
+        {revisao.pontosFortes.length > 0 && <div><h3>O que está bom</h3><ul>{revisao.pontosFortes.map(p => <li key={p}>{p}</li>)}</ul></div>}
+        {revisao.pontosAMelhorar.length > 0 && <div><h3>Para revisar</h3><ul>{revisao.pontosAMelhorar.map(p => <li key={p}>{p}</li>)}</ul></div>}
+      </div>
+      {revisao.dica && <p className="case-revisao-dica"><b>Dica:</b> {revisao.dica}</p>}
+      <small>{revisao.restantes > 0 ? `Você ainda pode pedir ${revisao.restantes} ${revisao.restantes === 1 ? 'revisão' : 'revisões'} nesta atividade hoje.` : 'Você usou as revisões desta atividade hoje.'}</small>
+    </section>}
+  </div>
+}
+
 /** As linhas já reveladas do trecho. Com `digitando`, mostra o balão de quem vai falar a seguir. */
 function TextoDoSegmento({ linhas, digitando }: { linhas: string[]; digitando?: string | null }) {
   return <>{linhas.map((linha, i) => {
@@ -163,6 +199,7 @@ function TarefaDoCase({ tarefa, tituloDoCheckpoint, respostas, erros, salvoEm, b
     <div className="form-stack">
       {tarefa.campos.filter(visivel).map(campo => <CampoDaTarefa key={campo.id} campo={campo} valor={respostas[campo.id]} erro={erros[`${tarefa.id}.${campo.id}`]} bloqueado={bloqueado} aoMudar={v => aoMudar(campo.id, v)}/>)}
     </div>
+    {completo && !bloqueado && !tarefa.somenteLeitura && <RevisaoDaIA tarefaId={tarefa.id} respostas={respostas}/>}
     {!bloqueado && salvoEm && <small className="case-salvo"><Icon name="check" size={14}/> Rascunho salvo às {horaCurta(salvoEm)}</small>}
   </article>
 }
@@ -262,13 +299,13 @@ function voltarParaIlha(areaId: string) {
   go('island')
 }
 
-function PainelResultado({ resultado, caso }: { resultado: ResultadoCase; caso: CaseTrilha }) {
+function PainelResultado({ resultado, caso, aoRefazer, refazendo, erro }: { resultado: ResultadoCase; caso: CaseTrilha; aoRefazer: () => void; refazendo: boolean; erro: string }) {
   if (resultado.estado !== 'publicado') return null
   return <section className={`case-painel case-resultado ${resultado.aprovada ? 'aprovada' : 'nao-aprovada'}`}>
     <span className="eyebrow">RESULTADO</span>
     <div className="case-nota"><strong>{resultado.nota.toFixed(1).replace('.', ',')}</strong><span>de {resultado.notaMaxima} · mínimo {resultado.notaMinima.toFixed(1).replace('.', ',')}</span></div>
     <h2>{resultado.aprovada ? 'Você foi aprovada!' : 'Ainda não foi desta vez'}</h2>
-    <p>{resultado.aprovada ? 'Seu certificado está pronto e os próximos cases já podem ser escolhidos.' : 'Você pode refazer este case: escolha-o de novo na trilha. Os pontos que você já ganhou ficam guardados.'}</p>
+    <p>{resultado.aprovada ? 'Seu certificado está pronto e os próximos cases já podem ser escolhidos.' : 'Você pode refazer este case e reenviar: o que você já fez antes da situação continua feito, suas respostas anteriores ficam como rascunho e os pontos já ganhos ficam guardados.'}</p>
     {resultado.feedbackGeral && <p className="case-feedback">{resultado.feedbackGeral}</p>}
     <div className="case-duas-colunas">
       {resultado.pontosFortes.length > 0 && <div><h3>Pontos fortes</h3><ul>{resultado.pontosFortes.map(p => <li key={p}>{p}</li>)}</ul></div>}
@@ -279,9 +316,10 @@ function PainelResultado({ resultado, caso }: { resultado: ResultadoCase; caso: 
     </ul>
     {resultado.pontosGanhos > 0 && <p className="case-pontos"><Icon name="spark" size={16}/> +{resultado.pontosGanhos} pontos pelo resultado e pelo certificado</p>}
     <div className="case-acoes">
-      {resultado.aprovada ? <Button icon="award" onClick={() => go('certificates')}>Ver meu certificado</Button> : <Button onClick={() => voltarParaIlha(caso.areaId)}>Voltar à ilha</Button>}
-      {resultado.aprovada && <Button variant="ghost" onClick={() => voltarParaIlha(caso.areaId)}>Voltar à ilha</Button>}
+      {resultado.aprovada ? <Button icon="award" onClick={() => go('certificates')}>Ver meu certificado</Button> : <Button onClick={aoRefazer} disabled={refazendo}>{refazendo ? 'Preparando…' : 'Refazer este case'}</Button>}
+      <Button variant="ghost" onClick={() => voltarParaIlha(caso.areaId)}>Voltar à ilha</Button>
     </div>
+    {erro && <div className="alert alert-error" role="alert"><p>{erro}</p></div>}
     <small>Case: {caso.titulo} · tentativa {resultado.tentativa}</small>
   </section>
 }
@@ -358,6 +396,19 @@ export function CasePage() {
     setErros({})
     setFase('ok')
   }, [])
+
+  const refazer = async () => {
+    if (!caso) return
+    setOcupado(true)
+    setMensagem('')
+    const r = await caseService.escolherCase(caso.id)
+    setOcupado(false)
+    if (r.erro) {
+      if (!sessaoExpirou(r.erro)) setMensagem(r.erro.mensagem)
+      return
+    }
+    await carregar()
+  }
 
   useEffect(() => {
     carregar()
@@ -508,7 +559,7 @@ export function CasePage() {
         <div className="case-acoes"><Button variant="ghost" onClick={() => voltarParaIlha(caso.areaId)}>Voltar à ilha</Button></div>
       </section>}
 
-      {resultado && <PainelResultado resultado={resultado} caso={caso}/>}
+      {resultado && <PainelResultado resultado={resultado} caso={caso} aoRefazer={refazer} refazendo={ocupado} erro={mensagem}/>}
     </>}
   </div></AppShell>
 }

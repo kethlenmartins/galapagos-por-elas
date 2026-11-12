@@ -8,9 +8,10 @@ import { eq, and, isNull, desc, sql, inArray } from 'drizzle-orm'
 import argon2 from 'argon2'
 import { z } from 'zod'
 import { db } from './db/client.js'
-import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProgress, deliveries, assessments, pointEvents, contents, contentCompletions, certificates, reviewRequests, aiLogs, interviewQuestions, interviewSessions, trainingAnswers, jobs, interviewOpenQuestions } from './db/schema.js'
+import { users, sessions, cases, checkpoints, tasks, enrollments, checkpointProgress, deliveries, assessments, pointEvents, contents, contentCompletions, certificates, reviewRequests, aiLogs, taskReviews, interviewQuestions, interviewSessions, trainingAnswers, jobs, interviewOpenQuestions } from './db/schema.js'
 import { configuracaoPublica, gerarResultado } from '../../front/src/services/fit/motor.ts'
 import { AREAS } from '../../front/src/services/mock/dados/areas.ts'
+import { revisarEtapa } from './revisao-ia.js'
 import { GROQ_URL, feedbackFinal, iaDisponivel, proximaPergunta, reagir, type TurnoSalvo } from './entrevista-ia.js'
 import { montarPdfCertificado, slug } from '../../front/src/services/mock/pdf.ts'
 
@@ -535,7 +536,7 @@ async function resumoDaEntrega(d: typeof deliveries.$inferSelect) {
   const [m] = await db.select().from(enrollments).where(eq(enrollments.id, d.enrollmentId)).limit(1)
   const [u] = m ? await db.select().from(users).where(eq(users.id, m.userId)).limit(1) : []
   const [c] = m ? await db.select().from(cases).where(eq(cases.id, m.caseId)).limit(1) : []
-  return { m, u, c, resumo: { id: d.id, participanteNome: u?.name ?? '—', caseId: m?.caseId ?? '', caseTitulo: c?.title ?? '—', enviadaEm: d.createdAt.toISOString(), status: d.publishedAt ? 'publicada' : d.reviewedAt ? 'revisada' : 'pendente', notaSugerida: null, notaFinal: d.grade ?? null, origem: 'manual' as const } }
+  return { m, u, c, resumo: { id: d.id, participanteNome: u?.name ?? '—', caseId: m?.caseId ?? '', caseTitulo: `${c?.title ?? '—'}${m && m.attempt > 1 ? ` (tentativa ${m.attempt})` : ''}`, enviadaEm: d.createdAt.toISOString(), status: d.publishedAt ? 'publicada' : d.reviewedAt ? 'revisada' : 'pendente', notaSugerida: null, notaFinal: d.grade ?? null, origem: 'manual' as const } }
 }
 
 async function detalheDaEntrega(d: typeof deliveries.$inferSelect) {
@@ -708,6 +709,33 @@ app.delete('/api/admin/contents/:id', async (req, reply) => {
   return { dados: true, erro: null }
 })
 
+// --- Revisão da IA durante as etapas -------------------------------------------------------------------------------
+
+const REVISOES_POR_TAREFA_POR_DIA = 5
+const REVISOES_POR_DIA = 30
+
+app.post('/api/tasks/:taskId/ai-review', async (req, reply) => {
+  const user = await usuarioAtual(req)
+  if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
+  const { taskId } = req.params as { taskId: string }
+  const corpo = z.object({ respostas: z.record(z.string(), z.union([z.string().max(4000), z.number(), z.null()])).optional() }).safeParse(req.body ?? {})
+  if (!corpo.success) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Respostas inválidas.' } })
+  const [task] = await db.select().from(tasks).where(eq(tasks.id, taskId)).limit(1)
+  const [enrollment] = task ? await db.select().from(enrollments).where(and(eq(enrollments.userId, user.id), eq(enrollments.caseId, task.caseId), eq(enrollments.status, 'em_andamento'))).limit(1) : []
+  if (!task || !enrollment) return reply.code(404).send({ dados: null, erro: { codigo: 'NAO_ENCONTRADO', mensagem: 'Atividade não encontrada.' } })
+  if (!iaDisponivel()) return reply.code(503).send({ dados: null, erro: { codigo: 'IA_INDISPONIVEL', mensagem: 'A revisão da IA não está disponível agora. Você pode seguir sem ela.' } })
+  const [progresso] = await db.select().from(checkpointProgress).where(and(eq(checkpointProgress.enrollmentId, enrollment.id), eq(checkpointProgress.checkpointId, task.checkpointId))).limit(1)
+  const respostas = corpo.data.respostas ?? progresso?.answers[taskId] ?? {}
+  if (!Object.values(respostas).some(v => v !== null && v !== '')) return reply.code(400).send({ dados: null, erro: { codigo: 'VALIDACAO', mensagem: 'Escreva ao menos uma resposta antes de pedir a revisão.' } })
+  const ultimas = await db.select({ taskId: taskReviews.taskId }).from(taskReviews).where(and(eq(taskReviews.userId, user.id), sql`${taskReviews.createdAt} > now() - interval '24 hours'`))
+  if (ultimas.filter(r => r.taskId === taskId).length >= REVISOES_POR_TAREFA_POR_DIA || ultimas.length >= REVISOES_POR_DIA) return reply.code(429).send({ dados: null, erro: { codigo: 'LIMITE_EXCEDIDO', mensagem: 'Você já usou as revisões da IA desta atividade hoje. Revise com calma e tente de novo amanhã.' } })
+  const revisao = await revisarEtapa({ titulo: task.title, prompt: task.prompt, fields: task.fields, answerKey: task.answerKey }, respostas)
+  if (!revisao) return reply.code(502).send({ dados: null, erro: { codigo: 'IA_INDISPONIVEL', mensagem: 'A mentora não respondeu agora. Tente de novo em instantes.' } })
+  await db.insert(taskReviews).values({ userId: user.id, taskId })
+  const usadas = ultimas.filter(r => r.taskId === taskId).length + 1
+  return { dados: { ...revisao, restantes: Math.max(0, REVISOES_POR_TAREFA_POR_DIA - usadas) }, erro: null }
+})
+
 app.post('/api/cases/:caseId/start', async (req, reply) => {
   const user = await usuarioAtual(req)
   if (!user) return reply.code(401).send({ dados: null, erro: { codigo: 'SEM_LOGIN', mensagem: 'Entre para continuar.' } })
@@ -726,6 +754,16 @@ app.post('/api/cases/:caseId/start', async (req, reply) => {
   let enrollment = ilha?.estado === 'em_andamento' ? ilha.enrollment : undefined
   // Nova tentativa depois de uma avaliação sem aprovação.
   if (!enrollment) [enrollment] = await db.insert(enrollments).values({ userId: user.id, caseId, attempt: (ilha?.enrollment?.attempt ?? 0) + 1 }).returning()
+  // Nova tentativa: o que vem antes da situação (entenda, conteúdos, treino) continua feito e as respostas
+  // anteriores viram rascunho para ela melhorar em vez de recomeçar do zero. Situação e defesa voltam a fazer.
+  if (ilha?.enrollment && enrollment.id !== ilha.enrollment.id) {
+    const cpsDoCase = await db.select().from(checkpoints).where(eq(checkpoints.caseId, caseId))
+    const mantem = new Set(['entenda', 'conteudos', 'treino'])
+    for (const p of await db.select().from(checkpointProgress).where(eq(checkpointProgress.enrollmentId, ilha.enrollment.id))) {
+      const etapa = cpsDoCase.find(c => c.id === p.checkpointId)?.stage
+      await db.insert(checkpointProgress).values({ enrollmentId: enrollment.id, checkpointId: p.checkpointId, answers: p.answers, completedAt: etapa && mantem.has(etapa) ? p.completedAt : null })
+    }
+  }
   const rows = await db.select().from(checkpoints).where(eq(checkpoints.caseId, caseId)).orderBy(checkpoints.order)
   return { dados: { enrollmentId: enrollment.id, case: caseRow, checkpoints: rows.map((c, i) => ({ ...c, status: i === 0 ? 'a_fazer' : 'a_fazer' })) }, erro: null }
 })

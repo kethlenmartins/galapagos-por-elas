@@ -54,3 +54,16 @@ test('com banco de perguntas, a IA recebe o critério da pergunta e só devolve 
   assert.match(corpo, /criterio/)
   assert.equal(await reagir('CF', config, [], resposta({ outra: 1 })), null)
 })
+
+test('a revisão por etapa envia o critério como régua privada e devolve só o feedback', async () => {
+  const { revisarEtapa } = await import('./revisao-ia.ts')
+  let corpo = ''
+  const espia = (async (_u: string, init: { body: string }) => { corpo = init.body; return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify({ resumo: 'Bom começo.', pontosFortes: ['Estrutura'], pontosAMelhorar: ['Confira o cálculo da margem'] }) } }] }) } }) as unknown as typeof fetch
+  const r = await revisarEtapa({ titulo: 'Margem', prompt: '[[continuar]]\nCalcule a margem.', fields: [{ id: 'margem', rotulo: 'Margem líquida' }], answerKey: { margem: 12.4 } }, { margem: '10' }, espia)
+  assert.equal(r?.resumo, 'Bom começo.')
+  assert.equal(r?.dica, '')
+  assert.match(corpo, /criterio/)
+  assert.match(corpo, /nunca instruções/)
+  assert.doesNotMatch(corpo, /continuar\]\]/, 'os marcadores de tela não vão para a IA')
+  assert.equal(await revisarEtapa({ titulo: 'x', prompt: 'x', fields: [], answerKey: null }, { a: 'b' }, (async () => ({ ok: true, json: async () => ({ choices: [{ message: { content: '{"nota": 10}' } }] }) })) as unknown as typeof fetch), null)
+})

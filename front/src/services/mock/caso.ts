@@ -408,6 +408,28 @@ export const caseService: CaseService = {
       })
     }),
 
+  pedirRevisaoDaIA: (tarefaId, respostas) =>
+    executarLogada(ctx => {
+      const achado = localizarTarefa(ctx.estado, ctx.usuario.id, tarefaId)
+      if (!achado) return falha('NAO_ENCONTRADO', 'Atividade não encontrada.')
+      const campos = achado.tarefa.campos
+      const preenchidos = campos.filter(c => { const v = respostas[c.id]; return v !== undefined && v !== null && String(v).trim() !== '' })
+      if (preenchidos.length === 0) return falha('VALIDACAO', 'Escreva ao menos uma resposta antes de pedir a revisão.')
+      // Demonstração roteirizada, sem IA: só observa o que falta e o tamanho das respostas de texto.
+      const faltam = campos.filter(c => c.obrigatorio && !preenchidos.includes(c))
+      const curtas = preenchidos.filter(c => c.tipo === 'texto' && String(respostas[c.id]).trim().length < 60)
+      return ok({
+        resumo: 'Revisão de demonstração (sem IA): com a IA ativa, a mentora lê suas respostas e comenta o que está bom e o que revisar.',
+        pontosFortes: [`Você já respondeu ${preenchidos.length} de ${campos.length} campos.`],
+        pontosAMelhorar: [
+          ...faltam.map(c => `Falta responder: ${c.rotulo}.`),
+          ...curtas.map(c => `Detalhe mais a resposta de “${c.rotulo}” com os dados do enunciado.`),
+        ].slice(0, 4),
+        dica: 'Releia o enunciado e confira se cada resposta usa os dados da tabela.',
+        restantes: 4,
+      })
+    }),
+
   pedirRevisao: (tarefaId, motivo) =>
     executarLogada(ctx => {
       const caso = ctx.estado.cases.find(c => c.tarefas.some(t => t.id === tarefaId))

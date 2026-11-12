@@ -64,3 +64,6 @@ export const jobs = pgTable('jobs', {
 export const interviewOpenQuestions = pgTable('interview_open_questions', {
   id: text('id').primaryKey(), areaId: text('area_id').notNull(), position: integer('position').notNull(), prompt: text('prompt').notNull(), goodAnswer: text('good_answer').notNull(),
 })
+export const taskReviews = pgTable('task_reviews', {
+  id: uuid('id').defaultRandom().primaryKey(), userId: uuid('user_id').notNull(), taskId: text('task_id').notNull(), createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})

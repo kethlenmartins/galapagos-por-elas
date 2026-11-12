@@ -51,7 +51,7 @@ export function promptDoSistema(areaNome: string, c: ConfigSimulacao): string {
 
 type Fetch = typeof fetch
 
-async function chamar<T>(system: string, usuario: unknown, schema: z.ZodType<T>, fetchFn: Fetch): Promise<T | null> {
+export async function chamarIA<T>(system: string, usuario: unknown, schema: z.ZodType<T>, fetchFn: Fetch): Promise<T | null> {
   const key = process.env.GROQ_API_KEY
   const model = process.env.GROQ_MODEL
   if (!key || !model) return null
@@ -81,7 +81,7 @@ const historicoParaIA = (historico: TurnoSalvo[]) =>
 /** A primeira pergunta (histórico vazio) ou a reação à última resposta mais a próxima pergunta. */
 export function proximaPergunta(areaNome: string, config: ConfigSimulacao, historico: TurnoSalvo[], fetchFn: Fetch = fetch) {
   const primeira = historico.length === 0
-  return chamar(
+  return chamarIA(
     promptDoSistema(areaNome, config),
     {
       vaga: config.vaga,
@@ -100,7 +100,7 @@ export function proximaPergunta(areaNome: string, config: ConfigSimulacao, histo
  * comparando com o critério ("o que uma boa resposta mostra"), sem entregar a resposta pronta.
  */
 export function reagir(areaNome: string, config: ConfigSimulacao, historico: TurnoSalvo[], fetchFn: Fetch = fetch) {
-  return chamar(
+  return chamarIA(
     promptDoSistema(areaNome, config),
     {
       vaga: config.vaga,
@@ -114,7 +114,7 @@ export function reagir(areaNome: string, config: ConfigSimulacao, historico: Tur
 }
 
 export function feedbackFinal(areaNome: string, config: ConfigSimulacao, historico: TurnoSalvo[], fetchFn: Fetch = fetch) {
-  return chamar(
+  return chamarIA(
     promptDoSistema(areaNome, config),
     {
       vaga: config.vaga,
