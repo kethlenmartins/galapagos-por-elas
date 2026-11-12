@@ -76,10 +76,13 @@ test('o diagnóstico da IA diz o que deu errado, sem expor a chave', async () =>
   const { diagnosticarIA } = await import('./entrevista-ia.ts')
   process.env.GROQ_API_KEY = 'SEGREDO-123'
   assert.equal((await diagnosticarIA((async () => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: '{"ok": true}' } }] }) })) as unknown as typeof fetch)).ok, true)
-  const modeloErrado = await diagnosticarIA((async () => ({ ok: false, status: 404, json: async () => ({ error: { message: 'The model `xyz` does not exist' } }) })) as unknown as typeof fetch)
+  const modeloErrado = await diagnosticarIA((async (url: string) => url.endsWith('/models')
+    ? { ok: true, status: 200, json: async () => ({ data: [{ id: 'openai/gpt-oss-20b' }, { id: 'whisper-large-v3' }] }) }
+    : { ok: false, status: 404, json: async () => ({ error: { message: 'The model `xyz` does not exist' } }) }) as unknown as typeof fetch)
   assert.equal(modeloErrado.ok, false)
   assert.equal(modeloErrado.httpStatus, 404)
   assert.match(modeloErrado.erro ?? '', /does not exist/)
+  assert.deepEqual(modeloErrado.modelosDaChave, ['openai/gpt-oss-20b'], 'lista os modelos da chave, sem os de áudio')
   assert.ok(!JSON.stringify(modeloErrado).includes('SEGREDO-123'), 'a chave não aparece')
   delete process.env.GROQ_MODEL
   assert.equal((await diagnosticarIA()).configurada, false)

@@ -138,10 +138,21 @@ export function feedbackFinal(areaNome: string, config: ConfigSimulacao, histori
   )
 }
 
+/** Os modelos de chat que a chave consegue usar (o provedor lista só os permitidos para ela). */
+async function modelosDaChave(fetchFn: Fetch): Promise<string[]> {
+  try {
+    const response = await fetchFn(GROQ_URL.replace(/\/chat\/completions$/, '/models'), { headers: { authorization: `Bearer ${process.env.GROQ_API_KEY}` }, signal: AbortSignal.timeout(15_000) })
+    const payload = (await response.json().catch(() => null)) as { data?: Array<{ id?: string }> } | null
+    return (payload?.data ?? []).map(m => m.id ?? '').filter(id => id && !/whisper|tts|orpheus|guard|embed/i.test(id)).sort()
+  } catch {
+    return []
+  }
+}
+
 /** Teste rápido da configuração da IA (usado pela equipe): chama o provedor com um pedido mínimo e diz o que deu errado. */
 export async function diagnosticarIA(fetchFn: Fetch = fetch) {
   const modelo = process.env.GROQ_MODEL ?? null
-  if (!process.env.GROQ_API_KEY || !modelo) return { configurada: false, modelo, ok: false, httpStatus: null as number | null, erro: 'Faltam GROQ_API_KEY e/ou GROQ_MODEL no servidor.' }
+  if (!process.env.GROQ_API_KEY || !modelo) return { configurada: false, modelo, ok: false, httpStatus: null as number | null, erro: 'Faltam GROQ_API_KEY e/ou GROQ_MODEL no servidor.', modelosDaChave: [] as string[] }
   try {
     const response = await fetchFn(GROQ_URL, {
       method: 'POST',
@@ -151,9 +162,10 @@ export async function diagnosticarIA(fetchFn: Fetch = fetch) {
     })
     const payload = (await response.json().catch(() => null)) as { choices?: Array<{ message?: { content?: string | null } }> } | null
     const conteudo = payload?.choices?.[0]?.message?.content
-    if (response.ok && conteudo) return { configurada: true, modelo, ok: true, httpStatus: response.status, erro: null as string | null }
-    return { configurada: true, modelo, ok: false, httpStatus: response.status, erro: erroDoProvedor(payload) }
+    const disponiveis = response.ok && conteudo ? [] : await modelosDaChave(fetchFn)
+    if (response.ok && conteudo) return { configurada: true, modelo, ok: true, httpStatus: response.status, erro: null as string | null, modelosDaChave: disponiveis }
+    return { configurada: true, modelo, ok: false, httpStatus: response.status, erro: erroDoProvedor(payload), modelosDaChave: disponiveis }
   } catch (e) {
-    return { configurada: true, modelo, ok: false, httpStatus: null, erro: `Sem resposta do provedor: ${e instanceof Error ? e.message : String(e)}` }
+    return { configurada: true, modelo, ok: false, httpStatus: null, erro: `Sem resposta do provedor: ${e instanceof Error ? e.message : String(e)}`, modelosDaChave: [] as string[] }
   }
 }
